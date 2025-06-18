@@ -1,5 +1,11 @@
 /*
-Autor: Alfredo Swidin
+ * Autor: Alfredo Swidin (Responsable del Módulo de Administración y Configuración de Encuestas)
+ *
+ * Propósito: Interfaz de Usuario (UI) principal para la gestión de encuestas por parte del administrador.
+ * Permite crear, listar, ver/modificar detalles, configurar preguntas (delegando a UIConfigurarPreguntasEncuesta),
+ * cambiar el estado, copiar y eliminar encuestas.
+ * Utiliza JOptionPane para la interacción.
+ * Es central para REQMS-007, REQMS-008, REQMS-011 y REQMS-012.
  */
 package SteveJobs.encuestas.ui;
 

@@ -1,5 +1,11 @@
 /*
-Pendiente..
+ * Autor: Pablo Alegre (Responsable del Módulo de Gestión de Preguntas)
+ *
+ * Propósito: Clase de servicio que gestiona la lógica de negocio para el banco de preguntas.
+ * Funciones esperadas: listado de preguntas con filtros, y otras operaciones CRUD
+ * sobre las preguntas del banco.
+ * Actualmente, la función listarPreguntasDelBancoConFiltro es un placeholder.
+ * Es central para REQMS-017 y REQMS-018.
  */
 package SteveJobs.encuestas.servicio;
 import SteveJobs.encuestas.modelo.PreguntaBanco;

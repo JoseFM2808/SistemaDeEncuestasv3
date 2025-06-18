@@ -1,9 +1,11 @@
 /*
-Autores:
-- Gian Fri
-- José Flores
-
-*/
+ * Autor: Gian Fri, José Flores
+ *
+ * Propósito: Gestionar y centralizar la conexión a la base de datos MySQL.
+ * Proporciona métodos estáticos para establecer y cerrar conexiones,
+ * Statements, PreparedStatements y ResultSets de forma segura.
+ * Es la capa fundamental para la persistencia de datos en todo el sistema.
+ */
 package SteveJobs.encuestas.conexion;
 
 import java.sql.Connection;

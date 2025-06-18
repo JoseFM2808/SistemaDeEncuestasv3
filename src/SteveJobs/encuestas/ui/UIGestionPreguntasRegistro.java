@@ -1,8 +1,12 @@
 /*
-Autor: José Flores
-
-*/
-
+ * Autor: José Flores (Responsable del Módulo de Interacción del Encuestado y Visualización de Resultados)
+ *
+ * Propósito: Interfaz de Usuario (UI) para la gestión de preguntas de registro de usuarios
+ * por parte del administrador.
+ * Permite agregar, listar (en consola), modificar y eliminar preguntas de registro.
+ * Utiliza JOptionPane y la consola para la interacción.
+ * Es clave para la definición de perfiles (REQMS-008).
+ */
 package SteveJobs.encuestas.ui;
 
 import SteveJobs.encuestas.modelo.PreguntaRegistro;

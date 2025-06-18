@@ -1,7 +1,11 @@
 /*
-Autor: José Flores
-
-*/
+ * Autor: José Flores (Líder del Proyecto, orquestador del menú de Administrador)
+ *
+ * Propósito: Interfaz de Usuario (UI) que presenta el menú de opciones para el usuario Administrador.
+ * Dirige el flujo hacia las UIs de gestión de Preguntas de Registro y Encuestas.
+ * (Pendiente: UIs para "Gestionar Usuarios", "Gestionar Tipos de Pregunta",
+ * "Gestionar Clasificaciones de Pregunta", "Gestionar Banco de Preguntas", y "Ver Resultados de Encuestas").
+ */
 package SteveJobs.encuestas.ui;
 
 import SteveJobs.encuestas.modelo.Usuario;

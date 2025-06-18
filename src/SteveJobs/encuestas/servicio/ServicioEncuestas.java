@@ -1,5 +1,15 @@
 /*
-Autor: Alfredo Swidin
+ * Autor: Alfredo Swidin (Responsable del Módulo de Administración y Configuración de Encuestas)
+ *
+ * Propósito: Clase de servicio que gestiona la lógica de negocio completa para las encuestas.
+ * Incluye validaciones, orquestación de DAOs (EncuestaDAO, EncuestaDetallePreguntaDAO)
+ * y preparación de datos para la UI.
+ * Funciones implementadas: registrar, modificar metadatos, cambiar estado, eliminar,
+ * asociar/agregar preguntas, marcar/desmarcar descarte, obtener preguntas, copiar encuestas,
+ * y obtener detalles completos de encuestas.
+ * Es central para REQMS-007, REQMS-008, REQMS-009, REQMS-010, REQMS-011 y REQMS-012.
+ * (Pendiente: Lógica completa de filtrado por perfil en obtenerEncuestasActivasParaUsuario,
+ * y dependencia de DAOs de Pablo para Banco, Tipo y Clasificación de Preguntas).
  */
 package SteveJobs.encuestas.servicio;
 

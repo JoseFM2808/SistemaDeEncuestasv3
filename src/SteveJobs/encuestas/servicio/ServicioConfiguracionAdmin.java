@@ -1,7 +1,12 @@
 /*
-Autor: José Flores
-
-*/
+ * Autor: José Flores (Responsable del Módulo de Interacción del Encuestado y Visualización de Resultados)
+ *
+ * Propósito: Clase de servicio que gestiona la lógica de negocio para la configuración
+ * de preguntas de registro por parte del administrador.
+ * Implementa validaciones y delega las operaciones a PreguntaRegistroDAO.
+ * Funciones implementadas: crear, listar, modificar y eliminar preguntas de registro.
+ * Es crucial para la definición de perfiles (REQMS-008).
+ */
 package SteveJobs.encuestas.servicio;
 
 import SteveJobs.encuestas.dao.PreguntaRegistroDAO;

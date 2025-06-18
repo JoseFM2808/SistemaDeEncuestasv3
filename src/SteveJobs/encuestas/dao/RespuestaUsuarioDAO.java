@@ -1,7 +1,12 @@
 /*
-Autor: José Flores
-
-*/
+ * Autor: José Flores (Responsable del Módulo de Interacción del Encuestado y Visualización de Resultados)
+ *
+ * Propósito: Objeto de Acceso a Datos (DAO) para la entidad RespuestaUsuario.
+ * Se encarga de las operaciones de persistencia de las respuestas de los usuarios a las encuestas.
+ * Funciones implementadas: guardar una lista de respuestas utilizando batching y transacciones.
+ * Es vital para REQMS-002, REQMS-003, REQMS-004, REQMS-005 y REQMS-006.
+ * (Pendiente: funciones para recuperar/consultar respuestas para reportes).
+ */
 package SteveJobs.encuestas.dao;
 
 import SteveJobs.encuestas.modelo.RespuestaUsuario;

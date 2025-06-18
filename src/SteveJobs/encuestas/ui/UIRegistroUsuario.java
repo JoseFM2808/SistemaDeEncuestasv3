@@ -1,8 +1,11 @@
 /*
-Autor: Gian Fri
-
-*/
-
+ * Autor: Gian Fri (Desarrollo inicial), Pablo Alegre (Responsable del Módulo de Gestión de Usuarios)
+ *
+ * Propósito: Interfaz de Usuario (UI) para el registro de nuevos usuarios en el sistema.
+ * Permite al usuario ingresar sus datos generales y delega la creación de la cuenta a ServicioUsuarios.
+ * Utiliza JOptionPane para la interacción.
+ * Es fundamental para REQMS-013.
+ */
 package SteveJobs.encuestas.ui;
 
 import SteveJobs.encuestas.servicio.ServicioUsuarios;

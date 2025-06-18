@@ -1,5 +1,11 @@
 /*
-Autor: AlfredoSwidin
+ * Autor: Alfredo Swidin (Responsable del Módulo de Administración y Configuración de Encuestas)
+ *
+ * Propósito: Objeto de Acceso a Datos (DAO) para la entidad Encuesta.
+ * Gestiona las operaciones de persistencia (CRUD) de las encuestas en la base de datos.
+ * Funciones implementadas: crear, actualizar, eliminar, obtener por ID y obtener todas,
+ * así como actualizar el estado de una encuesta.
+ * Es central para REQMS-007, REQMS-008, REQMS-011 y REQMS-012.
  */
 package SteveJobs.encuestas.dao;
 

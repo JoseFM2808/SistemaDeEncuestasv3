@@ -1,7 +1,11 @@
 /*
-Autor: José Flores
-
-*/
+ * Autor: José Flores (Responsable del Módulo de Interacción del Encuestado y Visualización de Resultados)
+ *
+ * Propósito: Objeto de Acceso a Datos (DAO) para la entidad PreguntaRegistro.
+ * Gestiona las operaciones de persistencia (CRUD) de las preguntas de registro de usuarios.
+ * Funciones implementadas: agregar, obtener todas, actualizar y eliminar preguntas de registro.
+ * Es fundamental para el proceso de definición de perfil (REQMS-008).
+ */
 package SteveJobs.encuestas.dao;
 
 import SteveJobs.encuestas.modelo.PreguntaRegistro;

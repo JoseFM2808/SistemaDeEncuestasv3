@@ -1,3 +1,11 @@
+/*
+ * Autor: Gian Fri (Desarrollo inicial de autenticación y registro), Pablo Alegre (Responsable del Módulo de Gestión de Usuarios)
+ *
+ * Propósito: Clase de modelo (POJO) que representa un usuario del sistema (Administrador o Encuestado).
+ * Contiene los datos generales del usuario como documento de identidad, nombres, email, contraseña,
+ * tipo de nivel (rol), fecha de registro y estado de cuenta.
+ * Es central para REQMS-013, REQMS-014 y REQMS-015.
+ */
 package SteveJobs.encuestas.modelo;
 
 import java.sql.Timestamp;

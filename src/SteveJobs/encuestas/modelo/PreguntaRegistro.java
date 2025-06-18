@@ -1,7 +1,11 @@
 /*
-Autor: José Flores
-
-*/
+ * Autor: José Flores (Responsable del Módulo de Interacción del Encuestado y Visualización de Resultados)
+ *
+ * Propósito: Clase de modelo (POJO) que representa una pregunta utilizada durante el proceso de
+ * registro de usuarios, para construir el perfil demográfico del encuestado.
+ * Contiene el texto de la pregunta, el tipo de respuesta esperado, si es obligatoria,
+ * el orden de visualización y su estado. Es crucial para REQMS-008 (definición de perfil).
+ */
 package SteveJobs.encuestas.modelo;
 
 public class PreguntaRegistro {

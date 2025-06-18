@@ -1,7 +1,12 @@
 /*
-Autor: José Flores
-
-*/
+ * Autor: José Flores (Responsable del Módulo de Interacción del Encuestado y Visualización de Resultados)
+ *
+ * Propósito: Clase de servicio que gestiona la lógica de negocio para la participación
+ * de los usuarios en las encuestas, específicamente el registro de respuestas.
+ * Implementa: registro de respuestas completas (con marcas de tiempo y retroalimentación).
+ * Es fundamental para REQMS-002, REQMS-003, REQMS-004, REQMS-005 y REQMS-006.
+ * (Pendiente: Lógica para el flujo de respuesta de la encuesta, incluyendo descarte).
+ */
 package SteveJobs.encuestas.servicio;
 
 import SteveJobs.encuestas.dao.RespuestaUsuarioDAO;

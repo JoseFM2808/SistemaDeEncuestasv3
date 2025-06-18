@@ -1,5 +1,11 @@
 /*
-Pendiente..
+ * Autor: Pablo Alegre (Responsable del Módulo de Gestión de Preguntas)
+ *
+ * Propósito: Objeto de Acceso a Datos (DAO) para la entidad PreguntaBanco.
+ * Se encarga de las operaciones de persistencia (CRUD) del banco de preguntas.
+ * Actualmente, las operaciones de consulta están marcadas como NO IMPLEMENTADAS.
+ * Funciones esperadas: crear, obtener por ID, actualizar, eliminar, y listar con filtros.
+ * Es crucial para REQMS-017 y REQMS-018.
  */
 package SteveJobs.encuestas.dao;
 

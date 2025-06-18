@@ -1,7 +1,11 @@
 /*
-Autor: José Flores
-
-*/
+ * Autor: José Flores (Líder del Proyecto, orquestador de la UI principal)
+ *
+ * Propósito: Clase principal de la aplicación que inicia el sistema y
+ * gestiona el menú principal de interacción con el usuario (login, registro).
+ * Dirige el flujo hacia las UIs de autenticación, registro y los menús de rol
+ * (Administrador o Encuestado).
+ */
 package SteveJobs.encuestas.main;
 
 import SteveJobs.encuestas.modelo.Usuario;

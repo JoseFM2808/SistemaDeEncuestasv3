@@ -1,7 +1,14 @@
 /*
-Autor: Gian Fri
-
-*/
+ * Autor: Gian Fri (Desarrollo inicial), Pablo Alegre (Responsable del Módulo de Gestión de Usuarios)
+ *
+ * Propósito: Clase de servicio que encapsula la lógica de negocio para la
+ * gestión de usuarios (registro, obtención, actualización de perfil y estado).
+ * Implementa validaciones y delega las operaciones a UsuarioDAO.
+ * Funciones implementadas: registrar, obtener por email, actualizar perfil,
+ * cambiar estado.
+ * (Pendiente: obtenerUsuarioPorId está marcada como no implementada completamente).
+ * Es central para REQMS-013, REQMS-014 y REQMS-015.
+ */
 
 package SteveJobs.encuestas.servicio;
 

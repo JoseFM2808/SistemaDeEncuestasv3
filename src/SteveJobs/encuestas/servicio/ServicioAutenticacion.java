@@ -1,7 +1,10 @@
 /*
-Autor: Gian Fri
-
-*/
+ * Autor: Gian Fri (Desarrollo inicial), Pablo Alegre (Responsable del Módulo de Gestión de Usuarios)
+ *
+ * Propósito: Clase de servicio que encapsula la lógica de negocio para la autenticación de usuarios.
+ * Valida los datos de entrada y delega la verificación de credenciales a UsuarioDAO.
+ * Es fundamental para REQMS-014.
+ */
 package SteveJobs.encuestas.servicio;
 
 import SteveJobs.encuestas.modelo.Usuario;

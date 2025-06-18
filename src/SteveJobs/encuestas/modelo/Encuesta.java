@@ -1,5 +1,10 @@
 /*
-Autor: Alfredo Swidin
+ * Autor: Alfredo Swidin (Responsable del Módulo de Administración y Configuración de Encuestas)
+ *
+ * Propósito: Clase de modelo (POJO) que representa una encuesta en el sistema.
+ * Contiene todos los metadatos de una encuesta, como nombre, descripción, fechas de vigencia,
+ * público objetivo, definición de perfil, estado, y una lista de preguntas asociadas.
+ * Es crucial para REQMS-007, REQMS-008, REQMS-011 y REQMS-012.
  */
 package SteveJobs.encuestas.modelo;
 

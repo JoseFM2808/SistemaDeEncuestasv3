@@ -1,5 +1,13 @@
 /*
-Autor: Alfredo Swidin
+ * Autor: Alfredo Swidin (Responsable del Módulo de Administración y Configuración de Encuestas)
+ *
+ * Propósito: Interfaz de Usuario (UI) para la configuración detallada de las preguntas
+ * asociadas a una encuesta específica.
+ * Permite asociar preguntas del banco, agregar preguntas únicas, ver preguntas asociadas,
+ * marcar/desmarcar preguntas de descarte y eliminar preguntas de la encuesta.
+ * Utiliza JOptionPane para la interacción.
+ * Es fundamental para REQMS-009 y REQMS-010.
+ * (Depende de la implementación de Pablo para la gestión de Banco de Preguntas, Tipos y Clasificaciones).
  */
 package SteveJobs.encuestas.ui;
 

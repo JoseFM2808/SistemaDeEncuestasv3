@@ -1,8 +1,11 @@
 /*
-Autor: Gian Fri
-
-*/
-
+ * Autor: Gian Fri (Desarrollo inicial), Pablo Alegre (Responsable del Módulo de Gestión de Usuarios)
+ *
+ * Propósito: Interfaz de Usuario (UI) para la autenticación de usuarios (login).
+ * Permite a los usuarios ingresar sus credenciales y delega la verificación al ServicioAutenticacion.
+ * Utiliza JOptionPane para la interacción.
+ * Es fundamental para REQMS-014.
+ */
 package SteveJobs.encuestas.ui;
 
 import SteveJobs.encuestas.modelo.Usuario;
