@@ -1,12 +1,7 @@
 /*
- * Autor: José Flores (Responsable del Módulo de Interacción del Encuestado y Visualización de Resultados)
- *
- * Propósito: Clase de modelo (POJO) que representa la respuesta individual de un usuario
- * a una pregunta específica dentro de una encuesta.
- * Almacena el valor de la respuesta, la fecha/hora, y marcas de tiempo de inicio/fin
- * de participación, así como retroalimentación opcional.
- * Es fundamental para REQMS-002, REQMS-003, REQMS-004, REQMS-005 y REQMS-006.
- */
+Autor: José Flores
+
+*/
 package SteveJobs.encuestas.modelo;
 
 import java.sql.Timestamp;

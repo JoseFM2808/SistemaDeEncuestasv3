@@ -1,10 +1,10 @@
 /*
- * Autor: Alfredo Swidin (Responsable del Módulo de Administración y Configuración de Encuestas)
+ * Autores del Módulo:
+ * - Alfredo Swidin
+ * - Asistente de AED (Refactorización)
  *
- * Propósito: Clase de modelo (POJO) que representa una encuesta en el sistema.
- * Contiene todos los metadatos de una encuesta, como nombre, descripción, fechas de vigencia,
- * público objetivo, definición de perfil, estado, y una lista de preguntas asociadas.
- * Es crucial para REQMS-007, REQMS-008, REQMS-011 y REQMS-012.
+ * Responsabilidad Principal:
+ * - Representa la entidad Encuesta, alineada con el diccionario de datos final.
  */
 package SteveJobs.encuestas.modelo;
 
@@ -14,34 +14,24 @@ import java.util.ArrayList;
 
 public class Encuesta {
 
+    // Atributos corregidos para coincidir con el Diccionario de Datos
     private int idEncuesta;
-    private String nombreEncuesta;
+    private String nombre;
     private String descripcion;
-    private Timestamp fechaInicioVigencia;
-    private Timestamp fechaFinVigencia;
-    private int publicoObjetivoCantidad;
-    private String definicionPerfil;
+    private Timestamp fechaInicio;
+    private Timestamp fechaFin;
+    private int publicoObjetivo;
+    private String perfilRequerido;
     private String estado;
-    private Timestamp fechaCreacionEncuesta;
+    private Timestamp fechaCreacion;
     private int idAdminCreador;
     private List<EncuestaDetallePregunta> preguntasAsociadas;
 
     public Encuesta() {
         this.preguntasAsociadas = new ArrayList<>();
     }
-
-    public Encuesta(String nombreEncuesta, String descripcion, Timestamp fechaInicioVigencia, Timestamp fechaFinVigencia, int publicoObjetivoCantidad, String definicionPerfil, int idAdminCreador) {
-        this.nombreEncuesta = nombreEncuesta;
-        this.descripcion = descripcion;
-        this.fechaInicioVigencia = fechaInicioVigencia;
-        this.fechaFinVigencia = fechaFinVigencia;
-        this.publicoObjetivoCantidad = publicoObjetivoCantidad;
-        this.definicionPerfil = definicionPerfil;
-        this.idAdminCreador = idAdminCreador;
-        this.estado = "Borrador";
-        this.preguntasAsociadas = new ArrayList<>();
-    }
     
+    // Getters y Setters corregidos
     public int getIdEncuesta() {
         return idEncuesta;
     }
@@ -50,12 +40,12 @@ public class Encuesta {
         this.idEncuesta = idEncuesta;
     }
 
-    public String getNombreEncuesta() {
-        return nombreEncuesta;
+    public String getNombre() {
+        return nombre;
     }
 
-    public void setNombreEncuesta(String nombreEncuesta) {
-        this.nombreEncuesta = nombreEncuesta;
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
     }
 
     public String getDescripcion() {
@@ -66,36 +56,36 @@ public class Encuesta {
         this.descripcion = descripcion;
     }
 
-    public Timestamp getFechaInicioVigencia() {
-        return fechaInicioVigencia;
+    public Timestamp getFechaInicio() {
+        return fechaInicio;
     }
 
-    public void setFechaInicioVigencia(Timestamp fechaInicioVigencia) {
-        this.fechaInicioVigencia = fechaInicioVigencia;
+    public void setFechaInicio(Timestamp fechaInicio) {
+        this.fechaInicio = fechaInicio;
     }
 
-    public Timestamp getFechaFinVigencia() {
-        return fechaFinVigencia;
+    public Timestamp getFechaFin() {
+        return fechaFin;
     }
 
-    public void setFechaFinVigencia(Timestamp fechaFinVigencia) {
-        this.fechaFinVigencia = fechaFinVigencia;
+    public void setFechaFin(Timestamp fechaFin) {
+        this.fechaFin = fechaFin;
     }
 
-    public int getPublicoObjetivoCantidad() {
-        return publicoObjetivoCantidad;
+    public int getPublicoObjetivo() {
+        return publicoObjetivo;
     }
 
-    public void setPublicoObjetivoCantidad(int publicoObjetivoCantidad) {
-        this.publicoObjetivoCantidad = publicoObjetivoCantidad;
+    public void setPublicoObjetivo(int publicoObjetivo) {
+        this.publicoObjetivo = publicoObjetivo;
     }
 
-    public String getDefinicionPerfil() {
-        return definicionPerfil;
+    public String getPerfilRequerido() {
+        return perfilRequerido;
     }
 
-    public void setDefinicionPerfil(String definicionPerfil) {
-        this.definicionPerfil = definicionPerfil;
+    public void setPerfilRequerido(String perfilRequerido) {
+        this.perfilRequerido = perfilRequerido;
     }
 
     public String getEstado() {
@@ -106,12 +96,12 @@ public class Encuesta {
         this.estado = estado;
     }
 
-    public Timestamp getFechaCreacionEncuesta() {
-        return fechaCreacionEncuesta;
+    public Timestamp getFechaCreacion() {
+        return fechaCreacion;
     }
 
-    public void setFechaCreacionEncuesta(Timestamp fechaCreacionEncuesta) {
-        this.fechaCreacionEncuesta = fechaCreacionEncuesta;
+    public void setFechaCreacion(Timestamp fechaCreacion) {
+        this.fechaCreacion = fechaCreacion;
     }
 
     public int getIdAdminCreador() {
@@ -128,22 +118,5 @@ public class Encuesta {
 
     public void setPreguntasAsociadas(List<EncuestaDetallePregunta> preguntasAsociadas) {
         this.preguntasAsociadas = preguntasAsociadas;
-    }
-    
-    @Override
-    public String toString() {
-        return "Encuesta{" +
-                "idEncuesta=" + idEncuesta +
-                ", nombreEncuesta='" + nombreEncuesta + '\'' +
-                ", descripcion='" + descripcion + '\'' +
-                ", fechaInicioVigencia=" + fechaInicioVigencia +
-                ", fechaFinVigencia=" + fechaFinVigencia +
-                ", publicoObjetivoCantidad=" + publicoObjetivoCantidad +
-                ", definicionPerfil='" + definicionPerfil + '\'' +
-                ", estado='" + estado + '\'' +
-                ", fechaCreacionEncuesta=" + fechaCreacionEncuesta +
-                ", idAdminCreador=" + idAdminCreador +
-                ", preguntasAsociadas=" + (preguntasAsociadas != null ? preguntasAsociadas.size() : "0") + " preguntas" +
-                '}';
     }
 }

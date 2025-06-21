@@ -1,13 +1,22 @@
 /*
- * Autor: José Flores (Responsable del Módulo de Interacción del Encuestado y Visualización de Resultados)
+ * Autores del Módulo:
+ * - José Flores
  *
- * Propósito: Clase de servicio que gestionará la lógica de negocio para la
- * visualización, filtrado y exportación de resultados consolidados de encuestas.
- * Actualmente es un placeholder y requiere implementación completa.
- * Es crucial para REQMS-004, REQMS-005 y REQMS-006.
+ * Responsabilidad Principal:
+ * - Lógica de generación de resultados de encuestas
  */
 package SteveJobs.encuestas.servicio;
 
+// TODO: Add imports and class content as needed
+
 public class ServicioResultados {
-    
+
+    // TODO: Implement service methods for result processing
+    // For example:
+    // public Map<String, Double> calcularPromediosPorPregunta(int idEncuesta) { ... }
+    // public Map<String, Map<Object, Integer>> calcularFrecuenciasPorPregunta(int idEncuesta) { ... }
+
+    public ServicioResultados() {
+        // Initialize DAOs or other services if needed
+    }
 }

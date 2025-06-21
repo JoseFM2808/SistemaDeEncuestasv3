@@ -1,16 +1,15 @@
 /*
- * Autor: José Flores (Responsable del Módulo de Interacción del Encuestado y Visualización de Resultados)
+ * Autores del Módulo:
+ * - José Flores
  *
- * Propósito: Interfaz de Usuario (UI) para la gestión de preguntas de registro de usuarios
- * por parte del administrador.
- * Permite agregar, listar (en consola), modificar y eliminar preguntas de registro.
- * Utiliza JOptionPane y la consola para la interacción.
- * Es clave para la definición de perfiles (REQMS-008).
+ * Responsabilidad Principal:
+ * - UI para gestión de preguntas de registro
  */
 package SteveJobs.encuestas.ui;
 
 import SteveJobs.encuestas.modelo.PreguntaRegistro;
 import SteveJobs.encuestas.servicio.ServicioConfiguracionAdmin;
+import SteveJobs.encuestas.util.PilaNavegacion; // Importar PilaNavegacion
 import javax.swing.JOptionPane;
 import java.util.List;
 import java.util.Scanner;
@@ -59,6 +58,9 @@ public class UIGestionPreguntasRegistro {
                     eliminarPreguntaUI();
                     break;
                 case "Volver al Menú Administrador":
+                    if (!PilaNavegacion.instance.isEmpty()) {
+                        PilaNavegacion.instance.pop(); // Pop al volver
+                    }
                     salir = true;
                     break;
                 default:
