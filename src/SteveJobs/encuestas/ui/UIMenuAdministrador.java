@@ -27,7 +27,7 @@ public class UIMenuAdministrador {
                 "Gestionar Preguntas de Registro",
                 "Gestionar Encuestas",
                 "Gestionar Banco de Preguntas",
-                "Ver Resultados de Encuestas",
+                "Ver Resultados de Encuestas", // Opción de reportes actualizada
                 "Gestionar Usuarios", // Funcionalidad pendiente
                 "Gestionar Tipos de Pregunta", // Funcionalidad pendiente
                 "Gestionar Clasificaciones de Pregunta", // Funcionalidad pendiente
@@ -44,40 +44,57 @@ public class UIMenuAdministrador {
                     opcionesAdmin[0]
             );
 
-            if (seleccion == null || seleccion.equals(opcionesAdmin[7])) {
+            if (seleccion == null || seleccion.equals(opcionesAdmin[7])) { // Opción "Salir" o cerrar ventana
                 salirMenuAdmin = true;
                 continue;
             }
 
             // Usamos la Pila de Navegación antes de entrar a un submenú
-            if (PilaNavegacion.instance != null) {
-                PilaNavegacion.instance.push("MenuAdmin");
+            // Para la opción "Salir", no empujamos a la pila.
+            // Para las opciones pendientes, tampoco empujamos si no hay un submenú real.
+            if (!seleccion.equals(opcionesAdmin[7])) {
+                if (PilaNavegacion.instance != null) {
+                    PilaNavegacion.instance.push("MenuAdmin");
+                }
             }
+
 
             switch (seleccion) {
                 case "Gestionar Preguntas de Registro":
                     UIGestionPreguntasRegistro.mostrarMenu();
                     break;
                 case "Gestionar Encuestas":
-                    // Asume que UIGestionEncuestas tiene un método estático mostrarMenu(admin)
                     UIGestionEncuestas.mostrarMenu(admin);
                     break;
                 case "Gestionar Banco de Preguntas":
                     // Asume que existe UIGestionBancoPreguntas con este método
                     // UIGestionBancoPreguntas.mostrarMenu(); // Descomentar cuando la clase exista y esté lista
                     JOptionPane.showMessageDialog(null, "Funcionalidad 'Gestionar Banco de Preguntas' pendiente.");
+                    // Si se muestra un mensaje de pendiente y no se entra a un submenú, revertimos el push
+                    if (PilaNavegacion.instance != null && !PilaNavegacion.instance.isEmpty()) {
+                        PilaNavegacion.instance.pop();
+                    }
                     break;
                 case "Ver Resultados de Encuestas":
-                    JOptionPane.showMessageDialog(null, "Funcionalidad 'Ver Resultados de Encuestas' pendiente.");
+                    UIReportesEncuesta.mostrarMenu(); // Llama al nuevo menú de reportes
                     break;
                 case "Gestionar Usuarios":
                     JOptionPane.showMessageDialog(null, "Funcionalidad 'Gestionar Usuarios' pendiente.");
+                     if (PilaNavegacion.instance != null && !PilaNavegacion.instance.isEmpty()) {
+                        PilaNavegacion.instance.pop();
+                    }
                     break;
                 case "Gestionar Tipos de Pregunta":
                     JOptionPane.showMessageDialog(null, "Funcionalidad 'Gestionar Tipos de Pregunta' pendiente.");
+                     if (PilaNavegacion.instance != null && !PilaNavegacion.instance.isEmpty()) {
+                        PilaNavegacion.instance.pop();
+                    }
                     break;
                 case "Gestionar Clasificaciones de Pregunta":
                     JOptionPane.showMessageDialog(null, "Funcionalidad 'Gestionar Clasificaciones de Pregunta' pendiente.");
+                     if (PilaNavegacion.instance != null && !PilaNavegacion.instance.isEmpty()) {
+                        PilaNavegacion.instance.pop();
+                    }
                     break;
                 default:
                     // Si la opción no es válida, no debería haber un push en la pila, así que lo sacamos.
