@@ -1,6 +1,16 @@
 /*
-Autor: Alfredo Swidin
+ * Responsable: Alfredo Swidin
+ * Relación con otras partes del código:
+ * - Es una entidad intermedia que relaciona Encuestas con Preguntas del Banco
+ * o define preguntas únicas para una encuesta específica.
+ * - Gestionada por EncuestaDetallePreguntaDAO y ServicioEncuestas.
+ * Funcionalidad:
+ * - Representa el modelo de datos (POJO) para el detalle de una pregunta dentro de una encuesta,
+ * incluyendo su orden, si es de descarte y el criterio asociado.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - N/A (Clase de modelo, no implementa algoritmos de ordenamiento o estructuras complejas).
  */
+
 package SteveJobs.encuestas.modelo;
 
 public class EncuestaDetallePregunta {

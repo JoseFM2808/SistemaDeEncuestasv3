@@ -1,10 +1,17 @@
 /*
- * Autores del Módulo:
- * - José Flores
- *
- * Responsabilidad Principal:
- * - Acceso a datos de respuestas de usuarios
+ * Responsable: José Flores
+ * Relación con otras partes del código:
+ * - Utilizado por ServicioParticipacion para almacenar las respuestas de los encuestados.
+ * - Utilizado por ServicioEncuestas (o un futuro ServicioResultados) para validar
+ * si un usuario ya ha respondido una encuesta.
+ * Funcionalidad:
+ * - Gestiona la persistencia (CRUD) de las respuestas dadas por los usuarios
+ * a las preguntas de las encuestas. Permite guardar listas de respuestas de forma eficiente (batch).
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - Utiliza List para recibir y procesar las respuestas de los usuarios.
+ * - No emplea ordenamiento interno explícito para sus operaciones CRUD.
  */
+
 package SteveJobs.encuestas.dao;
 
 import SteveJobs.encuestas.modelo.RespuestaUsuario;

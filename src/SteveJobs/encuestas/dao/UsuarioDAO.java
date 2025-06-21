@@ -1,10 +1,16 @@
 /*
- * Autores del Módulo:
- * - Pablo Alegre
- *
- * Responsabilidad Principal:
- * - Acceso a datos de usuarios
+ * Responsable: Pablo Alegre
+ * Relación con otras partes del código:
+ * - Es la persistencia principal para la entidad Usuario, utilizada por
+ * ServicioAutenticacion y ServicioUsuarios para la gestión de usuarios.
+ * Funcionalidad:
+ * - Proporciona métodos para crear, obtener, actualizar y eliminar objetos Usuario
+ * en la base de datos. Incluye la validación de credenciales para la autenticación.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - Retorna colecciones de tipo List<Usuario>.
+ * - No emplea ordenamiento interno explícito para sus operaciones CRUD, más allá del orden de la BD.
  */
+
 package SteveJobs.encuestas.dao;
 
 import SteveJobs.encuestas.modelo.Usuario;

@@ -1,10 +1,16 @@
 /*
- * Autores del Módulo:
- * - Pablo Alegre
- *
- * Responsabilidad Principal:
- * - UI para autenticación de usuarios
+ * Responsable: Pablo Alegre
+ * Relación con otras partes del código:
+ * - Es la interfaz de usuario para el inicio de sesión.
+ * - Se comunica con ServicioAutenticacion para validar las credenciales.
+ * - Es el punto de partida inicial para acceder a los menús de rol (UIMenuAdministrador, UIMenuEncuestado).
+ * Funcionalidad:
+ * - Solicita y recolecta las credenciales (email, contraseña) del usuario.
+ * - Muestra mensajes de éxito o error de autenticación.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - N/A (Clase de interfaz de usuario).
  */
+
 package SteveJobs.encuestas.ui;
 
 import SteveJobs.encuestas.modelo.Usuario;

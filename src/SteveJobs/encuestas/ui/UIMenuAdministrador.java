@@ -1,11 +1,17 @@
 /*
- * Autores del Módulo:
- * - José Flores
- * - Asistente de AED (Refactorización)
- *
- * Responsabilidad Principal:
- * - Menú principal para el rol Administrador.
+ * Responsable: José Flores (Refactorizado con Asistente de AED)
+ * Relación con otras partes del código:
+ * - Es el menú principal para los usuarios con el rol de Administrador.
+ * - Orquesta la navegación a las interfaces de gestión de Preguntas de Registro,
+ * Encuestas, Banco de Preguntas, etc.
+ * - Utiliza la PilaNavegacion para gestionar el historial de menús.
+ * Funcionalidad:
+ * - Presenta un menú de opciones específicas para el rol de Administrador,
+ * permitiendo acceder a diversas funcionalidades de gestión.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - Emplea la Pila (Stack) a través de PilaNavegacion para gestionar el flujo de navegación entre submenús.
  */
+
 package SteveJobs.encuestas.ui;
 
 import SteveJobs.encuestas.modelo.Usuario;

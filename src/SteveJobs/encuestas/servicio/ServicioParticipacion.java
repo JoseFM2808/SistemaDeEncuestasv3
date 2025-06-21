@@ -1,10 +1,16 @@
 /*
- * Autores del Módulo:
- * - José Flores
- *
- * Responsabilidad Principal:
- * - Lógica de participación en encuestas
+ * Responsable: José Flores
+ * Relación con otras partes del código:
+ * - Implementa la lógica de negocio para la participación de los encuestados.
+ * - Se comunica con RespuestaUsuarioDAO para guardar las respuestas.
+ * - Utilizado por la UI (UIMenuEncuestado).
+ * Funcionalidad:
+ * - Registra un conjunto de respuestas de un usuario para una encuesta.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - Utiliza la estructura de datos List para recibir las respuestas a registrar.
+ * - N/A (Lógica de negocio, no implementa ordenamiento directo).
  */
+
 package SteveJobs.encuestas.servicio;
 
 import SteveJobs.encuestas.dao.RespuestaUsuarioDAO;

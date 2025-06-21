@@ -1,7 +1,15 @@
 /*
-Autor: José Flores
+ * Responsable: José Flores
+ * Relación con otras partes del código:
+ * - Es una entidad clave para almacenar las respuestas dadas por los encuestados.
+ * - Gestionada por RespuestaUsuarioDAO y ServicioParticipacion.
+ * Funcionalidad:
+ * - Representa el modelo de datos (POJO) para una respuesta específica de un usuario
+ * a una pregunta de encuesta.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - N/A (Clase de modelo, no implementa algoritmos de ordenamiento o estructuras complejas).
+ */
 
-*/
 package SteveJobs.encuestas.modelo;
 
 import java.sql.Timestamp;

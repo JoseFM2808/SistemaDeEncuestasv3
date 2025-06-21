@@ -1,10 +1,15 @@
 /*
- * Autores del Módulo:
- * - Pablo Alegre
- *
- * Responsabilidad Principal:
- * - UI para registro de usuarios
+ * Responsable: Pablo Alegre
+ * Relación con otras partes del código:
+ * - Es la interfaz de usuario para el registro de nuevos usuarios.
+ * - Se comunica con ServicioUsuarios para realizar el proceso de registro.
+ * Funcionalidad:
+ * - Solicita y recolecta los datos necesarios para registrar un nuevo usuario en el sistema.
+ * - Realiza validaciones básicas de los campos de entrada.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - N/A (Clase de interfaz de usuario).
  */
+
 package SteveJobs.encuestas.ui;
 
 import SteveJobs.encuestas.servicio.ServicioUsuarios;

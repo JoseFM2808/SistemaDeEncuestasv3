@@ -1,12 +1,15 @@
 /*
- * Módulo Responsable: Gestión de Entidades Base (Usuarios y Preguntas)
- * Autores: Pablo Alegre
- * Versión: 2.0 (Reescritura)
- * Fecha: 15/06/2025
- *
- * Descripción del Archivo:
- * Clase POJO para representar la entidad 'Usuarios'.
+ * Responsable: Pablo Alegre
+ * Relación con otras partes del código:
+ * - Es una entidad fundamental del sistema, gestionada por UsuarioDAO, ServicioAutenticacion
+ * y ServicioUsuarios.
+ * - Utilizada por la UI (UIAutenticacion, UIRegistroUsuario, UIMenuAdministrador, UIMenuEncuestado).
+ * Funcionalidad:
+ * - Representa el modelo de datos (POJO) para un usuario del sistema (Administrador o Encuestado).
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - N/A (Clase de modelo, no implementa algoritmos de ordenamiento o estructuras complejas).
  */
+
 package SteveJobs.encuestas.modelo;
 
 import java.sql.Timestamp;

@@ -1,10 +1,21 @@
 /*
- * Autores del Módulo:
- * - Alfredo Swidin
- *
- * Responsabilidad Principal:
- * - Lógica de negocio para encuestas
+ * Responsable: Alfredo Swidin (Refactorizado con Asistente de AED)
+ * Relación con otras partes del código:
+ * - Es un servicio central que gestiona la lógica de negocio de las encuestas.
+ * - Coordina operaciones con EncuestaDAO, EncuestaDetallePreguntaDAO, PreguntaBancoDAO,
+ * TipoPreguntaDAO, ClasificacionPreguntaDAO.
+ * - Utilizado por la UI (UIGestionEncuestas, UIConfigurarPreguntasEncuesta, UIMenuEncuestado).
+ * Funcionalidad:
+ * - Proporciona métodos para registrar, modificar, eliminar, copiar y cambiar el estado de encuestas.
+ * - Maneja la asociación de preguntas del banco y preguntas únicas a encuestas.
+ * - Incluye lógica de negocio para activación de encuestas (ej. cantidad de preguntas).
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - Emplea el algoritmo de Ordenamiento por Inserción para ordenar listas de encuestas por nombre.
+ * - Emplea el algoritmo de Búsqueda Binaria para buscar encuestas por ID en listas ordenadas.
+ * - Emplea el algoritmo de Búsqueda Secuencial para buscar preguntas por orden en una encuesta.
+ * - Utiliza la estructura de datos List para manejar colecciones de Encuestas y EncuestaDetallePregunta.
  */
+
 package SteveJobs.encuestas.servicio;
 
 import SteveJobs.encuestas.dao.EncuestaDAO;

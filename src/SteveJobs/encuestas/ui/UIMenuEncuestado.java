@@ -1,11 +1,17 @@
 /*
- * Autores del Módulo:
- * - José Flores
- * - Asistente de AED (Implementación y Refactorización)
- *
- * Responsabilidad Principal:
- * - UI para la interacción del encuestado con el sistema.
+ * Responsable: José Flores (Implementado y Refactorizado con Asistente de AED)
+ * Relación con otras partes del código:
+ * - Es el menú principal para los usuarios con el rol de Encuestado.
+ * - Se comunica con ServicioEncuestas para obtener encuestas disponibles.
+ * - Se comunica con ServicioParticipacion para registrar las respuestas.
+ * Funcionalidad:
+ * - Presenta un menú de opciones para el encuestado, principalmente para
+ * visualizar y responder encuestas activas que califican para su perfil.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - Utiliza List para mostrar y manejar colecciones de encuestas y preguntas.
+ * - Emplea el ordenamiento para las preguntas de la encuesta (Comparator.comparingInt).
  */
+
 package SteveJobs.encuestas.ui;
 
 import SteveJobs.encuestas.modelo.Encuesta;

@@ -1,10 +1,17 @@
 /*
- * Autores del Módulo:
- * - José Flores
- *
- * Responsabilidad Principal:
- * - UI para gestión de preguntas de registro
+ * Responsable: José Flores
+ * Relación con otras partes del código:
+ * - Es la interfaz de usuario para la gestión de preguntas de registro por parte del administrador.
+ * - Se comunica con ServicioConfiguracionAdmin para realizar las operaciones.
+ * - Utiliza la PilaNavegacion para permitir volver al menú principal del administrador.
+ * Funcionalidad:
+ * - Permite al administrador agregar, listar, modificar y eliminar las preguntas
+ * que se utilizan para perfilar a los usuarios durante el registro.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - Utiliza List para mostrar colecciones de preguntas de registro.
+ * - Emplea la Pila (Stack) a través de PilaNavegacion para gestionar el flujo de regreso al menú principal.
  */
+
 package SteveJobs.encuestas.ui;
 
 import SteveJobs.encuestas.modelo.PreguntaRegistro;

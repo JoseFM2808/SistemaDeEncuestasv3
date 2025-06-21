@@ -1,10 +1,16 @@
 /*
- * Autores del Módulo:
- * - Alfredo Swidin
- *
- * Responsabilidad Principal:
- * - Acceso a datos de preguntas detalle de encuesta
+ * Responsable: Alfredo Swidin
+ * Relación con otras partes del código:
+ * - Utilizado por ServicioEncuestas para gestionar la relación "muchos a muchos" entre
+ * Encuestas y Preguntas (del banco o únicas).
+ * Funcionalidad:
+ * - Maneja la persistencia de los detalles de preguntas asociadas a una encuesta,
+ * incluyendo su orden, si es de descarte y el criterio de descarte.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - Las consultas SQL pueden ordenar las preguntas por 'orden_en_encuesta'.
+ * - Retorna colecciones de tipo List<EncuestaDetallePregunta>.
  */
+
 package SteveJobs.encuestas.dao;
 
 import SteveJobs.encuestas.modelo.EncuestaDetallePregunta;

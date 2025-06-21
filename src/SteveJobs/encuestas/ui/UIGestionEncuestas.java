@@ -1,10 +1,19 @@
 /*
- * Autores del Módulo:
- * - Alfredo Swidin
- *
- * Responsabilidad Principal:
- * - UI para gestión de encuestas
+ * Responsable: Alfredo Swidin
+ * Relación con otras partes del código:
+ * - Es la interfaz de usuario principal para la gestión de encuestas por parte del administrador.
+ * - Se comunica con ServicioEncuestas para realizar todas las operaciones CRUD y de configuración.
+ * - Llama a UIConfigurarPreguntasEncuesta para la configuración detallada de preguntas.
+ * - Utiliza la PilaNavegacion para permitir volver al menú principal del administrador.
+ * Funcionalidad:
+ * - Presenta un menú para crear, listar, ver/modificar detalles, configurar preguntas,
+ * cambiar estado, copiar, eliminar y buscar encuestas por ID.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - Utiliza List para mostrar colecciones de encuestas.
+ * - Emplea la Pila (Stack) a través de PilaNavegacion para gestionar el flujo de regreso al menú principal.
+ * - (Indirectamente) se beneficia de los algoritmos de ordenamiento y búsqueda de ServicioEncuestas.
  */
+
 package SteveJobs.encuestas.ui;
 
 import SteveJobs.encuestas.modelo.Encuesta;

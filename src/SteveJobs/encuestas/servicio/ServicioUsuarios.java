@@ -1,47 +1,32 @@
 /*
- * Autores del Módulo:
- * - Pablo Alegre
- *
- * Responsabilidad Principal:
- * - Lógica de negocio para usuarios
+ * Responsable: Pablo Alegre
+ * Relación con otras partes del código:
+ * - Implementa la lógica de negocio para la gestión de usuarios (registro y perfil).
+ * - Se comunica con UsuarioDAO para la persistencia.
+ * - Utilizado por la UI (UIRegistroUsuario).
+ * Funcionalidad:
+ * - Permite registrar nuevos usuarios en el sistema, con validaciones de campos.
+ * - Proporciona métodos para obtener usuarios y actualizar su perfil.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - N/A (Lógica de negocio, no maneja colecciones ni ordenamiento directo).
  */
 package SteveJobs.encuestas.servicio;
 
 import SteveJobs.encuestas.modelo.Usuario;
-// import SteveJobs.encuestas.modelo.Usuario; // Duplicate import removed
 import SteveJobs.encuestas.dao.UsuarioDAO;
 import java.time.LocalDate;
-// Timestamp no es necesario aquí si se maneja en DAO/DB para fecha_registro
-// import java.sql.Timestamp;
-
 public class ServicioUsuarios {
 
     private UsuarioDAO usuarioDAO;
 
-    // private static final Pattern EMAIL_PATTERN = ...; // Eliminado según REQ
 
     public ServicioUsuarios() {
         this.usuarioDAO = new UsuarioDAO();
     }
 
-    /**
-     * Registra un nuevo usuario en el sistema.
-     *
-     * @param dni El Documento Nacional de Identidad del usuario. Debe ser único.
-     * @param nombres Los nombres completos del usuario.
-     * @param apellidos Los apellidos completos del usuario.
-     * @param email El correo electrónico del usuario. Debe ser único.
-     * @param clave La contraseña para el acceso del usuario.
-     * @param fecha_nacimiento La fecha de nacimiento del usuario. Puede ser {@code null}.
-     * @param genero El género del usuario (e.g., "Masculino", "Femenino", "Otro"). Puede ser {@code null}.
-     * @param distrito_residencia El distrito donde reside el usuario. Puede ser {@code null}.
-     * @param rol El rol asignado al nuevo usuario (e.g., "Encuestado", "Administrador"). No debe ser {@code null}.
-     * @return {@code true} si el usuario se registró exitosamente, {@code false} en caso contrario (p.ej., email o DNI ya existen, error de base de datos).
-     */
     public boolean registrarNuevoUsuario(String dni, String nombres, String apellidos, String email, String clave,
                                          LocalDate fecha_nacimiento, String genero, String distrito_residencia, String rol) {
 
-        // Validaciones de campos obligatorios
         if (dni == null || dni.trim().isEmpty()) {
             System.err.println("Error de registro: El DNI no puede estar vacío.");
             return false;
@@ -68,26 +53,19 @@ public class ServicioUsuarios {
             return false;
         }
 
-        // Aquí se podría añadir una verificación de existencia de email/DNI
-        // llamando a usuarioDAO.obtenerUsuarioPorEmail() o similar si es necesario
-        // antes de intentar la creación, aunque el DAO también debería manejarlo.
-
         Usuario nuevoUsuario = new Usuario();
         nuevoUsuario.setDni(dni.trim());
         nuevoUsuario.setNombres(nombres.trim());
         nuevoUsuario.setApellidos(apellidos.trim());
         nuevoUsuario.setEmail(email.trim());
-        nuevoUsuario.setClave(clave); // Se asume que el hashing, si es necesario, se maneja en otro lugar o no se usa.
+        nuevoUsuario.setClave(clave);
 
-        nuevoUsuario.setFecha_nacimiento(fecha_nacimiento); // Puede ser null
-        nuevoUsuario.setGenero(genero != null ? genero.trim() : null); // Puede ser null
-        nuevoUsuario.setDistrito_residencia(distrito_residencia != null ? distrito_residencia.trim() : null); // Puede ser null
+        nuevoUsuario.setFecha_nacimiento(fecha_nacimiento);
+        nuevoUsuario.setGenero(genero != null ? genero.trim() : null);
+        nuevoUsuario.setDistrito_residencia(distrito_residencia != null ? distrito_residencia.trim() : null);
         nuevoUsuario.setRol(rol.trim());
 
-        // fecha_registro es usualmente manejada por la base de datos (e.g., DEFAULT CURRENT_TIMESTAMP)
-        // o se establece en la capa DAO al momento de la inserción.
-
-        boolean registrado = usuarioDAO.crearUsuario(nuevoUsuario); // Cambio de registrarUsuario a crearUsuario
+        boolean registrado = usuarioDAO.crearUsuario(nuevoUsuario);
 
         if (registrado) {
             System.out.println("Servicio: Usuario '" + email.trim() + "' registrado exitosamente.");
@@ -98,8 +76,7 @@ public class ServicioUsuarios {
     }
 
     public Usuario obtenerUsuarioPorId(int idUsuario) {
-        // System.out.println("Servicio: obtenerUsuarioPorId(" + idUsuario + ")"); // Log opcional
-        return usuarioDAO.obtenerUsuarioPorId(idUsuario); // Asume que el método existe en UsuarioDAO
+        return usuarioDAO.obtenerUsuarioPorId(idUsuario);
     }
 
     public Usuario obtenerUsuarioPorEmail(String email) {
@@ -107,30 +84,19 @@ public class ServicioUsuarios {
             System.err.println("Servicio: Email inválido para búsqueda.");
             return null;
         }
-        // System.out.println("Servicio: Buscando usuario por email: " + email); // Log opcional
         return usuarioDAO.obtenerUsuarioPorEmail(email.trim());
     }
 
     public boolean actualizarPerfilUsuario(Usuario usuario) {
-        if (usuario == null || usuario.getId_usuario() <= 0) { // Corregido a getId_usuario()
+        if (usuario == null || usuario.getId_usuario() <= 0) {
             System.err.println("Servicio: Datos de usuario inválidos o ID de usuario faltante para actualizar.");
             return false;
         }
-        // System.out.println("Servicio: Intentando actualizar perfil para usuario ID: " + usuario.getId_usuario()); // Log opcional
-        return usuarioDAO.actualizarUsuario(usuario); // Asume que el método existe y se llama actualizarUsuario
+        return usuarioDAO.actualizarUsuario(usuario);
     }
 
     public boolean cambiarEstadoUsuario(int idUsuario, String nuevoEstado) {
-        // Esta funcionalidad requiere una definición más clara de cómo se maneja el "estado" en el modelo Usuario
-        // y qué operaciones soporta el DAO. La implementación original tenía 'cambiarEstadoCuenta'.
-        // Si Usuario tiene un campo 'estado', se debería obtener el usuario, setear el estado y actualizar.
         System.err.println("Servicio: cambiarEstadoUsuario no está completamente implementado o requiere clarificación de la estructura de 'estado' y DAO.");
-        // Ejemplo conceptual si Usuario tiene setEstado() y DAO tiene actualizarUsuario():
-        // Usuario u = usuarioDAO.obtenerUsuarioPorId(idUsuario);
-        // if (u != null && nuevoEstado != null && !nuevoEstado.trim().isEmpty()) {
-        //     u.setEstado(nuevoEstado.trim()); // Suponiendo que existe u.setEstado()
-        //     return usuarioDAO.actualizarUsuario(u);
-        // }
-        return false; // Placeholder
+        return false;
     }
 }

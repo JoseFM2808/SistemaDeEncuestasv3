@@ -1,12 +1,17 @@
 /*
- * Autores del Módulo:
- * - Pablo Alegre
- *
- * Responsabilidad Principal:
- * - Gestionar la persistencia y el modelo de las Preguntas del Banco.
- * - Este archivo ha sido refactorizado y completado por el Asistente de AED para asegurar
- * la consistencia con el modelo de datos final.
+ * Responsable: Pablo Alegre (Refactorizado y completado por Asistente de AED)
+ * Relación con otras partes del código:
+ * - Utilizado por ServicioPreguntas para gestionar el banco general de preguntas.
+ * - También utilizado por ServicioEncuestas para asociar preguntas existentes
+ * del banco a encuestas específicas.
+ * Funcionalidad:
+ * - Gestiona la persistencia (CRUD) de las preguntas que forman parte del
+ * banco general de preguntas del sistema.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - Las consultas SQL pueden ordenar las preguntas (e.g., por id_pregunta_banco).
+ * - Retorna colecciones de tipo List<PreguntaBanco>.
  */
+
 package SteveJobs.encuestas.dao;
 
 import SteveJobs.encuestas.modelo.PreguntaBanco;

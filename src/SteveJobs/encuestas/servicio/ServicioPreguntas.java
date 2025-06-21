@@ -1,11 +1,15 @@
 /*
- * Autores del Módulo:
- * - Pablo Alegre
- *
- * Responsabilidad Principal:
- * - Lógica de negocio para el banco de preguntas.
- * - Versión corregida por Asistente de AED para alinear con el modelo y DAO finales.
+ * Responsable: Pablo Alegre (Corregido por Asistente de AED para alineación con modelo y DAO finales)
+ * Relación con otras partes del código:
+ * - Implementa la lógica de negocio para la gestión del banco de preguntas.
+ * - Se comunica con PreguntaBancoDAO para la persistencia.
+ * - Utilizado por la UI (UIGestionBancoPreguntas - si se implementa, y UIConfigurarPreguntasEncuesta).
+ * Funcionalidad:
+ * - Permite registrar nuevas preguntas en el banco y obtener listados de preguntas del banco.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - N/A (La obtención de listas ordenadas se delega al DAO).
  */
+
 package SteveJobs.encuestas.servicio;
 
 import SteveJobs.encuestas.modelo.PreguntaBanco;

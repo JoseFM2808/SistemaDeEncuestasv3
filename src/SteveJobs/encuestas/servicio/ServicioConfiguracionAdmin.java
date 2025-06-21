@@ -1,10 +1,15 @@
 /*
- * Autores del Módulo:
- * - José Flores
- *
- * Responsabilidad Principal:
- * - Lógica de configuración general de administrador
+ * Responsable: José Flores
+ * Relación con otras partes del código:
+ * - Implementa la lógica de negocio para la gestión de preguntas de registro.
+ * - Se comunica con PreguntaRegistroDAO para la persistencia.
+ * - Utilizado por la UI (UIGestionPreguntasRegistro).
+ * Funcionalidad:
+ * - Permite crear, listar, modificar y eliminar preguntas utilizadas para el registro y perfilado de usuarios.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - N/A (La obtención de listas ordenadas se delega al DAO).
  */
+
 package SteveJobs.encuestas.servicio;
 
 import SteveJobs.encuestas.dao.PreguntaRegistroDAO;

@@ -1,3 +1,14 @@
+/*
+ * Responsable: Giancarlo Janampa Frisancho (Pendiente de implementación completa por Pablo Alegre)
+ * Relación con otras partes del código:
+ * - Dependencia clave para ServicioEncuestas y ServicioPreguntas al asociar preguntas
+ * a clasificaciones existentes o al obtener detalles completos de preguntas.
+ * Funcionalidad:
+ * - Objeto de Acceso a Datos (DAO) para la entidad ClasificacionPregunta.
+ * - Gestiona las operaciones de persistencia (CRUD) para las clasificaciones de preguntas.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - N/A (Implementación actual es un placeholder, pero manejaría colecciones List de objetos).
+ */
 
 package SteveJobs.encuestas.dao;
 

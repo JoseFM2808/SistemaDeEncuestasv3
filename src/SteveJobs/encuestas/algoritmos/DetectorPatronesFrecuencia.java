@@ -1,3 +1,15 @@
+/*
+ * Responsable: José Flores
+ * Relación con otras partes del código:
+ * - Utilizado por el módulo de servicios (e.g., ServicioResultados) para identificar
+ * respuestas comunes en preguntas categóricas o de opción múltiple.
+ * Funcionalidad:
+ * - Calcula la frecuencia de ocurrencia de elementos en una lista y detecta los más frecuentes.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - Emplea la estructura de datos Map (HashMap) para almacenar las frecuencias de las respuestas.
+ * - Utiliza la estructura de datos List para la entrada de las respuestas.
+ */
+
 package SteveJobs.encuestas.algoritmos;
 
 import java.util.HashMap;
@@ -5,11 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * Detecta patrones de frecuencia en una lista de respuestas.
- * Principalmente útil para identificar las respuestas más comunes
- * en preguntas categóricas o de opción múltiple.
- */
 public class DetectorPatronesFrecuencia {
 
     /**

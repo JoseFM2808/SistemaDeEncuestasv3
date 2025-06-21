@@ -1,11 +1,16 @@
 /*
- * Autores del Módulo:
- * - Alfredo Swidin
- * - Asistente de AED (Refactorización)
- *
- * Responsabilidad Principal:
- * - Acceso a datos para la entidad Encuesta, alineado con el modelo y diccionario finales.
+ * Responsable: Alfredo Swidin (Refactorizado con Asistente de AED)
+ * Relación con otras partes del código:
+ * - Es la persistencia principal para la entidad Encuesta, utilizada por ServicioEncuestas
+ * para todas las operaciones CRUD sobre encuestas.
+ * Funcionalidad:
+ * - Proporciona métodos para crear, obtener, actualizar y eliminar objetos Encuesta
+ * en la base de datos.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - Las consultas SQL pueden implicar ORDER BY para devolver listas ordenadas (e.g., por fecha_creacion).
+ * - Retorna colecciones de tipo List<Encuesta>.
  */
+
 package SteveJobs.encuestas.dao;
 
 import SteveJobs.encuestas.modelo.Encuesta;

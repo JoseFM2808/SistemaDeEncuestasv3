@@ -1,11 +1,17 @@
 /*
- * Autores del Módulo:
- * - Alfredo Swidin
- * - Asistente de AED (Refactorización)
- *
- * Responsabilidad Principal:
- * - Representa la entidad Encuesta, alineada con el diccionario de datos final.
+ * Responsable: Alfredo Swidin (Refactorizado con Asistente de AED)
+ * Relación con otras partes del código:
+ * - Es una entidad central del sistema, gestionada por EncuestaDAO y ServicioEncuestas.
+ * - Contiene una lista de EncuestaDetallePregunta para representar las preguntas asociadas.
+ * Funcionalidad:
+ * - Representa el modelo de datos (POJO) para una encuesta, incluyendo sus metadatos
+ * y una colección de preguntas asociadas.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - Contiene una List<EncuestaDetallePregunta> para modelar la relación de preguntas.
+ * - N/A (Clase de modelo, no implementa algoritmos de ordenamiento o estructuras complejas,
+ * el ordenamiento de preguntas se maneja en ServicioEncuestas).
  */
+
 package SteveJobs.encuestas.modelo;
 
 import java.sql.Timestamp;
@@ -14,7 +20,6 @@ import java.util.ArrayList;
 
 public class Encuesta {
 
-    // Atributos corregidos para coincidir con el Diccionario de Datos
     private int idEncuesta;
     private String nombre;
     private String descripcion;

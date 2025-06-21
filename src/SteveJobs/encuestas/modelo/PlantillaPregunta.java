@@ -1,11 +1,14 @@
 /*
- * Autor: Pablo Alegre (Futura responsabilidad, si se integra módulo de Plantillas)
- *
- * Propósito: Clase de modelo (POJO) que representará una plantilla de preguntas,
- * permitiendo la creación de encuestas a partir de estructuras predefinidas.
- * Actualmente es un placeholder y requiere la definición de atributos y lógica.
- * (Pendiente de implementación si entra en el alcance final, no en los 16 REQMS actuales).
+ * Responsable: Pablo Alegre (Futura responsabilidad, si se integra módulo de Plantillas)
+ * Relación con otras partes del código:
+ * - N/A (Actualmente un placeholder, no tiene relaciones activas).
+ * Funcionalidad:
+ * - Representa el modelo de datos (POJO) para una plantilla de preguntas,
+ * pensado para permitir la creación de encuestas a partir de estructuras predefinidas.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - N/A (Clase de modelo, es un placeholder).
  */
+
 package SteveJobs.encuestas.modelo;
 
 

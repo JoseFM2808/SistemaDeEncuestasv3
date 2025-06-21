@@ -1,3 +1,16 @@
+/*
+ * Responsable: José Flores
+ * Relación con otras partes del código:
+ * - Utilizado por el módulo de servicios (e.g., ServicioResultados) para procesar
+ * colecciones de datos numéricos y obtener estadísticas clave.
+ * Funcionalidad:
+ * - Proporciona métodos para calcular estadísticas descriptivas básicas de una lista de números.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - Emplea el ordenamiento (implícito en la función Collections.sort o Stream.sorted())
+ * al calcular la mediana.
+ * - Utiliza la estructura de datos List para la entrada de datos.
+ */
+
 package SteveJobs.encuestas.algoritmos;
 
 import java.util.Collections;

@@ -1,11 +1,15 @@
 /*
- * Autores del Módulo:
- * - Pablo Alegre
- *
- * Responsabilidad Principal:
- * - Lógica de negocio para la autenticación de usuarios.
- * - Versión corregida por Asistente de AED para alinear con el modelo de datos final.
+ * Responsable: Pablo Alegre (Corregido por Asistente de AED para alineación con modelo final)
+ * Relación con otras partes del código:
+ * - Es el componente que implementa la lógica de negocio para el inicio de sesión.
+ * - Se comunica con UsuarioDAO para validar las credenciales.
+ * - Utilizado por la UI (UIAutenticacion).
+ * Funcionalidad:
+ * - Autentica a un usuario verificando su email y contraseña.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - N/A (Lógica de negocio, no maneja colecciones ni ordenamiento directo).
  */
+
 package SteveJobs.encuestas.servicio;
 
 import SteveJobs.encuestas.modelo.Usuario;

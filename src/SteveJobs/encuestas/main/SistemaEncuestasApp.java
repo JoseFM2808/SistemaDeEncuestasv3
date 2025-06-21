@@ -1,10 +1,14 @@
 /*
- * Autores del Módulo:
- * - José Flores
- * - Asistente de AED (Refactorización)
- *
- * Responsabilidad Principal:
- * - Punto de entrada y menú principal de la aplicación.
+ * Responsable: José Flores (Refactorizado con Asistente de AED)
+ * Relación con otras partes del código:
+ * - Es el punto de entrada principal de la aplicación.
+ * - Orquesta la navegación inicial a las interfaces de usuario de autenticación,
+ * registro y los menús específicos de administrador/encuestado.
+ * Funcionalidad:
+ * - Inicializa la aplicación y presenta el menú principal de acceso.
+ * - Redirige al usuario a la interfaz correspondiente según su rol.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - N/A (Componente de orquestación de UI).
  */
 package SteveJobs.encuestas.main;
 
@@ -18,7 +22,6 @@ import javax.swing.JOptionPane;
 public class SistemaEncuestasApp {
 
     public static void main(String[] args) {
-        // Podríamos añadir la configuración del Look and Feel aquí para que aplique a toda la app
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -49,11 +52,9 @@ public class SistemaEncuestasApp {
             );
 
             switch (seleccion) {
-                case 0: // Iniciar Sesión
+                case 0:
                     Usuario usuarioAutenticado = UIAutenticacion.mostrarLogin();
                     if (usuarioAutenticado != null) {
-                        // --- CORRECCIÓN ---
-                        // Se usa el método correcto getRol() en lugar de getTipoNivel()
                         if ("Administrador".equalsIgnoreCase(usuarioAutenticado.getRol())) {
                             UIMenuAdministrador.mostrarMenu(usuarioAutenticado);
                         } else if ("Encuestado".equalsIgnoreCase(usuarioAutenticado.getRol())) { 
