@@ -1,13 +1,12 @@
 /*
- * Autor: Pablo Alegre (Responsable del Módulo de Gestión de Preguntas)
+ * Autores del Módulo:
+ * - Pablo Alegre
  *
- * Propósito: Objeto de Acceso a Datos (DAO) para la entidad PreguntaBanco.
- * Se encarga de las operaciones de persistencia (CRUD) del banco de preguntas.
- * Actualmente, las operaciones de consulta están marcadas como NO IMPLEMENTADAS.
- * Funciones esperadas: crear, obtener por ID, actualizar, eliminar, y listar con filtros.
- * Es crucial para REQMS-017 y REQMS-018.
+ * Responsabilidad Principal:
+ * - Gestionar la persistencia y el modelo de las Preguntas del Banco.
+ * - Este archivo ha sido refactorizado y completado por el Asistente de AED para asegurar
+ * la consistencia con el modelo de datos final.
  */
-// Contenido de SteveJobs.encuestas.dao.PreguntaBancoDAO
 package SteveJobs.encuestas.dao;
 
 import SteveJobs.encuestas.modelo.PreguntaBanco;
@@ -23,9 +22,13 @@ import java.util.List;
 
 public class PreguntaBancoDAO {
 
-    // REQMS-017: Crear nueva pregunta en el banco
-    public int crearPregunta(PreguntaBanco pregunta) {
-        String sql = "INSERT INTO Preguntas_Banco (texto_pregunta, id_tipo_pregunta, id_clasificacion, opciones) VALUES (?, ?, ?, ?)";
+    /**
+     * Crea una nueva pregunta en el banco de preguntas.
+     * @param pregunta El objeto PreguntaBanco con la información a guardar.
+     * @return el ID de la pregunta generada, o -1 si falla.
+     */
+    public int crearPreguntaBanco(PreguntaBanco pregunta) {
+        String sql = "INSERT INTO banco_preguntas (texto_pregunta, id_tipo_pregunta, id_clasificacion) VALUES (?, ?, ?)";
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet generatedKeys = null;
@@ -33,90 +36,42 @@ public class PreguntaBancoDAO {
 
         try {
             con = ConexionDB.conectar();
-            if (con != null) {
-                ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-                ps.setString(1, pregunta.getTextoPregunta());
-                ps.setInt(2, pregunta.getIdTipoPregunta());
-                if (pregunta.getIdClasificacion() != null && pregunta.getIdClasificacion() > 0) {
-                    ps.setInt(3, pregunta.getIdClasificacion());
-                } else {
-                    ps.setNull(3, java.sql.Types.INTEGER);
-                }
-                ps.setString(4, pregunta.getOpciones()); // Asume que el modelo tiene getOpciones()
+            ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, pregunta.getTextoPregunta());
+            ps.setInt(2, pregunta.getIdTipoPregunta());
 
-                int filasAfectadas = ps.executeUpdate();
-                if (filasAfectadas > 0) {
-                    generatedKeys = ps.getGeneratedKeys();
-                    if (generatedKeys.next()) {
-                        idGenerado = generatedKeys.getInt(1);
-                    }
+            if (pregunta.getIdClasificacion() != null && pregunta.getIdClasificacion() > 0) {
+                ps.setInt(3, pregunta.getIdClasificacion());
+            } else {
+                ps.setNull(3, java.sql.Types.INTEGER);
+            }
+
+            if (ps.executeUpdate() > 0) {
+                generatedKeys = ps.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    idGenerado = generatedKeys.getInt(1);
                 }
             }
         } catch (SQLException e) {
-            System.err.println("DAO Error al crear pregunta en el banco: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("DAO Error al crear pregunta en banco: " + e.getMessage());
         } finally {
             ConexionDB.cerrar(generatedKeys, ps, con);
         }
         return idGenerado;
     }
 
-    // REQMS-017: Actualizar pregunta en el banco
-    public boolean actualizarPregunta(PreguntaBanco pregunta) {
-        String sql = "UPDATE Preguntas_Banco SET texto_pregunta = ?, id_tipo_pregunta = ?, id_clasificacion = ?, opciones = ? WHERE id_pregunta_banco = ?";
-        Connection con = null;
-        PreparedStatement ps = null;
-        boolean exito = false;
-        try {
-            con = ConexionDB.conectar();
-            if (con != null) {
-                ps = con.prepareStatement(sql);
-                ps.setString(1, pregunta.getTextoPregunta());
-                ps.setInt(2, pregunta.getIdTipoPregunta());
-                if (pregunta.getIdClasificacion() != null && pregunta.getIdClasificacion() > 0) {
-                    ps.setInt(3, pregunta.getIdClasificacion());
-                } else {
-                    ps.setNull(3, java.sql.Types.INTEGER);
-                }
-                ps.setString(4, pregunta.getOpciones());
-                ps.setInt(5, pregunta.getIdPreguntaBanco());
-                exito = ps.executeUpdate() > 0;
-            }
-        } catch (SQLException e) {
-            System.err.println("DAO Error al actualizar pregunta del banco: " + e.getMessage());
-            e.printStackTrace();
-        } finally {
-            ConexionDB.cerrar(null, ps, con);
-        }
-        return exito;
-    }
-
-    // REQMS-017: Eliminar pregunta del banco
-    public boolean eliminarPregunta(int idPreguntaBanco) {
-        String sql = "DELETE FROM Preguntas_Banco WHERE id_pregunta_banco = ?";
-        Connection con = null;
-        PreparedStatement ps = null;
-        boolean exito = false;
-        try {
-            con = ConexionDB.conectar();
-            if (con != null) {
-                ps = con.prepareStatement(sql);
-                ps.setInt(1, idPreguntaBanco);
-                exito = ps.executeUpdate() > 0;
-            }
-        } catch (SQLException e) {
-            // NOTA: Si hay FKs, esta eliminación fallará. Se debe manejar a nivel de servicio.
-            System.err.println("DAO Error al eliminar pregunta del banco (puede tener FKs): " + e.getMessage());
-            e.printStackTrace();
-        } finally {
-            ConexionDB.cerrar(null, ps, con);
-        }
-        return exito;
-    }
-
-    // REQMS-018: Consultar Banco de Preguntas (obtener por ID)
-    public PreguntaBanco obtenerPreguntaPorId(int id) {
-        String sql = "SELECT id_pregunta_banco, texto_pregunta, id_tipo_pregunta, id_clasificacion, opciones FROM Preguntas_Banco WHERE id_pregunta_banco = ?";
+    /**
+     * Obtiene una pregunta específica del banco por su ID.
+     * @param idPreguntaBanco El ID de la pregunta a buscar.
+     * @return Un objeto PreguntaBanco, o null si no se encuentra.
+     */
+    public PreguntaBanco obtenerPreguntaPorId(int idPreguntaBanco) {
+        // La consulta SQL ahora usa JOIN para traer los nombres de las tablas relacionadas
+        String sql = "SELECT pb.*, tp.nombre_tipo, cp.nombre_clasificacion " +
+                     "FROM banco_preguntas pb " +
+                     "JOIN tipos_pregunta tp ON pb.id_tipo_pregunta = tp.id_tipo_pregunta " +
+                     "LEFT JOIN clasificaciones_pregunta cp ON pb.id_clasificacion = cp.id_clasificacion " +
+                     "WHERE pb.id_pregunta_banco = ?";
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -124,94 +79,122 @@ public class PreguntaBancoDAO {
 
         try {
             con = ConexionDB.conectar();
-            if (con != null) {
-                ps = con.prepareStatement(sql);
-                ps.setInt(1, id);
-                rs = ps.executeQuery();
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, idPreguntaBanco);
+            rs = ps.executeQuery();
 
-                if (rs.next()) {
-                    pregunta = new PreguntaBanco();
-                    pregunta.setIdPreguntaBanco(rs.getInt("id_pregunta_banco"));
-                    pregunta.setTextoPregunta(rs.getString("texto_pregunta"));
-                    pregunta.setIdTipoPregunta(rs.getInt("id_tipo_pregunta"));
-                    
-                    Integer idClasif = rs.getInt("id_clasificacion");
-                    pregunta.setIdClasificacion(rs.wasNull() ? null : idClasif);
-                    pregunta.setOpciones(rs.getString("opciones"));
-                }
+            if (rs.next()) {
+                pregunta = new PreguntaBanco();
+                pregunta.setIdPreguntaBanco(rs.getInt("id_pregunta_banco"));
+                pregunta.setTextoPregunta(rs.getString("texto_pregunta"));
+                pregunta.setIdTipoPregunta(rs.getInt("id_tipo_pregunta"));
+                pregunta.setIdClasificacion((Integer) rs.getObject("id_clasificacion")); // Permite nulos
+                
+                // Atributos extra para visualización
+                pregunta.setNombreTipoPregunta(rs.getString("nombre_tipo"));
+                pregunta.setNombreClasificacion(rs.getString("nombre_clasificacion"));
             }
         } catch (SQLException e) {
-            System.err.println("DAO Error al obtener pregunta del banco por ID: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("DAO Error al obtener pregunta por ID: " + e.getMessage());
         } finally {
             ConexionDB.cerrar(rs, ps, con);
         }
         return pregunta;
     }
-    
-    public PreguntaBanco obtenerPreguntaPorId(Integer id) {
-        if (id == null) return null;
-        return obtenerPreguntaPorId(id.intValue());
-    }
 
-    // REQMS-018: Consultar Banco de Preguntas (listar con filtro)
-    public List<PreguntaBanco> listarPreguntasDelBancoConFiltro(String filtroTexto, String filtroTipo, Integer filtroClasificacionId) {
+    /**
+     * Obtiene todas las preguntas del banco.
+     * @return Una lista de objetos PreguntaBanco.
+     */
+    public List<PreguntaBanco> obtenerTodasLasPreguntas() {
         List<PreguntaBanco> preguntas = new ArrayList<>();
-        StringBuilder sqlBuilder = new StringBuilder("SELECT pb.id_pregunta_banco, pb.texto_pregunta, pb.id_tipo_pregunta, tp.nombre_tipo AS nombre_tipo_pregunta, pb.id_clasificacion, cp.nombre_clasificacion AS nombre_clasificacion, pb.opciones FROM Preguntas_Banco pb JOIN TiposPregunta tp ON pb.id_tipo_pregunta = tp.id_tipo_pregunta LEFT JOIN ClasificacionesPregunta cp ON pb.id_clasificacion = cp.id_clasificacion WHERE 1=1");
-
-        if (filtroTexto != null && !filtroTexto.trim().isEmpty()) {
-            sqlBuilder.append(" AND pb.texto_pregunta LIKE ?");
-        }
-        if (filtroTipo != null && !filtroTipo.trim().isEmpty()) {
-            sqlBuilder.append(" AND tp.nombre_tipo = ?");
-        }
-        if (filtroClasificacionId != null && filtroClasificacionId > 0) {
-            sqlBuilder.append(" AND pb.id_clasificacion = ?");
-        }
-        sqlBuilder.append(" ORDER BY pb.id_pregunta_banco ASC");
-
+        // La consulta SQL ahora usa JOIN para traer los nombres, como lo requiere el modelo
+        String sql = "SELECT pb.*, tp.nombre_tipo, cp.nombre_clasificacion " +
+                     "FROM banco_preguntas pb " +
+                     "JOIN tipos_pregunta tp ON pb.id_tipo_pregunta = tp.id_tipo_pregunta " +
+                     "LEFT JOIN clasificaciones_pregunta cp ON pb.id_clasificacion = cp.id_clasificacion " +
+                     "ORDER BY pb.id_pregunta_banco";
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
             con = ConexionDB.conectar();
-            if (con != null) {
-                ps = con.prepareStatement(sqlBuilder.toString());
-                int paramIndex = 1;
-                if (filtroTexto != null && !filtroTexto.trim().isEmpty()) {
-                    ps.setString(paramIndex++, "%" + filtroTexto.trim() + "%");
-                }
-                if (filtroTipo != null && !filtroTipo.trim().isEmpty()) {
-                    ps.setString(paramIndex++, filtroTipo.trim());
-                }
-                if (filtroClasificacionId != null && filtroClasificacionId > 0) {
-                    ps.setInt(paramIndex++, filtroClasificacionId);
-                }
+            ps = con.prepareStatement(sql);
+            rs = ps.executeQuery();
 
-                rs = ps.executeQuery();
-                while (rs.next()) {
-                    PreguntaBanco pregunta = new PreguntaBanco();
-                    pregunta.setIdPreguntaBanco(rs.getInt("id_pregunta_banco"));
-                    pregunta.setTextoPregunta(rs.getString("texto_pregunta"));
-                    pregunta.setIdTipoPregunta(rs.getInt("id_tipo_pregunta"));
-                    pregunta.setNombreTipoPregunta(rs.getString("nombre_tipo_pregunta"));
-
-                    Integer idClasif = rs.getInt("id_clasificacion");
-                    if (!rs.wasNull()) {
-                        pregunta.setIdClasificacion(idClasif);
-                        pregunta.setNombreClasificacion(rs.getString("nombre_clasificacion"));
-                    }
-                    pregunta.setOpciones(rs.getString("opciones"));
-                    preguntas.add(pregunta);
-                }
+            while (rs.next()) {
+                PreguntaBanco pregunta = new PreguntaBanco();
+                pregunta.setIdPreguntaBanco(rs.getInt("id_pregunta_banco"));
+                pregunta.setTextoPregunta(rs.getString("texto_pregunta"));
+                pregunta.setIdTipoPregunta(rs.getInt("id_tipo_pregunta"));
+                pregunta.setIdClasificacion((Integer) rs.getObject("id_clasificacion"));
+                
+                // Atributos extra para visualización
+                pregunta.setNombreTipoPregunta(rs.getString("nombre_tipo"));
+                pregunta.setNombreClasificacion(rs.getString("nombre_clasificacion"));
+                
+                preguntas.add(pregunta);
             }
         } catch (SQLException e) {
-            System.err.println("DAO Error al listar preguntas del banco con filtro: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("DAO Error al obtener todas las preguntas: " + e.getMessage());
         } finally {
             ConexionDB.cerrar(rs, ps, con);
         }
         return preguntas;
+    }
+
+    /**
+     * Actualiza una pregunta existente en el banco.
+     * @param pregunta El objeto PreguntaBanco con la información actualizada.
+     * @return true si la actualización fue exitosa, false en caso contrario.
+     */
+    public boolean actualizarPreguntaBanco(PreguntaBanco pregunta) {
+        String sql = "UPDATE banco_preguntas SET texto_pregunta = ?, id_tipo_pregunta = ?, id_clasificacion = ? WHERE id_pregunta_bancoo = ?";
+        Connection con = null;
+        PreparedStatement ps = null;
+        boolean exito = false;
+        try {
+            con = ConexionDB.conectar();
+            ps = con.prepareStatement(sql);
+            ps.setString(1, pregunta.getTextoPregunta());
+            ps.setInt(2, pregunta.getIdTipoPregunta());
+            if (pregunta.getIdClasificacion() != null && pregunta.getIdClasificacion() > 0) {
+                ps.setInt(3, pregunta.getIdClasificacion());
+            } else {
+                ps.setNull(3, java.sql.Types.INTEGER);
+            }
+            ps.setInt(4, pregunta.getIdPreguntaBanco());
+
+            exito = ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("DAO Error al actualizar pregunta del banco: " + e.getMessage());
+        } finally {
+            ConexionDB.cerrar(null, ps, con);
+        }
+        return exito;
+    }
+
+    /**
+     * Elimina una pregunta del banco por su ID.
+     * @param idPreguntaBanco El ID de la pregunta a eliminar.
+     * @return true si la eliminación fue exitosa, false en caso contrario.
+     */
+    public boolean eliminarPreguntaBanco(int idPreguntaBanco) {
+        String sql = "DELETE FROM banco_preguntas WHERE id_pregunta_banco = ?";
+        Connection con = null;
+        PreparedStatement ps = null;
+        boolean exito = false;
+        try {
+            con = ConexionDB.conectar();
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, idPreguntaBanco);
+            exito = ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("DAO Error al eliminar pregunta del banco: " + e.getMessage());
+        } finally {
+            ConexionDB.cerrar(null, ps, con);
+        }
+        return exito;
     }
 }

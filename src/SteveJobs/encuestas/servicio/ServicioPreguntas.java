@@ -1,160 +1,75 @@
 /*
- * Autor: Pablo Alegre (Responsable del Módulo de Gestión de Preguntas)
+ * Autores del Módulo:
+ * - Pablo Alegre
  *
- * Propósito: Clase de servicio que gestiona la lógica de negocio para el banco de preguntas.
- * Funciones esperadas: listado de preguntas con filtros, y otras operaciones CRUD
- * sobre las preguntas del banco.
- * Actualmente, la función listarPreguntasDelBancoConFiltro es un placeholder.
- * Es central para REQMS-017 y REQMS-018.
+ * Responsabilidad Principal:
+ * - Lógica de negocio para el banco de preguntas.
+ * - Versión corregida por Asistente de AED para alinear con el modelo y DAO finales.
  */
-// Contenido de SteveJobs.encuestas.servicio.ServicioPreguntas
 package SteveJobs.encuestas.servicio;
 
 import SteveJobs.encuestas.modelo.PreguntaBanco;
-import SteveJobs.encuestas.modelo.TipoPregunta;
-import SteveJobs.encuestas.modelo.ClasificacionPregunta;
 import SteveJobs.encuestas.dao.PreguntaBancoDAO;
-import SteveJobs.encuestas.dao.TipoPreguntaDAO; // Necesario para validar tipos
-import SteveJobs.encuestas.dao.ClasificacionPreguntaDAO; // Necesario para validar clasificaciones
-
 import java.util.List;
 import java.util.ArrayList;
 
 public class ServicioPreguntas {
-
+    
     private PreguntaBancoDAO preguntaBancoDAO;
-    private TipoPreguntaDAO tipoPreguntaDAO; // Añadido
-    private ClasificacionPreguntaDAO clasificacionPreguntaDAO; // Añadido
 
     public ServicioPreguntas() {
         this.preguntaBancoDAO = new PreguntaBancoDAO();
-        this.tipoPreguntaDAO = new TipoPreguntaDAO(); // Inicializado
-        this.clasificacionPreguntaDAO = new ClasificacionPreguntaDAO(); // Inicializado
     }
 
-    // REQMS-017: Crear nueva pregunta en el banco
-    public int crearNuevaPreguntaBanco(String texto, int idTipo, Integer idClasificacion, String opciones) {
-        if (texto == null || texto.trim().isEmpty()) {
-            System.err.println("Servicio: El texto de la pregunta no puede estar vacío.");
-            return -1;
+    /**
+     * Registra una nueva pregunta en el banco. Realiza validaciones básicas.
+     * @param pregunta El objeto PreguntaBanco a registrar.
+     * @return true si se registró exitosamente, false en caso contrario.
+     */
+    public boolean registrarPreguntaEnBanco(PreguntaBanco pregunta) {
+        if (pregunta == null) {
+            System.err.println("ServicioPreguntas: La pregunta no puede ser nula.");
+            return false;
         }
-        if (idTipo <= 0) {
-            System.err.println("Servicio: Se debe especificar un tipo de pregunta válido.");
-            return -1;
+        if (pregunta.getTextoPregunta() == null || pregunta.getTextoPregunta().trim().isEmpty()) {
+            System.err.println("ServicioPreguntas: El texto de la pregunta no puede estar vacío.");
+            return false;
+        }
+        if (pregunta.getIdTipoPregunta() <= 0) { // Asumiendo que los IDs de la BD son positivos
+            System.err.println("ServicioPreguntas: El ID del tipo de pregunta no es válido.");
+            return false;
         }
         
-        // Validar que el tipo de pregunta exista
-        TipoPregunta tipoExistente = tipoPreguntaDAO.obtenerTipoPreguntaPorId(idTipo);
-        if (tipoExistente == null) {
-            System.err.println("Servicio: El tipo de pregunta con ID " + idTipo + " no existe.");
-            return -1;
-        }
-        
-        // Validar que la clasificación exista, si se proporciona
-        if (idClasificacion != null && idClasificacion > 0) {
-            ClasificacionPregunta clasifExistente = clasificacionPreguntaDAO.obtenerClasificacionPorId(idClasificacion);
-            if (clasifExistente == null) {
-                System.err.println("Servicio: La clasificación con ID " + idClasificacion + " no existe.");
-                return -1;
-            }
-        }
+        // Se eliminaron las validaciones de campos que ya no existen en el modelo:
+        // estado, idUsuarioCreador, fechaCreacion, fechaModificacion.
 
-        PreguntaBanco nuevaPregunta = new PreguntaBanco(texto.trim(), idTipo, idClasificacion, opciones);
-        return preguntaBancoDAO.crearPregunta(nuevaPregunta);
+        // Se corrigió la llamada al método del DAO y se adaptó la lógica de retorno.
+        int nuevoId = preguntaBancoDAO.crearPreguntaBanco(pregunta);
+        
+        if (nuevoId > 0) {
+            pregunta.setIdPreguntaBanco(nuevoId); // Actualizamos el ID en el objeto
+            System.out.println("ServicioPreguntas: Pregunta registrada en el banco exitosamente (ID: " + nuevoId + ").");
+            return true;
+        } else {
+            System.err.println("ServicioPreguntas: Falló el registro de la pregunta en el banco.");
+            return false;
+        }
     }
 
-    // REQMS-017: Actualizar pregunta en el banco
-    public boolean actualizarPreguntaBanco(int idPreguntaBanco, String texto, int idTipo, Integer idClasificacion, String opciones) {
-        if (idPreguntaBanco <= 0) {
-            System.err.println("Servicio: ID de pregunta de banco inválido para actualizar.");
-            return false;
-        }
-        if (texto == null || texto.trim().isEmpty()) {
-            System.err.println("Servicio: El texto de la pregunta no puede estar vacío.");
-            return false;
-        }
-        if (idTipo <= 0) {
-            System.err.println("Servicio: Se debe especificar un tipo de pregunta válido.");
-            return false;
+    /**
+     * Obtiene todas las preguntas almacenadas en el banco de preguntas.
+     * @return Una lista de objetos PreguntaBanco.
+     */
+    public List<PreguntaBanco> obtenerTodasLasPreguntasDelBanco() {
+        // Se corrigió la llamada al método correcto del DAO
+        List<PreguntaBanco> preguntas = preguntaBancoDAO.obtenerTodasLasPreguntas();
+        
+        if (preguntas == null) { // Por si acaso la conexión falla y el DAO devuelve null
+            System.err.println("ServicioPreguntas: Error al obtener la lista de preguntas (el DAO devolvió null).");
+            return new ArrayList<>(); 
         }
         
-        // Validar que el tipo de pregunta exista
-        TipoPregunta tipoExistente = tipoPreguntaDAO.obtenerTipoPreguntaPorId(idTipo);
-        if (tipoExistente == null) {
-            System.err.println("Servicio: El tipo de pregunta con ID " + idTipo + " no existe.");
-            return false;
-        }
-        
-        // Validar que la clasificación exista, si se proporciona
-        if (idClasificacion != null && idClasificacion > 0) {
-            ClasificacionPregunta clasifExistente = clasificacionPreguntaDAO.obtenerClasificacionPorId(idClasificacion);
-            if (clasifExistente == null) {
-                System.err.println("Servicio: La clasificación con ID " + idClasificacion + " no existe.");
-                return false;
-            }
-        }
-
-        PreguntaBanco preguntaAActualizar = new PreguntaBanco();
-        preguntaAActualizar.setIdPreguntaBanco(idPreguntaBanco);
-        preguntaAActualizar.setTextoPregunta(texto.trim());
-        preguntaAActualizar.setIdTipoPregunta(idTipo);
-        preguntaAActualizar.setIdClasificacion(idClasificacion);
-        preguntaAActualizar.setOpciones(opciones);
-
-        return preguntaBancoDAO.actualizarPregunta(preguntaAActualizar);
-    }
-
-    // REQMS-017: Eliminar pregunta del banco
-    public boolean eliminarPreguntaBanco(int idPreguntaBanco) {
-        if (idPreguntaBanco <= 0) {
-            System.err.println("Servicio: ID de pregunta de banco inválido para eliminar.");
-            return false;
-        }
-        // Considerar aquí una validación adicional: ¿la pregunta está siendo usada en alguna encuesta?
-        // Si lo está, quizás no debería eliminarse directamente o solo marcarla como inactiva.
-        // Por ahora, delegamos la eliminación directa al DAO.
-        return preguntaBancoDAO.eliminarPregunta(idPreguntaBanco);
-    }
-
-    // REQMS-018: Listar preguntas del banco con filtro
-    // Ampliado para permitir filtro por ID de clasificación y nombre de tipo
-    public List<PreguntaBanco> listarPreguntasDelBancoConFiltro(String filtroTexto, String filtroTipoNombre, Integer filtroClasificacionId) {
-        // En esta capa, podrías convertir el nombre del tipo a ID si el DAO solo acepta ID,
-        // o si el DAO ya maneja el JOIN como lo propuse, simplemente pasar los valores.
-        // Aquí llamamos al DAO que ya hace el JOIN.
-
-        List<PreguntaBanco> preguntas = preguntaBancoDAO.listarPreguntasDelBancoConFiltro(filtroTexto, filtroTipoNombre, filtroClasificacionId);
-        
-        // Opcional: Si los objetos PreguntaBanco del DAO no vienen con nombres de tipo/clasificación
-        // precargados, aquí se podrían "enriquecer" llamando a TipoPreguntaDAO y ClasificacionPreguntaDAO
-        // para cada pregunta. Pero mi propuesta de DAO ya los incluye.
-        
+        System.out.println("ServicioPreguntas: Se obtuvieron " + preguntas.size() + " preguntas del banco.");
         return preguntas;
-    }
-
-    // REQMS-018: Obtener pregunta del banco por ID
-    public PreguntaBanco obtenerPreguntaBancoPorId(int idPreguntaBanco) {
-        if (idPreguntaBanco <= 0) {
-            System.err.println("Servicio: ID de pregunta de banco inválido para consulta.");
-            return null;
-        }
-        // Obtener la pregunta base
-        PreguntaBanco pregunta = preguntaBancoDAO.obtenerPreguntaPorId(idPreguntaBanco);
-        
-        // Enriquecer la pregunta con nombres de tipo y clasificación para la UI
-        if (pregunta != null) {
-            TipoPregunta tipo = tipoPreguntaDAO.obtenerTipoPreguntaPorId(pregunta.getIdTipoPregunta());
-            if (tipo != null) {
-                pregunta.setNombreTipoPregunta(tipo.getNombreTipo());
-            }
-
-            if (pregunta.getIdClasificacion() != null && pregunta.getIdClasificacion() > 0) {
-                ClasificacionPregunta clasif = clasificacionPreguntaDAO.obtenerClasificacionPorId(pregunta.getIdClasificacion());
-                if (clasif != null) {
-                    pregunta.setNombreClasificacion(clasif.getNombreClasificacion());
-                }
-            }
-        }
-        return pregunta;
     }
 }

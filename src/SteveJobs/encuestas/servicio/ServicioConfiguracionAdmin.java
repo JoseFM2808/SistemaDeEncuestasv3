@@ -1,11 +1,9 @@
 /*
- * Autor: José Flores (Responsable del Módulo de Interacción del Encuestado y Visualización de Resultados)
+ * Autores del Módulo:
+ * - José Flores
  *
- * Propósito: Clase de servicio que gestiona la lógica de negocio para la configuración
- * de preguntas de registro por parte del administrador.
- * Implementa validaciones y delega las operaciones a PreguntaRegistroDAO.
- * Funciones implementadas: crear, listar, modificar y eliminar preguntas de registro.
- * Es crucial para la definición de perfiles (REQMS-008).
+ * Responsabilidad Principal:
+ * - Lógica de configuración general de administrador
  */
 package SteveJobs.encuestas.servicio;
 

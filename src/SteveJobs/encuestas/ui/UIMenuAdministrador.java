@@ -1,15 +1,15 @@
 /*
- * Autor: José Flores (Líder del Proyecto, orquestador del menú de Administrador)
+ * Autores del Módulo:
+ * - José Flores
+ * - Asistente de AED (Refactorización)
  *
- * Propósito: Interfaz de Usuario (UI) que presenta el menú de opciones para el usuario Administrador.
- * Dirige el flujo hacia las UIs de gestión de Preguntas de Registro y Encuestas.
- * (Pendiente: UIs para "Gestionar Usuarios", "Gestionar Tipos de Pregunta",
- * "Gestionar Clasificaciones de Pregunta", "Gestionar Banco de Preguntas", y "Ver Resultados de Encuestas").
+ * Responsabilidad Principal:
+ * - Menú principal para el rol Administrador.
  */
-// Contenido de SteveJobs.encuestas.ui.UIMenuAdministrador
 package SteveJobs.encuestas.ui;
 
 import SteveJobs.encuestas.modelo.Usuario;
+import SteveJobs.encuestas.util.PilaNavegacion;
 import javax.swing.JOptionPane;
 
 public class UIMenuAdministrador {
@@ -19,18 +19,18 @@ public class UIMenuAdministrador {
         while (!salirMenuAdmin) {
             String[] opcionesAdmin = {
                 "Gestionar Preguntas de Registro",
-                "Gestionar Usuarios", // Esta UI es nueva
-                "Gestionar Tipos de Pregunta", // Esta UI es nueva
-                "Gestionar Clasificaciones de Pregunta", // Esta UI es nueva
-                "Gestionar Banco de Preguntas", // Esta UI es nueva
                 "Gestionar Encuestas",
-                "Ver Resultados de Encuestas", // Esta UI es nueva
-                "Salir (Volver al Menú Principal)"
+                "Gestionar Banco de Preguntas",
+                "Ver Resultados de Encuestas",
+                "Gestionar Usuarios", // Funcionalidad pendiente
+                "Gestionar Tipos de Pregunta", // Funcionalidad pendiente
+                "Gestionar Clasificaciones de Pregunta", // Funcionalidad pendiente
+                "Salir (Cerrar Sesión)"
             };
 
             String seleccion = (String) JOptionPane.showInputDialog(
                     null,
-                    "Menú Administrador - Bienvenido " + admin.getNombresApellidos(),
+                    "Menú Administrador - Bienvenido " + admin.getNombres(),
                     "Panel de Administración",
                     JOptionPane.PLAIN_MESSAGE,
                     null,
@@ -43,37 +43,41 @@ public class UIMenuAdministrador {
                 continue;
             }
 
+            // Usamos la Pila de Navegación antes de entrar a un submenú
+            if (PilaNavegacion.instance != null) {
+                PilaNavegacion.instance.push("MenuAdmin");
+            }
+
             switch (seleccion) {
                 case "Gestionar Preguntas de Registro":
-                    UIGestionPreguntasRegistro.mostrarMenu(); // Ya implementada por José
-                    break;
-                case "Gestionar Usuarios":
-                    // REQMS-015: Consultar Perfil de Usuario Encuestado (UI para Admin sobre usuarios)
-                    // Nueva UI UIGestionUsuarios
-                    JOptionPane.showMessageDialog(null, "Funcionalidad 'Gestionar Usuarios' pendiente.");
-                    // Aquí llamarías a UIGestionUsuarios.mostrarMenu(); cuando la implementes
-                    break;
-                case "Gestionar Tipos de Pregunta":
-                    // REQMS-017 (parte): Gestionar Tipos
-                    UIGestionTiposPregunta.mostrarMenu(); // Nueva UI de Pablo
-                    break;
-                case "Gestionar Clasificaciones de Pregunta":
-                    // REQMS-016: Gestionar Clasificaciones
-                    UIGestionClasificaciones.mostrarMenu(); // Nueva UI de Pablo
-                    break;
-                case "Gestionar Banco de Preguntas":
-                    // REQMS-017, REQMS-018: Gestionar Banco de Preguntas
-                    UIGestionBancoPreguntas.mostrarMenu(); // Nueva UI de Pablo
+                    UIGestionPreguntasRegistro.mostrarMenu();
                     break;
                 case "Gestionar Encuestas":
-                    UIGestionEncuestas.mostrarMenu(admin); // Ya implementada por Alfredo
+                    // Asume que UIGestionEncuestas tiene un método estático mostrarMenu(admin)
+                    UIGestionEncuestas.mostrarMenu(admin);
+                    break;
+                case "Gestionar Banco de Preguntas":
+                    // Asume que existe UIGestionBancoPreguntas con este método
+                    // UIGestionBancoPreguntas.mostrarMenu(); // Descomentar cuando la clase exista y esté lista
+                    JOptionPane.showMessageDialog(null, "Funcionalidad 'Gestionar Banco de Preguntas' pendiente.");
                     break;
                 case "Ver Resultados de Encuestas":
-                    // REQMS-004, REQMS-005, REQMS-006: Ver Resultados
                     JOptionPane.showMessageDialog(null, "Funcionalidad 'Ver Resultados de Encuestas' pendiente.");
-                    // Aquí llamarías a UIVerResultados.mostrarMenu(); cuando la implementes (Tarea de José)
+                    break;
+                case "Gestionar Usuarios":
+                    JOptionPane.showMessageDialog(null, "Funcionalidad 'Gestionar Usuarios' pendiente.");
+                    break;
+                case "Gestionar Tipos de Pregunta":
+                    JOptionPane.showMessageDialog(null, "Funcionalidad 'Gestionar Tipos de Pregunta' pendiente.");
+                    break;
+                case "Gestionar Clasificaciones de Pregunta":
+                    JOptionPane.showMessageDialog(null, "Funcionalidad 'Gestionar Clasificaciones de Pregunta' pendiente.");
                     break;
                 default:
+                    // Si la opción no es válida, no debería haber un push en la pila, así que lo sacamos.
+                     if (PilaNavegacion.instance != null && !PilaNavegacion.instance.isEmpty()) {
+                        PilaNavegacion.instance.pop();
+                    }
                     JOptionPane.showMessageDialog(null, "Opción no válida.", "Error", JOptionPane.ERROR_MESSAGE);
                     break;
             }

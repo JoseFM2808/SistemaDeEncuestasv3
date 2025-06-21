@@ -1,10 +1,5 @@
 /*
- * Autor: Alfredo Swidin (Responsable del Módulo de Administración y Configuración de Encuestas)
- *
- * Propósito: Clase de modelo (POJO) que representa la relación entre una encuesta y una pregunta,
- * detallando cómo una pregunta específica (del banco o única) se usa dentro de una encuesta.
- * Incluye atributos como ordenEnEncuesta, esPreguntaDescarte y criterioDescarteValor.
- * Es fundamental para REQMS-009 y REQMS-010.
+Autor: Alfredo Swidin
  */
 package SteveJobs.encuestas.modelo;
 

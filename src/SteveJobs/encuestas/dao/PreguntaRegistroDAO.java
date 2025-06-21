@@ -1,10 +1,9 @@
 /*
- * Autor: José Flores (Responsable del Módulo de Interacción del Encuestado y Visualización de Resultados)
+ * Autores del Módulo:
+ * - José Flores
  *
- * Propósito: Objeto de Acceso a Datos (DAO) para la entidad PreguntaRegistro.
- * Gestiona las operaciones de persistencia (CRUD) de las preguntas de registro de usuarios.
- * Funciones implementadas: agregar, obtener todas, actualizar y eliminar preguntas de registro.
- * Es fundamental para el proceso de definición de perfil (REQMS-008).
+ * Responsabilidad Principal:
+ * - Acceso a datos de preguntas de registro
  */
 package SteveJobs.encuestas.dao;
 
