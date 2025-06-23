@@ -1,6 +1,7 @@
 /*
  * Autores del Módulo:
  * - Alfredo Swidin
+ * - Asistente de AED (Actualización para búsqueda secuencial)
  *
  * Responsabilidad Principal:
  * - UI para configuración de preguntas de encuesta
@@ -40,13 +41,14 @@ public class UIConfigurarPreguntasEncuesta {
 
         boolean salir = false;
         while (!salir) {
-            String tituloMenu = "Configurar Preguntas para Encuesta: " + encuesta.getNombre()+ " (ID: " + idEncuesta + ")";
+            String tituloMenu = "Configurar Preguntas para Encuesta: " + encuesta.getNombre() + " (ID: " + idEncuesta + ")";
             String[] opciones = {
                     "Asociar Pregunta del Banco",
                     "Agregar Pregunta Nueva (Única para esta encuesta)",
                     "Ver Preguntas Asociadas",
                     "Marcar/Desmarcar Pregunta como Descarte",
                     "Eliminar Pregunta de la Encuesta",
+                    "Buscar Pregunta por Orden", // Nueva opción para la búsqueda secuencial
                     "Volver a Gestión de Encuestas"
             };
             String seleccion = (String) JOptionPane.showInputDialog(
@@ -59,7 +61,8 @@ public class UIConfigurarPreguntasEncuesta {
                     opciones[0]
             );
 
-            if (seleccion == null || seleccion.equals(opciones[5])) {
+            // La opción "Volver a Gestión de Encuestas" es la penúltima opción en el arreglo
+            if (seleccion == null || seleccion.equals(opciones[opciones.length - 1])) {
                 if (!PilaNavegacion.instance.isEmpty()) {
                     PilaNavegacion.instance.pop(); // Pop al volver
                 }
@@ -83,10 +86,14 @@ public class UIConfigurarPreguntasEncuesta {
                 case "Eliminar Pregunta de la Encuesta":
                     eliminarPreguntaDeEncuestaUI();
                     break;
+                case "Buscar Pregunta por Orden": // Nuevo case
+                    buscarPreguntaPorOrdenUI();
+                    break;
                 default:
                     JOptionPane.showMessageDialog(null, "Opción no válida.", "Error", JOptionPane.ERROR_MESSAGE);
                     break;
             }
+            // Recargar la encuesta para asegurar que la información esté actualizada
             encuesta = servicioEncuestas.obtenerDetallesCompletosEncuesta(idEncuestaActual);
             if (encuesta == null) {
                 JOptionPane.showMessageDialog(null, "La encuesta ya no está disponible.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -96,8 +103,6 @@ public class UIConfigurarPreguntasEncuesta {
     }
 
     private static void asociarPreguntaBancoUI() {
-        // --- AQUÍ ESTÁ LA CORRECCIÓN ---
-        // Se llama al método sin parámetros, como debe ser.
         List<PreguntaBanco> preguntasBanco = servicioPreguntas.obtenerTodasLasPreguntasDelBanco();
         
         if (preguntasBanco == null || preguntasBanco.isEmpty()) {
@@ -105,7 +110,6 @@ public class UIConfigurarPreguntasEncuesta {
             return;
         }
 
-        // El resto de la lógica para mostrar y asociar la pregunta ya era correcta.
         List<String> opcionesPreguntas = new ArrayList<>();
         for (PreguntaBanco pb : preguntasBanco) {
             opcionesPreguntas.add(pb.getIdPreguntaBanco() + ": " + pb.getTextoPregunta());
@@ -133,7 +137,8 @@ public class UIConfigurarPreguntasEncuesta {
         boolean esDescarte = (esDescarteOption == JOptionPane.YES_OPTION);
         String criterioDescarte = "";
         if (esDescarte) {
-            criterioDescarte = JOptionPane.showInputDialog(null, "Ingrese el criterio de descarte:", "Criterio de Descarte", JOptionPane.PLAIN_MESSAGE);
+            criterioDescarte = JOptionPane.showInputDialog(null, "Ingrese el criterio de descarte (valor de respuesta que descarta):", "Criterio de Descarte", JOptionPane.PLAIN_MESSAGE);
+            if (criterioDescarte == null) criterioDescarte = ""; // Asegurar que no sea null
         }
 
         if (servicioEncuestas.asociarPreguntaDelBancoAEncuesta(idEncuestaActual, idPreguntaBancoSeleccionada, orden, esDescarte, criterioDescarte)) {
@@ -145,10 +150,20 @@ public class UIConfigurarPreguntasEncuesta {
 
     private static void agregarPreguntaNuevaUI() {
         String texto = JOptionPane.showInputDialog(null, "Texto de la nueva pregunta (única para esta encuesta):", "Agregar Pregunta Nueva", JOptionPane.PLAIN_MESSAGE);
-        if (texto == null || texto.trim().isEmpty()) return;
+        if (texto == null || texto.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "El texto no puede estar vacío.", "Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
-        String nombreTipo = JOptionPane.showInputDialog(null, "Nombre del Tipo de Pregunta (ej. TEXTO_CORTO):", "Tipo de Pregunta", JOptionPane.PLAIN_MESSAGE);
+        String[] tiposRespuesta = {"TEXTO_CORTO", "NUMERO", "FECHA", "SELECCION_UNICA_RADIO", "SELECCION_UNICA_COMBO"};
+        String nombreTipo = (String) JOptionPane.showInputDialog(null, "Nombre del Tipo de Pregunta (ej. TEXTO_CORTO):", "Tipo de Pregunta", JOptionPane.PLAIN_MESSAGE, null, tiposRespuesta, tiposRespuesta[0]);
         if (nombreTipo == null || nombreTipo.trim().isEmpty()) return;
+
+        String opcionesPosibles = null;
+        if (nombreTipo.startsWith("SELECCION_UNICA")) {
+            opcionesPosibles = JOptionPane.showInputDialog(null, "Opciones posibles (separadas por ';'):", "Opciones de Selección", JOptionPane.PLAIN_MESSAGE);
+            if (opcionesPosibles == null) opcionesPosibles = ""; // Asegurar que no sea null
+        }
 
         String nombreClasif = JOptionPane.showInputDialog(null, "Nombre de la Clasificación (opcional):", "Clasificación", JOptionPane.PLAIN_MESSAGE);
 
@@ -193,8 +208,8 @@ public class UIConfigurarPreguntasEncuesta {
             sb.append("  ID Detalle: ").append(edp.getIdEncuestaDetalle()).append("\n");
             sb.append("  Texto: ").append(edp.getTextoPreguntaMostrable()).append("\n");
             sb.append("  Es Descarte: ").append(edp.isEsPreguntaDescarte() ? "Sí" : "No").append("\n");
-            if (edp.isEsPreguntaDescarte() && edp.getCriterioDescarteValor() != null) {
-                sb.append("  Criterio Descarte: ").append(edp.getCriterioDescarteValor()).append("\n");
+            if (edp.isEsPreguntaDescarte() && edp.getCriterioDescarteValor() != null && !edp.getCriterioDescarteValor().isEmpty()) {
+                sb.append("  Criterio Descarte: '").append(edp.getCriterioDescarteValor()).append("'\n");
             }
             sb.append("------------------------------------\n");
         }
@@ -214,7 +229,10 @@ public class UIConfigurarPreguntasEncuesta {
         }
         List<String> opcionesPreguntas = new ArrayList<>();
         for (EncuestaDetallePregunta edp : detalles) {
-            opcionesPreguntas.add(edp.getOrdenEnEncuesta() + ". (ID_Detalle:" + edp.getIdEncuestaDetalle() + ") " + edp.getTextoPreguntaMostrable().substring(0, Math.min(edp.getTextoPreguntaMostrable().length(), 40)) + "..." + (edp.isEsPreguntaDescarte() ? " (DESCARTE)" : ""));
+            String estadoDescarte = edp.isEsPreguntaDescarte() ? " (DESCARTE: '" + edp.getCriterioDescarteValor() + "')" : "";
+            // Substring para evitar textos muy largos en la opción del JOptionPane
+            String textoCorto = edp.getTextoPreguntaMostrable().substring(0, Math.min(edp.getTextoPreguntaMostrable().length(), 40));
+            opcionesPreguntas.add(edp.getOrdenEnEncuesta() + ". (ID_Detalle:" + edp.getIdEncuestaDetalle() + ") " + textoCorto + "..." + estadoDescarte);
         }
 
         String seleccionStr = (String) JOptionPane.showInputDialog(null, "Seleccione la pregunta para cambiar estado de descarte:",
@@ -222,7 +240,9 @@ public class UIConfigurarPreguntasEncuesta {
 
         if (seleccionStr == null) return;
 
-        int idEncuestaDetalleSeleccionada = Integer.parseInt(seleccionStr.split("\\)")[0].split(":")[1]);
+        // Extraer el ID del detalle de la pregunta de la cadena seleccionada
+        // El formato es "(ID_Detalle:X) Texto..."
+        int idEncuestaDetalleSeleccionada = Integer.parseInt(seleccionStr.split("\\(ID_Detalle:")[1].split("\\)")[0]);
 
         EncuestaDetallePregunta preguntaSeleccionada = null;
         for(EncuestaDetallePregunta edp : detalles){
@@ -254,7 +274,7 @@ public class UIConfigurarPreguntasEncuesta {
                 }
             }
             if (nuevoEstadoDescarte) {
-                if (servicioEncuestas.marcarPreguntaComoDescarte(idEncuestaDetalleSeleccionada, criterio)) {
+                if (servicioEncuestas.marcarPreguntaComoDescarte(idEncuestaDetalleSeleccionada, criterio.trim())) { // Asegurarse de trim()
                     JOptionPane.showMessageDialog(null, "Pregunta marcada como descarte.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     JOptionPane.showMessageDialog(null, "Error al marcar como descarte.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -277,14 +297,17 @@ public class UIConfigurarPreguntasEncuesta {
         }
          List<String> opcionesPreguntas = new ArrayList<>();
         for (EncuestaDetallePregunta edp : detalles) {
-            opcionesPreguntas.add(edp.getOrdenEnEncuesta() + ". (ID_Detalle:" + edp.getIdEncuestaDetalle() + ") " + edp.getTextoPreguntaMostrable().substring(0, Math.min(edp.getTextoPreguntaMostrable().length(), 40)) + "...");
+            String textoCorto = edp.getTextoPreguntaMostrable().substring(0, Math.min(edp.getTextoPreguntaMostrable().length(), 40));
+            opcionesPreguntas.add(edp.getOrdenEnEncuesta() + ". (ID_Detalle:" + edp.getIdEncuestaDetalle() + ") " + textoCorto + "...");
         }
 
         String seleccionStr = (String) JOptionPane.showInputDialog(null, "Seleccione la pregunta a eliminar de la encuesta:",
                 "Eliminar Pregunta de Encuesta", JOptionPane.QUESTION_MESSAGE, null, opcionesPreguntas.toArray(), opcionesPreguntas.get(0));
 
         if (seleccionStr == null) return;
-        int idEncuestaDetalleSeleccionada = Integer.parseInt(seleccionStr.split("\\)")[0].split(":")[1]);
+        
+        // Extraer el ID del detalle de la pregunta de la cadena seleccionada
+        int idEncuestaDetalleSeleccionada = Integer.parseInt(seleccionStr.split("\\(ID_Detalle:")[1].split("\\)")[0]);
 
         int confirm = JOptionPane.showConfirmDialog(null, "¿Está seguro de eliminar esta pregunta de la encuesta?", "Confirmar Eliminación", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
         if (confirm == JOptionPane.YES_OPTION) {
@@ -293,6 +316,52 @@ public class UIConfigurarPreguntasEncuesta {
             } else {
                 JOptionPane.showMessageDialog(null, "Error al eliminar la pregunta de la encuesta.", "Error", JOptionPane.ERROR_MESSAGE);
             }
+        }
+    }
+
+    /**
+     * Permite al administrador buscar una pregunta en la encuesta actual por su número de orden.
+     * Demuestra el algoritmo de Búsqueda Secuencial sobre lista ordenada.
+     */
+    private static void buscarPreguntaPorOrdenUI() {
+        String ordenStr = JOptionPane.showInputDialog(null, "Ingrese el número de orden de la pregunta a buscar:", "Buscar Pregunta por Orden", JOptionPane.PLAIN_MESSAGE);
+        if (ordenStr == null || ordenStr.trim().isEmpty()) {
+            return; // Usuario canceló o no ingresó nada
+        }
+
+        try {
+            int ordenBuscado = Integer.parseInt(ordenStr.trim());
+
+            // Aquí se llama al método que utiliza la búsqueda secuencial sobre la lista ordenada
+            EncuestaDetallePregunta preguntaEncontrada = servicioEncuestas.buscarPreguntaPorOrden(idEncuestaActual, ordenBuscado);
+
+            if (preguntaEncontrada != null) {
+                StringBuilder detalles = new StringBuilder();
+                detalles.append("Pregunta Encontrada (Orden ").append(ordenBuscado).append("):\n\n");
+                detalles.append("  ID Detalle: ").append(preguntaEncontrada.getIdEncuestaDetalle()).append("\n");
+                detalles.append("  Texto: ").append(preguntaEncontrada.getTextoPreguntaMostrable()).append("\n");
+                detalles.append("  Es Descarte: ").append(preguntaEncontrada.isEsPreguntaDescarte() ? "Sí" : "No").append("\n");
+                if (preguntaEncontrada.isEsPreguntaDescarte() && preguntaEncontrada.getCriterioDescarteValor() != null && !preguntaEncontrada.getCriterioDescarteValor().isEmpty()) {
+                    detalles.append("  Criterio Descarte: '").append(preguntaEncontrada.getCriterioDescarteValor()).append("'\n");
+                }
+                
+                JTextArea textArea = new JTextArea(detalles.toString());
+                textArea.setEditable(false);
+                textArea.setLineWrap(true);
+                textArea.setWrapStyleWord(true);
+                JScrollPane scrollPane = new JScrollPane(textArea);
+                scrollPane.setPreferredSize(new java.awt.Dimension(450, 200));
+
+                JOptionPane.showMessageDialog(null, scrollPane, "Pregunta Encontrada", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(null, "No se encontró una pregunta con el orden " + ordenBuscado + " en esta encuesta.", "Búsqueda sin Resultados", JOptionPane.INFORMATION_MESSAGE);
+            }
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(null, "El orden ingresado no es un número válido.", "Error de Formato", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Ocurrió un error inesperado durante la búsqueda: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
         }
     }
 }

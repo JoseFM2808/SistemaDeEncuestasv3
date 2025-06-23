@@ -10,7 +10,6 @@
  * - Las consultas SQL pueden ordenar las preguntas por 'orden_en_encuesta'.
  * - Retorna colecciones de tipo List<EncuestaDetallePregunta>.
  */
-
 package SteveJobs.encuestas.dao;
 
 import SteveJobs.encuestas.modelo.EncuestaDetallePregunta;
@@ -27,7 +26,8 @@ import java.util.List;
 public class EncuestaDetallePreguntaDAO {
 
     public boolean agregarPreguntaAEncuesta(EncuestaDetallePregunta detalle) {
-        String sql = "INSERT INTO Encuesta_Detalle_Preguntas (id_encuesta, id_pregunta_banco, texto_pregunta_unica, id_tipo_pregunta_unica, id_clasificacion_unica, orden_en_encuesta, es_pregunta_descarte, criterio_descarte_valor) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        // Corregido el nombre de la tabla a 'encuesta_preguntas'
+        String sql = "INSERT INTO encuesta_preguntas (id_encuesta, id_pregunta_banco, texto_pregunta_unica, id_tipo_pregunta_unica, id_clasificacion_unica, orden_en_encuesta, es_pregunta_descarte, criterio_descarte_valor) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         Connection con = null;
         PreparedStatement ps = null;
         boolean exito = false;
@@ -49,7 +49,7 @@ public class EncuestaDetallePreguntaDAO {
                 if (detalle.getIdTipoPreguntaUnica() != null && detalle.getIdTipoPreguntaUnica() > 0) {
                     ps.setInt(4, detalle.getIdTipoPreguntaUnica());
                 } else {
-                     ps.setNull(4, java.sql.Types.INTEGER);
+                    ps.setNull(4, java.sql.Types.INTEGER);
                 }
                 if (detalle.getIdClasificacionUnica() != null && detalle.getIdClasificacionUnica() > 0) {
                     ps.setInt(5, detalle.getIdClasificacionUnica());
@@ -74,13 +74,14 @@ public class EncuestaDetallePreguntaDAO {
 
     public List<EncuestaDetallePregunta> obtenerPreguntasPorEncuesta(int idEncuesta) {
         List<EncuestaDetallePregunta> detalles = new ArrayList<>();
+        // Corregido el nombre de la tabla a 'encuesta_preguntas'
         String sql = "SELECT edp.*, " +
                      "pb.texto_pregunta AS texto_banco, pb.id_tipo_pregunta AS id_tipo_banco, pb.id_clasificacion AS id_clasif_banco, " +
                      "tpu.nombre_tipo AS nombre_tipo_unica, cpu.nombre_clasificacion AS nombre_clasif_unica " +
-                     "FROM Encuesta_Detalle_Preguntas edp " +
-                     "LEFT JOIN Preguntas_Banco pb ON edp.id_pregunta_banco = pb.id_pregunta_banco " +
-                     "LEFT JOIN TiposPregunta tpu ON edp.id_tipo_pregunta_unica = tpu.id_tipo_pregunta " +
-                     "LEFT JOIN ClasificacionesPregunta cpu ON edp.id_clasificacion_unica = cpu.id_clasificacion " +
+                     "FROM encuesta_preguntas edp " + // Nombre de tabla corregido aquí
+                     "LEFT JOIN banco_preguntas pb ON edp.id_pregunta_banco = pb.id_pregunta_banco " +
+                     "LEFT JOIN tipos_pregunta tpu ON edp.id_tipo_pregunta_unica = tpu.id_tipo_pregunta " +
+                     "LEFT JOIN clasificaciones_pregunta cpu ON edp.id_clasificacion_unica = cpu.id_clasificacion " +
                      "WHERE edp.id_encuesta = ? ORDER BY edp.orden_en_encuesta ASC";
         Connection con = null;
         PreparedStatement ps = null;
@@ -126,8 +127,9 @@ public class EncuestaDetallePreguntaDAO {
     }
 
     public EncuestaDetallePregunta obtenerPreguntaDetallePorId(int idEncuestaDetalle) {
-        String sql = "SELECT edp.*, pb.texto_pregunta AS texto_banco FROM Encuesta_Detalle_Preguntas edp " +
-                     "LEFT JOIN Preguntas_Banco pb ON edp.id_pregunta_banco = pb.id_pregunta_banco " +
+        // Corregido el nombre de la tabla a 'encuesta_preguntas'
+        String sql = "SELECT edp.*, pb.texto_pregunta AS texto_banco FROM encuesta_preguntas edp " + // Nombre de tabla corregido aquí
+                     "LEFT JOIN banco_preguntas pb ON edp.id_pregunta_banco = pb.id_pregunta_banco " +
                      "WHERE edp.id_encuesta_detalle = ?";
         Connection con = null;
         PreparedStatement ps = null;
@@ -172,7 +174,8 @@ public class EncuestaDetallePreguntaDAO {
     }
 
     public boolean actualizarDetallePregunta(EncuestaDetallePregunta detalle) {
-        String sql = "UPDATE Encuesta_Detalle_Preguntas SET orden_en_encuesta = ?, es_pregunta_descarte = ?, criterio_descarte_valor = ? WHERE id_encuesta_detalle = ?";
+        // Corregido el nombre de la tabla a 'encuesta_preguntas'
+        String sql = "UPDATE encuesta_preguntas SET orden_en_encuesta = ?, es_pregunta_descarte = ?, criterio_descarte_valor = ? WHERE id_encuesta_detalle = ?";
         Connection con = null;
         PreparedStatement ps = null;
         boolean exito = false;
@@ -195,7 +198,8 @@ public class EncuestaDetallePreguntaDAO {
     }
 
     public boolean eliminarPreguntaDeEncuesta(int idEncuestaDetalle) {
-        String sql = "DELETE FROM Encuesta_Detalle_Preguntas WHERE id_encuesta_detalle = ?";
+        // Corregido el nombre de la tabla a 'encuesta_preguntas'
+        String sql = "DELETE FROM encuesta_preguntas WHERE id_encuesta_detalle = ?";
         Connection con = null;
         PreparedStatement ps = null;
         boolean exito = false;
@@ -215,7 +219,8 @@ public class EncuestaDetallePreguntaDAO {
     }
 
     public int contarPreguntasEnEncuesta(int idEncuesta) {
-        String sql = "SELECT COUNT(*) FROM Encuesta_Detalle_Preguntas WHERE id_encuesta = ?";
+        // Corregido el nombre de la tabla a 'encuesta_preguntas'
+        String sql = "SELECT COUNT(*) FROM encuesta_preguntas WHERE id_encuesta = ?";
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -238,7 +243,8 @@ public class EncuestaDetallePreguntaDAO {
     }
 
     public boolean eliminarTodasPreguntasDeEncuesta(int idEncuesta) {
-        String sql = "DELETE FROM Encuesta_Detalle_Preguntas WHERE id_encuesta = ?";
+        // Corregido el nombre de la tabla a 'encuesta_preguntas'
+        String sql = "DELETE FROM encuesta_preguntas WHERE id_encuesta = ?";
         Connection con = null;
         PreparedStatement ps = null;
         boolean exito = false;
