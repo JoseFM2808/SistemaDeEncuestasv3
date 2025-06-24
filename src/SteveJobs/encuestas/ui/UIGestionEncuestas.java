@@ -47,7 +47,8 @@ public class UIGestionEncuestas {
                 "Copiar Encuesta",
                 "Eliminar Encuesta",
                 "Buscar Encuesta por ID",
-                "Volver al Menú Principal"
+                "Buscar Encuesta por Nombre",
+                "Volver al Menú Principal",
             };
             String seleccion = (String) JOptionPane.showInputDialog(
                     null,
@@ -348,4 +349,27 @@ public class UIGestionEncuestas {
             e.printStackTrace();
         }
     }
+    private void buscarEncuestaPorNombreBinaria() {
+    //  Obtener lista ordenada
+    List<Encuesta> encuestasOrdenadas = servicioEncuestas.obtenerTodasLasEncuestasOrdenadasPorNombre();
+
+    //  Pedir nombre a buscar
+    String nombreBuscado = JOptionPane.showInputDialog("Ingrese el nombre de la encuesta a buscar:");
+
+    //  Verificar que el usuario ingresó un nombre
+    if (nombreBuscado != null && !nombreBuscado.trim().isEmpty()) {
+        Encuesta resultado = servicioEncuestas.buscarEncuestaPorNombreBinaria(encuestasOrdenadas, nombreBuscado.trim());
+
+        //  Mostrar resultado
+        if (resultado != null) {
+            JOptionPane.showMessageDialog(null, "Encuesta encontrada:\n" + resultado.toString());
+        } else {
+            JOptionPane.showMessageDialog(null, "No se encontró la encuesta con ese nombre.");
+        }
+    } else {
+        JOptionPane.showMessageDialog(null, "Nombre inválido o vacío.");
+    }
+    
+}
+
 }
