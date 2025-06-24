@@ -378,4 +378,24 @@ public class ServicioEncuestas {
         System.out.println("ServicioEncuestas: No se encontró pregunta con orden " + ordenBuscado + " en la encuesta ID " + idEncuesta + ".");
         return null; // Pregunta no encontrada con ese orden
     }
+     public Encuesta buscarEncuestaPorNombreBinaria(List<Encuesta> encuestasOrdenadasPorNombre, String nombreBuscado) {
+    int izquierda = 0;
+    int derecha = encuestasOrdenadasPorNombre.size() - 1;
+
+    while (izquierda <= derecha) {
+        int medio = (izquierda + derecha) / 2;
+        Encuesta actual = encuestasOrdenadasPorNombre.get(medio);
+        int comparacion = actual.getNombre().compareToIgnoreCase(nombreBuscado);
+
+        if (comparacion == 0) {
+            return actual; // Encuesta encontrada
+        } else if (comparacion < 0) {
+            izquierda = medio + 1;
+        } else {
+            derecha = medio - 1;
+        }
+    }
+
+    return null;
+}
 }
