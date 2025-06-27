@@ -20,7 +20,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class ConexionDB {
-    private static final String URL = "jdbc:mysql://localhost:3306/bd_sistema_encuestas?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
+    private static final String URL = "jdbc:mysql://localhost:3306/sistemadeencuesta?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
     private static final String USUARIO = "root";
     private static final String CONTRASENA = "password123";
 
