@@ -1,15 +1,11 @@
 /*
- * Responsable: Pablo Alegre
- * Relación con otras partes del código:
- * - Es la interfaz de usuario para el registro de nuevos usuarios.
- * - Se comunica con ServicioUsuarios para realizar el proceso de registro.
- * Funcionalidad:
- * - Solicita y recolecta los datos necesarios para registrar un nuevo usuario en el sistema.
- * - Realiza validaciones básicas de los campos de entrada.
- * Modelos de Ordenamiento/Estructura de la Información:
- * - N/A (Clase de interfaz de usuario).
+ * Autores del Módulo:
+ * - Pablo Alegre
+ * - Asistente de AED (Actualización para captura de Nombres y Apellidos por separado)
+ *
+ * Responsabilidad Principal:
+ * - UI para registro de usuarios
  */
-
 package SteveJobs.encuestas.ui;
 
 import SteveJobs.encuestas.servicio.ServicioUsuarios;
@@ -19,7 +15,8 @@ import javax.swing.JPasswordField;
 public class UIRegistroUsuario {
 
     public static void mostrarFormularioRegistro() {
-        String docId, nombres, apellidos, email, password, confirmarPassword, tipoUsuarioSeleccionado;
+        String docId, nombres, apellidos, email, password, confirmarPassword; // Añadido 'apellidos'
+        String tipoUsuarioSeleccionado; // Esta variable no se usa para selección, se asigna por defecto
 
         docId = JOptionPane.showInputDialog(null, "Documento de Identidad:", "Registro de Usuario", JOptionPane.PLAIN_MESSAGE);
         if (docId == null) {
@@ -30,23 +27,25 @@ public class UIRegistroUsuario {
             return;
         }
 
-        nombres = JOptionPane.showInputDialog(null, "Nombres Completos:", "Registro de Usuario", JOptionPane.PLAIN_MESSAGE);
+        // --- CAMBIO AQUÍ: Pedir Nombres y Apellidos por separado ---
+        nombres = JOptionPane.showInputDialog(null, "Nombres:", "Registro de Usuario", JOptionPane.PLAIN_MESSAGE);
         if (nombres == null) {
             return;
         }
         if (nombres.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Los Nombres Completos no pueden estar vacíos.", "Error de Entrada", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Los Nombres no pueden estar vacíos.", "Error de Entrada", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
-        apellidos = JOptionPane.showInputDialog(null, "Apellidos Completos:", "Registro de Usuario", JOptionPane.PLAIN_MESSAGE);
+
+        apellidos = JOptionPane.showInputDialog(null, "Apellidos:", "Registro de Usuario", JOptionPane.PLAIN_MESSAGE);
         if (apellidos == null) {
             return;
         }
         if (apellidos.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Los Apellidos Completos no pueden estar vacíos.", "Error de Entrada", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Los Apellidos no pueden estar vacíos.", "Error de Entrada", JOptionPane.ERROR_MESSAGE);
             return;
         }
+        // --- FIN CAMBIO ---
 
         email = JOptionPane.showInputDialog(null, "Email:", "Registro de Usuario", JOptionPane.PLAIN_MESSAGE);
         if (email == null) {
@@ -56,7 +55,6 @@ public class UIRegistroUsuario {
             JOptionPane.showMessageDialog(null, "El Email no puede estar vacío.", "Error de Entrada", JOptionPane.ERROR_MESSAGE);
             return;
         }
-
 
         JPasswordField pfPassword = new JPasswordField();
         Object[] LpanPass = {"Contraseña:" ,pfPassword};
@@ -87,31 +85,15 @@ public class UIRegistroUsuario {
             return;
         }
 
-        // String[] tiposUsuario = {"Administrador", "Encuestado"}; // No permitir selección de rol en auto-registro
-        // tipoUsuarioSeleccionado = (String) JOptionPane.showInputDialog(
-        //         null,
-        //         "Seleccione el Tipo de Usuario:",
-        //         "Registro de Usuario - Tipo",
-        //         JOptionPane.QUESTION_MESSAGE,
-        //         null,
-        //         tiposUsuario,
-        //         tiposUsuario[0]
-        // );
-        // if (tipoUsuarioSeleccionado == null) {
-        //     return;
-        // }
-        // Por defecto, el rol para auto-registro es "Encuestado"
-        String rolPorDefecto = "Encuestado";
+        String rolPorDefecto = "Encuestado"; // Por defecto, el rol para auto-registro es "Encuestado"
 
         ServicioUsuarios servicioUsuarios = new ServicioUsuarios();
 
-        // Adaptar la llamada al nuevo método registrarNuevoUsuario
-        // Se asume que "nombres" contiene tanto nombres como apellidos para esta adaptación.
-        // Los campos fecha_nacimiento, genero, distrito_residencia no se recogen en este UI.
+        // Adaptar la llamada al nuevo método registrarNuevoUsuario con los campos de nombres y apellidos separados
         boolean registrado = servicioUsuarios.registrarNuevoUsuario(
                 docId.trim(),       // dni
                 nombres.trim(),     // nombres
-                apellidos.trim(),                 // apellidos
+                apellidos.trim(),   // apellidos (ahora capturado)
                 email.trim(),       // email
                 password,           // clave
                 null,               // fecha_nacimiento
@@ -123,7 +105,7 @@ public class UIRegistroUsuario {
         if (registrado) {
             JOptionPane.showMessageDialog(null, "Usuario registrado correctamente.", "Registro Exitoso", JOptionPane.INFORMATION_MESSAGE);
         } else {
-            JOptionPane.showMessageDialog(null, "Error al registrar el usuario.\nVerifique que el email no esté ya en uso o intente más tarde.", "Error de Registro", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Error al registrar el usuario.\nVerifique que el email o DNI no estén ya en uso o intente más tarde.", "Error de Registro", JOptionPane.ERROR_MESSAGE);
         }
     }
 

@@ -3,6 +3,7 @@
  * Relación con otras partes del código:
  * - Dependencia clave para ServicioEncuestas y ServicioPreguntas al asociar preguntas
  * a clasificaciones existentes o al obtener detalles completos de preguntas.
+ * - Utilizado por UIConfigurarPreguntasEncuesta para poblar desplegables de clasificaciones de pregunta.
  * Funcionalidad:
  * - Objeto de Acceso a Datos (DAO) para la entidad ClasificacionPregunta.
  * - Gestiona las operaciones de persistencia (CRUD) para las clasificaciones de preguntas.
@@ -18,8 +19,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList; // No se usa directamente en los métodos implementados, pero es común en DAOs
-import java.util.List; // No se usa directamente en los métodos implementados, pero es común en DAOs
+import java.util.ArrayList;
+import java.util.List;
 
 public class ClasificacionPreguntaDAO {
 
@@ -110,5 +111,39 @@ public class ClasificacionPreguntaDAO {
     public ClasificacionPregunta obtenerClasificacionPorId(Integer id) {
         if (id == null) return null;
         return obtenerClasificacionPorId(id.intValue());
+    }
+
+    /**
+     * Obtiene una lista de todas las clasificaciones de pregunta.
+     * @return Una lista de objetos ClasificacionPregunta.
+     */
+    public List<ClasificacionPregunta> obtenerTodasLasClasificaciones() {
+        List<ClasificacionPregunta> clasificaciones = new ArrayList<>();
+        String sql = "SELECT id_clasificacion, nombre_clasificacion, descripcion, estado FROM clasificaciones_pregunta ORDER BY nombre_clasificacion ASC";
+        Connection con = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            con = ConexionDB.conectar();
+            if (con == null) return clasificaciones;
+            ps = con.prepareStatement(sql);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                ClasificacionPregunta clasificacion = new ClasificacionPregunta();
+                clasificacion.setIdClasificacion(rs.getInt("id_clasificacion"));
+                clasificacion.setNombreClasificacion(rs.getString("nombre_clasificacion"));
+                clasificacion.setDescripcion(rs.getString("descripcion"));
+                clasificacion.setEstado(rs.getString("estado"));
+                clasificaciones.add(clasificacion);
+            }
+        } catch (SQLException e) {
+            System.err.println("ClasificacionPreguntaDAO: Error SQL al obtener todas las clasificaciones de pregunta: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            ConexionDB.cerrar(rs, ps, con);
+        }
+        return clasificaciones;
     }
 }

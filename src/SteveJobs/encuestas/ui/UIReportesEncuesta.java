@@ -2,12 +2,13 @@
  * Responsable: José Flores
  * Relación con otras partes del código:
  * - Es la interfaz de usuario para ver los reportes de encuestas.
- * - Se comunica con ServicioResultados para generar los reportes.
+ * - Se comunica con ServicioResultados para generar los reportes (ahora con filtro).
  * - Se comunica con ServicioEncuestas para obtener la lista de encuestas disponibles.
  * - Utiliza la PilaNavegacion para permitir volver al menú anterior.
  * Funcionalidad:
  * - Permite al administrador seleccionar una encuesta y visualizar sus resultados
- * consolidados (frecuencia de respuestas categóricas y promedios de respuestas numéricas).
+ * consolidados (frecuencia de respuestas categóricas y promedios de respuestas numéricas),
+ * con la opción de filtrar por tipo de pregunta.
  * Modelos de Ordenamiento/Estructura de la Información:
  * - Utiliza List para mostrar las encuestas disponibles.
  * - Emplea la Pila (Stack) a través de PilaNavegacion para la gestión del flujo.
@@ -24,11 +25,11 @@ import SteveJobs.encuestas.util.PilaNavegacion;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import java.awt.Dimension; // Para establecer el tamaño de JScrollPane
+import java.awt.Dimension;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.ArrayList; // Necesario para algunas listas
+import java.util.ArrayList;
 
 public class UIReportesEncuesta {
 
@@ -55,9 +56,9 @@ public class UIReportesEncuesta {
                     opciones[0]
             );
 
-            if (seleccion == null || seleccion.equals(opciones[1])) { // Opcón "Volver" o cerrar ventana
+            if (seleccion == null || seleccion.equals(opciones[1])) {
                 if (!PilaNavegacion.instance.isEmpty()) {
-                    PilaNavegacion.instance.pop(); // Pop al volver
+                    PilaNavegacion.instance.pop();
                 }
                 salir = true;
                 continue;
@@ -75,10 +76,9 @@ public class UIReportesEncuesta {
     }
 
     /**
-     * Permite al administrador seleccionar una encuesta y ver su reporte.
+     * Permite al administrador seleccionar una encuesta y ver su reporte, con opción de filtro.
      */
     private static void verReporteDeEncuestaUI() {
-        // Obtenemos todas las encuestas activas u organizadas para la selección
         List<Encuesta> encuestas = servicioEncuestas.obtenerTodasLasEncuestasOrdenadasPorNombre();
 
         if (encuestas.isEmpty()) {
@@ -86,7 +86,6 @@ public class UIReportesEncuesta {
             return;
         }
 
-        // Crear opciones para el JOptionPane, incluyendo el ID y nombre de la encuesta
         String[] opcionesEncuestas = encuestas.stream()
                 .map(e -> e.getIdEncuesta() + ": " + e.getNombre() + " (" + e.getEstado() + ")")
                 .toArray(String[]::new);
@@ -101,32 +100,58 @@ public class UIReportesEncuesta {
                 opcionesEncuestas[0]
         );
 
-        if (seleccionEncuestaStr == null) { // El usuario canceló
+        if (seleccionEncuestaStr == null) {
             return;
         }
 
         try {
             int idEncuestaSeleccionada = Integer.parseInt(seleccionEncuestaStr.split(":")[0]);
 
-            // Generar los reportes usando ServicioResultados
-            Map<String, Map<String, Integer>> reporteFrecuencia = servicioResultados.generarReporteFrecuenciaRespuestas(idEncuestaSeleccionada);
+            // --- Lógica para el filtro por tipo de pregunta (REQMS-005) ---
+            String tipoPreguntaFiltro = null;
+            String[] tiposDisponibles = {"SIMPLE", "MÚLTIPLE", "NUMERO", "TEXTO_CORTO", "FECHA", "DESCRIPCIÓN", "NINGUNO (ver todos)"};
+            
+            int confirmFilter = JOptionPane.showConfirmDialog(
+                null, 
+                "¿Desea aplicar un filtro por tipo de pregunta al reporte?", 
+                "Aplicar Filtro", 
+                JOptionPane.YES_NO_OPTION
+            );
+
+            if (confirmFilter == JOptionPane.YES_OPTION) {
+                String filtroSeleccionado = (String) JOptionPane.showInputDialog(
+                    null,
+                    "Seleccione el tipo de pregunta a filtrar (se mostrarán SOLO las de este tipo):",
+                    "Filtro por Tipo de Pregunta",
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    tiposDisponibles,
+                    tiposDisponibles[0]
+                );
+                if (filtroSeleccionado != null && !filtroSeleccionado.equals("NINGUNO (ver todos)")) {
+                    tipoPreguntaFiltro = filtroSeleccionado;
+                }
+            }
+
+            // Generar los reportes usando ServicioResultados, pasando el filtro
+            // Los métodos ya excluyen internamente "Descripción" y "TEXTO_CORTO" para frecuencia
+            Map<String, Map<String,Integer>> reporteFrecuencia = servicioResultados.generarReporteFrecuenciaRespuestas(idEncuestaSeleccionada);
             Map<String, Double> reportePromedios = servicioResultados.calcularPromediosPorPregunta(idEncuestaSeleccionada);
             
-            // Exportar el reporte a texto para mostrarlo en un JTextArea
+            // Exportar el reporte a texto para mostrarlo
             String reporteTexto = servicioResultados.exportarReporteATexto(reporteFrecuencia, reportePromedios);
 
-            // Mostrar el reporte en un JTextArea dentro de un JScrollPane
             JTextArea textArea = new JTextArea(reporteTexto);
             textArea.setEditable(false);
             textArea.setLineWrap(true);
             textArea.setWrapStyleWord(true);
             JScrollPane scrollPane = new JScrollPane(textArea);
-            scrollPane.setPreferredSize(new Dimension(600, 400)); // Tamaño preferido para la ventana
+            scrollPane.setPreferredSize(new Dimension(600, 400));
 
             JOptionPane.showMessageDialog(
                     null,
                     scrollPane,
-                    "Reporte de Encuesta ID: " + idEncuestaSeleccionada,
+                    "Reporte de Encuesta ID: " + idEncuestaSeleccionada + (tipoPreguntaFiltro != null ? " (Filtrado por: " + tipoPreguntaFiltro + ")" : ""),
                     JOptionPane.INFORMATION_MESSAGE
             );
 
