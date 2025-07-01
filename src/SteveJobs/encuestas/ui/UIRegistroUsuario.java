@@ -19,7 +19,7 @@ import javax.swing.JPasswordField;
 public class UIRegistroUsuario {
 
     public static void mostrarFormularioRegistro() {
-        String docId, nombres, email, password, confirmarPassword, tipoUsuarioSeleccionado;
+        String docId, nombres, apellidos, email, password, confirmarPassword, tipoUsuarioSeleccionado;
 
         docId = JOptionPane.showInputDialog(null, "Documento de Identidad:", "Registro de Usuario", JOptionPane.PLAIN_MESSAGE);
         if (docId == null) {
@@ -36,6 +36,15 @@ public class UIRegistroUsuario {
         }
         if (nombres.trim().isEmpty()) {
             JOptionPane.showMessageDialog(null, "Los Nombres Completos no pueden estar vacíos.", "Error de Entrada", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        apellidos = JOptionPane.showInputDialog(null, "Apellidos Completos:", "Registro de Usuario", JOptionPane.PLAIN_MESSAGE);
+        if (apellidos == null) {
+            return;
+        }
+        if (apellidos.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Los Apellidos Completos no pueden estar vacíos.", "Error de Entrada", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -102,7 +111,7 @@ public class UIRegistroUsuario {
         boolean registrado = servicioUsuarios.registrarNuevoUsuario(
                 docId.trim(),       // dni
                 nombres.trim(),     // nombres
-                "",                 // apellidos (dejado vacío o se podría intentar un split de 'nombres')
+                apellidos.trim(),                 // apellidos
                 email.trim(),       // email
                 password,           // clave
                 null,               // fecha_nacimiento
