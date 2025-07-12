@@ -5,7 +5,10 @@
 package SteveJobs.encuestas.Vistas;
 
 import SteveJobs.encuestas.Vistas.LogicaSesion;
+import SteveJobs.encuestas.modelo.Usuario;
 import SteveJobs.encuestas.ui.UIAutenticacion;
+import SteveJobs.encuestas.ui.UIMenuAdministrador;
+import SteveJobs.encuestas.ui.UIRegistroUsuario;
 import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
@@ -45,6 +48,7 @@ public class InicioSesion extends javax.swing.JFrame {
         btnLogin = new javax.swing.JButton();
         txtContraseña = new javax.swing.JPasswordField();
         txtCorreo = new javax.swing.JTextField();
+        btnRegistro = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -58,6 +62,13 @@ public class InicioSesion extends javax.swing.JFrame {
         btnLogin.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnLoginActionPerformed(evt);
+            }
+        });
+
+        btnRegistro.setText("Registrarse");
+        btnRegistro.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRegistroActionPerformed(evt);
             }
         });
 
@@ -76,12 +87,12 @@ public class InicioSesion extends javax.swing.JFrame {
                             .addComponent(jLabel1)
                             .addComponent(jLabel2))
                         .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(txtContraseña, javax.swing.GroupLayout.DEFAULT_SIZE, 161, Short.MAX_VALUE)
-                            .addComponent(txtCorreo)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(130, 130, 130)
-                        .addComponent(btnLogin)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(btnLogin)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(txtContraseña, javax.swing.GroupLayout.DEFAULT_SIZE, 161, Short.MAX_VALUE)
+                                .addComponent(txtCorreo))
+                            .addComponent(btnRegistro))))
                 .addContainerGap(102, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -97,9 +108,11 @@ public class InicioSesion extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
                     .addComponent(txtContraseña, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 39, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
                 .addComponent(btnLogin)
-                .addGap(67, 67, 67))
+                .addGap(18, 18, 18)
+                .addComponent(btnRegistro)
+                .addContainerGap(47, Short.MAX_VALUE))
         );
 
         pack();
@@ -110,17 +123,28 @@ public class InicioSesion extends javax.swing.JFrame {
     String contrasena = new String(txtContraseña.getPassword());
 
                 LogicaSesion login = new LogicaSesion(); // <- Aquí llamas a tu clase Java
-                boolean acceso = login.validarCredenciales(correo, contrasena);
+                boolean acceso = login.validarCredenciales(correo, contrasena); 
 
                 if (acceso) {
                     JOptionPane.showMessageDialog(null, "Inicio de sesión exitoso");
+                    setVisible(false);
+                    Usuario admin = new Usuario();
+                    UIMenuAdministrador menu = new UIMenuAdministrador();
+                    menu.mostrarMenu(admin);
                     // Abrir otra ventana o continuar
                 } else {
                     JOptionPane.showMessageDialog(null, "Credenciales incorrectas", "Error", JOptionPane.ERROR_MESSAGE);
                 }
 
-        setVisible(true);
+      setVisible(true);  
     }//GEN-LAST:event_btnLoginActionPerformed
+
+    private void btnRegistroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistroActionPerformed
+      RegistroUsuario ventanaRegistro = new RegistroUsuario();
+                ventanaRegistro.setVisible(true);
+                this.dispose();
+                    
+    }//GEN-LAST:event_btnRegistroActionPerformed
 
     /**
      * @param args the command line arguments
@@ -159,6 +183,7 @@ public class InicioSesion extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnLogin;
+    private javax.swing.JButton btnRegistro;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

@@ -11,6 +11,7 @@ package SteveJobs.encuestas.ui;
 import SteveJobs.encuestas.servicio.ServicioUsuarios;
 import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
+import javax.swing.JTextField;
 
 public class UIRegistroUsuario {
 
@@ -126,5 +127,13 @@ public class UIRegistroUsuario {
         System.out.println("Proceso de registro finalizado (o cancelado).");
         
         System.exit(0);
+    }
+
+    public UIRegistroUsuario(JTextField txtNombres, JTextField txtApellidos) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    public UIRegistroUsuario() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }
