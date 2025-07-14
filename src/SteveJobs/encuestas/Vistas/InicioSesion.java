@@ -8,6 +8,7 @@ import SteveJobs.encuestas.Vistas.LogicaSesion;
 import SteveJobs.encuestas.modelo.Usuario;
 import SteveJobs.encuestas.ui.UIAutenticacion;
 import SteveJobs.encuestas.ui.UIMenuAdministrador;
+import SteveJobs.encuestas.ui.UIMenuEncuestado;
 import SteveJobs.encuestas.ui.UIRegistroUsuario;
 import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
@@ -129,8 +130,17 @@ public class InicioSesion extends javax.swing.JFrame {
                     JOptionPane.showMessageDialog(null, "Inicio de sesión exitoso");
                     setVisible(false);
                     Usuario admin = new Usuario();
+                    Usuario encuestado = new Usuario();
+                    LogicaSesion controlador = new LogicaSesion();
+                    String rol = controlador.obtenerRol(correo);
+                    UIMenuEncuestado MenuE = new UIMenuEncuestado();
                     UIMenuAdministrador menu = new UIMenuAdministrador();
-                    menu.mostrarMenu(admin);
+                    if(rol.equalsIgnoreCase("Administrador")){
+                    menu.mostrarMenu(admin);    
+                    }
+                    else{
+                     MenuE.mostrarMenu(encuestado);
+                    }
                     // Abrir otra ventana o continuar
                 } else {
                     JOptionPane.showMessageDialog(null, "Credenciales incorrectas", "Error", JOptionPane.ERROR_MESSAGE);
