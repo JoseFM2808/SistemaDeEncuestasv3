@@ -10,12 +10,13 @@
  * Modelos de Ordenamiento/Estructura de la Información:
  * - N/A (Lógica de negocio, no maneja colecciones ni ordenamiento directo).
  */
+
 package SteveJobs.encuestas.servicio;
 
 import SteveJobs.encuestas.modelo.Usuario;
 import SteveJobs.encuestas.dao.UsuarioDAO;
 import java.time.LocalDate;
-import java.util.List; // Importar List
+import java.util.List;
 
 public class ServicioUsuarios {
 
@@ -44,7 +45,6 @@ public class ServicioUsuarios {
             System.err.println("Error de registro: El email no puede estar vacío.");
             return false;
         }
-        // Email pattern validation removed as per REQ
         if (clave == null || clave.isEmpty()) {
             System.err.println("Error de registro: La contraseña no puede estar vacía.");
             return false;
@@ -65,6 +65,7 @@ public class ServicioUsuarios {
         nuevoUsuario.setGenero(genero != null ? genero.trim() : null);
         nuevoUsuario.setDistrito_residencia(distrito_residencia != null ? distrito_residencia.trim() : null);
         nuevoUsuario.setRol(rol.trim());
+        nuevoUsuario.setEstado("ACTIVO"); // Estado inicial al registrar
 
         boolean registrado = usuarioDAO.crearUsuario(nuevoUsuario);
 
@@ -96,37 +97,45 @@ public class ServicioUsuarios {
         return usuarioDAO.actualizarUsuario(usuario);
     }
     
-    // Método para obtener todos los usuarios (requerido por UIGestionUsuarios)
     public List<Usuario> obtenerTodosLosUsuarios() {
         return usuarioDAO.obtenerTodosLosUsuarios();
     }
 
-    // Método para actualizar el rol de un usuario (requerido por UIGestionUsuarios)
     public boolean actualizarRolUsuario(int idUsuario, String nuevoRol) {
         Usuario usuario = usuarioDAO.obtenerUsuarioPorId(idUsuario);
         if (usuario == null) {
             System.err.println("Servicio: Usuario ID " + idUsuario + " no encontrado para actualizar rol.");
             return false;
         }
-        // Validar que el nuevo rol sea válido si es necesario
         if (!"Administrador".equalsIgnoreCase(nuevoRol) && !"Encuestado".equalsIgnoreCase(nuevoRol)) {
             System.err.println("Servicio: Rol '" + nuevoRol + "' no válido.");
             return false;
         }
-        usuario.setRol(nuevoRol); // Actualiza el rol en el objeto modelo
-        // Delega al DAO para persistir el cambio. Asume que usuarioDAO.actualizarUsuario() maneja el rol.
+        usuario.setRol(nuevoRol);
         return usuarioDAO.actualizarUsuario(usuario); 
     }
     
-    // Método para eliminar un usuario (requerido por UIGestionUsuarios)
     public boolean eliminarUsuario(int idUsuario) {
-        // Aquí podrías añadir lógica de negocio adicional antes de eliminar,
-        // por ejemplo, verificar que el usuario no tenga respuestas de encuestas o encuestas creadas.
         return usuarioDAO.eliminarUsuario(idUsuario);
     }
 
+    /**
+     * Actualiza el estado de un usuario (ACTIVO, INACTIVO, etc.).
+     * @param idUsuario El ID del usuario.
+     * @param nuevoEstado El nuevo estado a asignar.
+     * @return true si el estado fue actualizado exitosamente, false en caso contrario.
+     */
     public boolean cambiarEstadoUsuario(int idUsuario, String nuevoEstado) {
-        System.err.println("Servicio: cambiarEstadoUsuario no está completamente implementado o requiere clarificación de la estructura de 'estado' y DAO.");
-        return false;
+        if (nuevoEstado == null || nuevoEstado.trim().isEmpty()) {
+            System.err.println("Servicio: El nuevo estado no puede ser nulo o vacío.");
+            return false;
+        }
+        // Puedes añadir validaciones adicionales aquí para los valores permitidos de 'estado'
+        if (!"ACTIVO".equalsIgnoreCase(nuevoEstado) && !"INACTIVO".equalsIgnoreCase(nuevoEstado)) {
+             System.err.println("Servicio: El estado '" + nuevoEstado + "' no es un valor permitido (ACTIVO/INACTIVO).");
+             return false;
+        }
+
+        return usuarioDAO.actualizarEstadoUsuario(idUsuario, nuevoEstado.trim().toUpperCase());
     }
 }

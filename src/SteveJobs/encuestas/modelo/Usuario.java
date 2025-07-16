@@ -1,19 +1,7 @@
-/*
- * Responsable: Pablo Alegre
- * Relación con otras partes del código:
- * - Es una entidad fundamental del sistema, gestionada por UsuarioDAO, ServicioAutenticacion
- * y ServicioUsuarios.
- * - Utilizada por la UI (UIAutenticacion, UIRegistroUsuario, UIMenuAdministrador, UIMenuEncuestado).
- * Funcionalidad:
- * - Representa el modelo de datos (POJO) para un usuario del sistema (Administrador o Encuestado).
- * Modelos de Ordenamiento/Estructura de la Información:
- * - N/A (Clase de modelo, no implementa algoritmos de ordenamiento o estructuras complejas).
- */
-
 package SteveJobs.encuestas.modelo;
 
-import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.sql.Timestamp; // Para fecha de registro
 
 public class Usuario {
     private int id_usuario;
@@ -25,15 +13,14 @@ public class Usuario {
     private LocalDate fecha_nacimiento;
     private String genero;
     private String distrito_residencia;
-    private Timestamp fecha_registro;
-    private String rol; // Nuevo campo para el rol del usuario
+    private Timestamp fecha_registro; // Fecha y hora de registro
+    private String rol; // "Administrador" o "Encuestado"
+    private String estado; // Nuevo campo: "ACTIVO", "INACTIVO", etc.
 
-    // Constructores
     public Usuario() {
     }
 
-    public Usuario(int id_usuario, String dni, String nombres, String apellidos, String email, String clave, LocalDate fecha_nacimiento, String genero, String distrito_residencia, Timestamp fecha_registro, String rol) {
-        this.id_usuario = id_usuario;
+    public Usuario(String dni, String nombres, String apellidos, String email, String clave, LocalDate fecha_nacimiento, String genero, String distrito_residencia, String rol) {
         this.dni = dni;
         this.nombres = nombres;
         this.apellidos = apellidos;
@@ -42,11 +29,13 @@ public class Usuario {
         this.fecha_nacimiento = fecha_nacimiento;
         this.genero = genero;
         this.distrito_residencia = distrito_residencia;
-        this.fecha_registro = fecha_registro;
-        this.rol = rol; // Asignar rol
+        this.rol = rol;
+        this.fecha_registro = new Timestamp(System.currentTimeMillis()); // Se inicializa al crear
+        this.estado = "ACTIVO"; // Estado inicial por defecto
     }
 
-    // Getters y Setters
+    // Getters y Setters existentes
+
     public int getId_usuario() {
         return id_usuario;
     }
@@ -134,21 +123,26 @@ public class Usuario {
     public void setRol(String rol) {
         this.rol = rol;
     }
+    
+    // Nuevo Getter y Setter para 'estado'
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
 
     @Override
     public String toString() {
         return "Usuario{" +
-                "id_usuario=" + id_usuario +
-                ", dni='" + dni + ' ' +
-                ", nombres='" + nombres + ' ' +
-                ", apellidos='" + apellidos + ' ' +
-                ", email='" + email + ' ' +
-                // No incluir clave en toString por seguridad
-                ", rol='" + rol + ' ' + // Incluir rol en toString
-                ", fecha_nacimiento=" + fecha_nacimiento +
-                ", genero='" + genero + ' ' +
-                ", distrito_residencia='" + distrito_residencia + ' ' +
-                ", fecha_registro=" + fecha_registro +
-                '}';
+               "id_usuario=" + id_usuario +
+               ", dni='" + dni + '\'' +
+               ", nombres='" + nombres + '\'' +
+               ", apellidos='" + apellidos + '\'' +
+               ", email='" + email + '\'' +
+               ", rol='" + rol + '\'' +
+               ", estado='" + estado + '\'' + // Incluir estado en toString
+               '}';
     }
 }

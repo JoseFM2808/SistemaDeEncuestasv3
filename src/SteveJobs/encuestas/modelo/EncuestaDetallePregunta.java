@@ -23,7 +23,12 @@ public class EncuestaDetallePregunta {
     private int ordenEnEncuesta;
     private boolean esPreguntaDescarte;
     private String criterioDescarteValor;
-    private PreguntaBanco preguntaDelBanco;
+    private PreguntaBanco preguntaDelBanco; // Objeto de PreguntaBanco asociado
+
+    // Nuevos atributos para almacenar objetos TipoPregunta y ClasificacionPregunta
+    // Esto es útil cuando la pregunta es única (no del banco) o para tener el objeto completo
+    private TipoPregunta tipoPreguntaObj;
+    private ClasificacionPregunta clasificacionPreguntaObj;
 
 
     public EncuestaDetallePregunta() {
@@ -128,11 +133,84 @@ public class EncuestaDetallePregunta {
         this.preguntaDelBanco = preguntaDelBanco;
     }
 
+    // --- Nuevos Getters y Setters para TipoPreguntaObj y ClasificacionPreguntaObj ---
+    public TipoPregunta getTipoPreguntaObj() {
+        return tipoPreguntaObj;
+    }
+
+    public void setTipoPreguntaObj(TipoPregunta tipoPreguntaObj) {
+        this.tipoPreguntaObj = tipoPreguntaObj;
+    }
+
+    public ClasificacionPregunta getClasificacionPreguntaObj() {
+        return clasificacionPreguntaObj;
+    }
+
+    public void setClasificacionPreguntaObj(ClasificacionPregunta clasificacionPreguntaObj) {
+        this.clasificacionPreguntaObj = clasificacionPreguntaObj;
+    }
+
+    // --- Métodos de Conveniencia para obtener nombres y IDs efectivos ---
+
+    /**
+     * Devuelve el texto de la pregunta, ya sea del banco o la única.
+     * @return El texto de la pregunta.
+     */
     public String getTextoPreguntaMostrable() {
-        if (preguntaDelBanco != null) {
+        if (preguntaDelBanco != null && preguntaDelBanco.getTextoPregunta() != null) {
             return preguntaDelBanco.getTextoPregunta();
         }
         return textoPreguntaUnica;
+    }
+
+    /**
+     * Devuelve el nombre del tipo de pregunta, ya sea del banco o la única.
+     * @return El nombre del tipo de pregunta.
+     */
+    public String getNombreTipoPregunta() {
+        if (preguntaDelBanco != null && preguntaDelBanco.getNombreTipoPregunta() != null) {
+            return preguntaDelBanco.getNombreTipoPregunta();
+        }
+        if (tipoPreguntaObj != null && tipoPreguntaObj.getNombreTipo() != null) {
+            return tipoPreguntaObj.getNombreTipo();
+        }
+        return null; // O una cadena vacía si prefieres
+    }
+
+    /**
+     * Devuelve el nombre de la clasificación de pregunta, ya sea del banco o la única.
+     * @return El nombre de la clasificación de pregunta.
+     */
+    public String getNombreClasificacionPregunta() {
+        if (preguntaDelBanco != null && preguntaDelBanco.getNombreClasificacion() != null) {
+            return preguntaDelBanco.getNombreClasificacion();
+        }
+        if (clasificacionPreguntaObj != null && clasificacionPreguntaObj.getNombreClasificacion() != null) {
+            return clasificacionPreguntaObj.getNombreClasificacion();
+        }
+        return null; // O una cadena vacía si prefieres
+    }
+
+    /**
+     * Devuelve el ID del tipo de pregunta efectivo (del banco o único).
+     * @return El ID del tipo de pregunta o null.
+     */
+    public Integer getIdTipoPreguntaEfectivo() {
+        if (preguntaDelBanco != null && preguntaDelBanco.getIdTipoPregunta() != null) {
+            return preguntaDelBanco.getIdTipoPregunta();
+        }
+        return idTipoPreguntaUnica;
+    }
+
+    /**
+     * Devuelve el ID de la clasificación de pregunta efectiva (del banco o única).
+     * @return El ID de la clasificación de pregunta o null.
+     */
+    public Integer getIdClasificacionEfectivo() {
+        if (preguntaDelBanco != null && preguntaDelBanco.getIdClasificacion() != null) {
+            return preguntaDelBanco.getIdClasificacion();
+        }
+        return idClasificacionUnica;
     }
 
 
@@ -144,6 +222,8 @@ public class EncuestaDetallePregunta {
                ", ordenEnEncuesta=" + ordenEnEncuesta +
                ", esPreguntaDescarte=" + esPreguntaDescarte +
                (idPreguntaBanco != null ? ", idPreguntaBanco=" + idPreguntaBanco : ", textoPreguntaUnica='" + textoPreguntaUnica + '\'') +
+               ", tipoPregunta=" + (getNombreTipoPregunta() != null ? getNombreTipoPregunta() : "N/A") +
+               ", clasificacion=" + (getNombreClasificacionPregunta() != null ? getNombreClasificacionPregunta() : "N/A") +
                '}';
     }
 }
