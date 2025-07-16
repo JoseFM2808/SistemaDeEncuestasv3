@@ -1,21 +1,10 @@
 /*
- * Responsable: Alfredo Swidin (Refactorizado con Asistente de AED)
- * Relación con otras partes del código:
- * - Es un servicio central que gestiona la lógica de negocio de las encuestas.
- * - Coordina operaciones con EncuestaDAO, EncuestaDetallePreguntaDAO, PreguntaBancoDAO,
- * TipoPreguntaDAO, ClasificacionPreguntaDAO.
- * - Utilizado por la UI (UIGestionEncuestas, UIConfigurarPreguntasEncuesta, UIMenuEncuestado).
- * Funcionalidad:
- * - Proporciona métodos para registrar, modificar, eliminar, copiar y cambiar el estado de encuestas.
- * - Maneja la asociación de preguntas del banco y preguntas únicas a encuestas.
- * - Incluye lógica de negocio para activación de encuestas (ej. cantidad de preguntas).
- * Modelos de Ordenamiento/Estructura de la Información:
- * - Emplea el algoritmo de Ordenamiento por Inserción para ordenar listas de encuestas por nombre.
- * - Emplea el algoritmo de Búsqueda Binaria para buscar encuestas por ID en listas ordenadas.
- * - Emplea el algoritmo de Búsqueda Secuencial para buscar preguntas por orden en una encuesta.
- * - Utiliza la estructura de datos List para manejar colecciones de Encuestas y EncuestaDetallePregunta.
+ * Autores del Módulo:
+ * - Alfredo Swidin
+ *
+ * Responsabilidad Principal:
+ * - Lógica de negocio para encuestas
  */
-
 package SteveJobs.encuestas.servicio;
 
 import SteveJobs.encuestas.dao.EncuestaDAO;
@@ -23,7 +12,6 @@ import SteveJobs.encuestas.dao.EncuestaDetallePreguntaDAO;
 import SteveJobs.encuestas.dao.PreguntaBancoDAO;
 import SteveJobs.encuestas.dao.TipoPreguntaDAO;
 import SteveJobs.encuestas.dao.ClasificacionPreguntaDAO;
-import SteveJobs.encuestas.dao.RespuestaUsuarioDAO; // Necesario para obtenerEncuestasActivasParaUsuario
 import SteveJobs.encuestas.modelo.Encuesta;
 import SteveJobs.encuestas.modelo.EncuestaDetallePregunta;
 import SteveJobs.encuestas.modelo.PreguntaBanco;
@@ -34,6 +22,8 @@ import SteveJobs.encuestas.modelo.Usuario;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate; // Importar para cálculo de edad
+import java.time.Period; // Importar para cálculo de edad
 import java.util.List;
 import java.util.Date;
 import java.util.ArrayList;
@@ -65,6 +55,11 @@ public class ServicioEncuestas {
             System.err.println("Servicio: La fecha de fin no puede ser anterior a la de inicio.");
             return -1;
         }
+        // Nueva validación: la fecha de inicio no puede ser anterior a la fecha y hora actuales
+        if (fechaInicio.before(new Timestamp(System.currentTimeMillis()))) {
+            System.err.println("Servicio: La fecha de inicio no puede ser anterior a la fecha y hora actuales.");
+            return -1;
+        }
 
         Encuesta nuevaEncuesta = new Encuesta();
         nuevaEncuesta.setNombre(nombre.trim());
@@ -72,7 +67,7 @@ public class ServicioEncuestas {
         nuevaEncuesta.setFechaInicio(fechaInicio);
         nuevaEncuesta.setFechaFin(fechaFin);
         nuevaEncuesta.setPublicoObjetivo(publicoObjetivo);
-        nuevaEncuesta.setPerfilRequerido(perfilRequerido);
+        nuevaEncuesta.setPerfilRequerido(perfilRequerido); // Almacenar el perfil tal como se recibe (no JSON)
         nuevaEncuesta.setIdAdminCreador(idAdmin);
         nuevaEncuesta.setEstado("Borrador");
         nuevaEncuesta.setFechaCreacion(new Timestamp(System.currentTimeMillis()));
@@ -188,16 +183,106 @@ public class ServicioEncuestas {
     }
 
     public List<Encuesta> obtenerEncuestasActivasParaUsuario(Usuario usuario) {
-
-        System.out.println("Servicio: obtenerEncuestasActivasParaUsuario - Lógica de filtrado por perfil PENDIENTE.");
+        System.out.println("Servicio: obtenerEncuestasActivasParaUsuario - Aplicando lógica de filtrado por perfil.");
         List<Encuesta> todasActivas = encuestaDAO.obtenerTodasLasEncuestas();
         List<Encuesta> activasFiltradas = new ArrayList<>();
+
         for(Encuesta e : todasActivas){
             if("Activa".equalsIgnoreCase(e.getEstado())){
-                activasFiltradas.add(e);
+                // Aplicar la lógica de perfil definida
+                if (cumplePerfil(e.getPerfilRequerido(), usuario)) {
+                    activasFiltradas.add(e);
+                } else {
+                    System.out.println("Servicio: Encuesta ID " + e.getIdEncuesta() + " no cumple con el perfil del usuario ID " + usuario.getId_usuario() + ".");
+                }
             }
         }
         return activasFiltradas;
+    }
+
+    /**
+     * Compara el perfil requerido de una encuesta con los atributos de un usuario.
+     * Se espera un formato simple de texto para perfilRequerido: "CLAVE1:VALOR1;CLAVE2:VALOR2"
+     * Ejemplos: "GENERO:FEMENINO;EDAD:>=18"
+     * Las condiciones son AND. Si no se puede parsear una condición o la clave no es reconocida,
+     * se asume que esa condición se cumple para no ser demasiado restrictivo.
+     *
+     * @param perfilRequerido Cadena de texto que define el perfil.
+     * @param usuario El usuario a evaluar.
+     * @return true si el usuario cumple el perfil, false en caso contrario.
+     */
+    private boolean cumplePerfil(String perfilRequerido, Usuario usuario) {
+        if (perfilRequerido == null || perfilRequerido.trim().isEmpty()) {
+            return true; // Si no hay perfil requerido, cualquier usuario lo cumple.
+        }
+
+        // Dividir por condiciones (ej. "GENERO:FEMENINO", "DISTRITO:Surco")
+        String[] condiciones = perfilRequerido.trim().split(";");
+        
+        for (String cond : condiciones) {
+            if (cond.trim().isEmpty()) continue;
+
+            String[] partes = cond.trim().split(":", 2); // Limitar a 2 partes: clave y valor
+            if (partes.length != 2) {
+                System.out.println("Servicio: Condición de perfil '" + cond + "' mal formada. Se asume que se cumple.");
+                continue; // Condición mal formada, se ignora (se asume que cumple para no filtrar indebidamente)
+            }
+
+            String clave = partes[0].trim().toUpperCase();
+            String valor = partes[1].trim();
+
+            switch (clave) {
+                case "GENERO":
+                    if (usuario.getGenero() == null || !usuario.getGenero().equalsIgnoreCase(valor)) {
+                        return false;
+                    }
+                    break;
+                case "DISTRITO":
+                    if (usuario.getDistrito_residencia() == null || !usuario.getDistrito_residencia().equalsIgnoreCase(valor)) {
+                        return false;
+                    }
+                    break;
+                case "EDAD":
+                    if (usuario.getFecha_nacimiento() == null) {
+                        System.out.println("Servicio: Condición de EDAD en perfil pero fecha de nacimiento de usuario es nula.");
+                        return false; // No se puede verificar la edad si no hay fecha de nacimiento
+                    }
+                    try {
+                        int edadUsuario = Period.between(usuario.getFecha_nacimiento(), LocalDate.now()).getYears();
+                        
+                        if (valor.startsWith(">=")) {
+                            int edadMin = Integer.parseInt(valor.substring(2));
+                            if (edadUsuario < edadMin) return false;
+                        } else if (valor.startsWith("<=")) {
+                            int edadMax = Integer.parseInt(valor.substring(2));
+                            if (edadUsuario > edadMax) return false;
+                        } else if (valor.startsWith(">")) {
+                            int edadMin = Integer.parseInt(valor.substring(1));
+                            if (edadUsuario <= edadMin) return false;
+                        } else if (valor.startsWith("<")) {
+                            int edadMax = Integer.parseInt(valor.substring(1));
+                            if (edadUsuario >= edadMax) return false;
+                        } else if (valor.startsWith("=")) {
+                             int edadExacta = Integer.parseInt(valor.substring(1));
+                             if (edadUsuario != edadExacta) return false;
+                        } else {
+                            // Si solo es un número, se asume edad mínima
+                            int edadMin = Integer.parseInt(valor);
+                            if (edadUsuario < edadMin) return false;
+                        }
+                    } catch (NumberFormatException e) {
+                        System.err.println("Servicio: Formato de EDAD inválido en perfil requerido: " + valor);
+                        return false; // Error de formato de edad, no cumple.
+                    }
+                    break;
+                // Agrega más casos para otros atributos de usuario si es necesario
+                default:
+                    System.out.println("Servicio: Clave de perfil '" + clave + "' no reconocida. Se asume que se cumple.");
+                    // Si la clave no es reconocida, no podemos filtrar, así que asumimos que cumple.
+                    break;
+            }
+        }
+        return true; // Si todas las condiciones se cumplen (o se ignoran)
     }
 
 
@@ -253,7 +338,7 @@ public class ServicioEncuestas {
         }
         if (criterioDescarte == null || criterioDescarte.trim().isEmpty()){
             System.err.println("Servicio: El criterio de descarte no puede estar vacío al marcar como descarte.");
-
+            return false; // Asegurar que no se marque como descarte sin criterio
         }
         detalle.setEsPreguntaDescarte(true);
         detalle.setCriterioDescarteValor(criterioDescarte);
@@ -272,6 +357,9 @@ public class ServicioEncuestas {
     }
 
     public boolean eliminarPreguntaDeEncuesta(int idEncuesta, int idEncuestaDetalle){
+        // La implementación actual de eliminarPreguntaDeEncuestaServicio no usa idEncuesta.
+        // Si la intención es que el ID de la encuesta sea una validación adicional,
+        // se debería obtener el detalle y verificar que pertenece a la encuesta.
         return encuestaDetalleDAO.eliminarPreguntaDeEncuesta(idEncuestaDetalle);
     }
     
@@ -337,10 +425,14 @@ public class ServicioEncuestas {
                     edp.setPreguntaDelBanco(preguntaBanco);
                 } else if (edp.getTextoPreguntaUnica() != null) {
                     if (edp.getIdTipoPreguntaUnica() != null) {
+                        // Se podría cargar el nombre del tipo para la pregunta única si fuera necesario en la UI
                         TipoPregunta tipoUnica = tpDao.obtenerTipoPreguntaPorId(edp.getIdTipoPreguntaUnica());
+                        // if (tipoUnica != null) { edp.setNombreTipoPreguntaUnica(tipoUnica.getNombreTipo()); }
                     }
                      if (edp.getIdClasificacionUnica() != null) {
+                        // Se podría cargar el nombre de la clasificación para la pregunta única si fuera necesario en la UI
                         ClasificacionPregunta clasifUnica = cpDao.obtenerClasificacionPorId(edp.getIdClasificacionUnica());
+                        // if (clasifUnica != null) { edp.setNombreClasificacionUnica(clasifUnica.getNombreClasificacion()); }
                     }
                 }
             }
@@ -357,8 +449,8 @@ public class ServicioEncuestas {
      * @param idEncuesta El ID de la encuesta en la que buscar.
      * @param ordenBuscado El número de orden de la pregunta deseada.
      * @return El objeto {@link EncuestaDetallePregunta} si se encuentra una pregunta con el orden especificado,
-     *         o {@code null} si la encuesta no tiene preguntas, no se encuentra la encuesta, o no existe
-     *         una pregunta con dicho orden.
+     * o {@code null} si la encuesta no tiene preguntas, no se encuentra la encuesta, o no existe
+     * una pregunta con dicho orden.
      */
     public EncuestaDetallePregunta buscarPreguntaPorOrden(int idEncuesta, int ordenBuscado) {
         List<EncuestaDetallePregunta> preguntas = obtenerPreguntasDeEncuesta(idEncuesta);
@@ -378,24 +470,4 @@ public class ServicioEncuestas {
         System.out.println("ServicioEncuestas: No se encontró pregunta con orden " + ordenBuscado + " en la encuesta ID " + idEncuesta + ".");
         return null; // Pregunta no encontrada con ese orden
     }
-     public Encuesta buscarEncuestaPorNombreBinaria(List<Encuesta> encuestasOrdenadasPorNombre, String nombreBuscado) {
-    int izquierda = 0;
-    int derecha = encuestasOrdenadasPorNombre.size() - 1;
-
-    while (izquierda <= derecha) {
-        int medio = (izquierda + derecha) / 2;
-        Encuesta actual = encuestasOrdenadasPorNombre.get(medio);
-        int comparacion = actual.getNombre().compareToIgnoreCase(nombreBuscado);
-
-        if (comparacion == 0) {
-            return actual; // Encuesta encontrada
-        } else if (comparacion < 0) {
-            izquierda = medio + 1;
-        } else {
-            derecha = medio - 1;
-        }
-    }
-
-    return null;
-}
 }

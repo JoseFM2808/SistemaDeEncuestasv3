@@ -129,12 +129,6 @@ public class UIGestionEncuestas {
             JOptionPane.showMessageDialog(null, "La fecha de fin no puede ser anterior a la de inicio.", "Error de Fechas", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        // La validación contra fecha actual se puede dejar en el servicio o añadir aquí si es un requisito de UI
-        // if (fechaInicio.before(new Timestamp(System.currentTimeMillis()))) {
-        //     JOptionPane.showMessageDialog(null, "La fecha de inicio no puede ser anterior a la fecha actual.", "Error de Fechas", JOptionPane.ERROR_MESSAGE);
-        //     return;
-        // }
-        // --- FIN CORRECCIÓN ---
 
         String publicoStr = JOptionPane.showInputDialog(null, "Cantidad de público objetivo (ej. 100, 0 si no aplica):", "Crear Encuesta", JOptionPane.PLAIN_MESSAGE);
         int publicoObjetivo = 0;
