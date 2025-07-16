@@ -19,6 +19,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement; // Importar Statement
 import java.util.ArrayList;
 import java.util.List;
 
@@ -145,5 +146,93 @@ public class ClasificacionPreguntaDAO {
             ConexionDB.cerrar(rs, ps, con);
         }
         return clasificaciones;
+    }
+
+    /**
+     * Crea una nueva clasificación de pregunta en la base de datos.
+     * @param clasificacion El objeto ClasificacionPregunta a crear.
+     * @return true si la creación fue exitosa, false en caso contrario.
+     */
+    public boolean crearClasificacionPregunta(ClasificacionPregunta clasificacion) {
+        String sql = "INSERT INTO clasificaciones_pregunta (nombre_clasificacion, descripcion, estado) VALUES (?, ?, ?)";
+        Connection con = null;
+        PreparedStatement ps = null;
+        boolean exito = false;
+        try {
+            con = ConexionDB.conectar();
+            if (con == null) return false;
+            ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS); // Para poder obtener el ID si es necesario
+            ps.setString(1, clasificacion.getNombreClasificacion());
+            ps.setString(2, clasificacion.getDescripcion());
+            ps.setString(3, clasificacion.getEstado());
+            if (ps.executeUpdate() > 0) {
+                ResultSet rs = ps.getGeneratedKeys();
+                if(rs.next()){
+                    clasificacion.setIdClasificacion(rs.getInt(1)); // Asigna el ID generado al objeto
+                }
+                exito = true;
+            }
+        } catch (SQLException e) {
+            System.err.println("ClasificacionPreguntaDAO: Error SQL al crear clasificación de pregunta: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            ConexionDB.cerrar(null, ps, con);
+        }
+        return exito;
+    }
+
+    /**
+     * Actualiza una clasificación de pregunta existente.
+     * @param clasificacion El objeto ClasificacionPregunta con la información actualizada.
+     * @return true si la actualización fue exitosa, false en caso contrario.
+     */
+    public boolean actualizarClasificacionPregunta(ClasificacionPregunta clasificacion) {
+        String sql = "UPDATE clasificaciones_pregunta SET nombre_clasificacion = ?, descripcion = ?, estado = ? WHERE id_clasificacion = ?";
+        Connection con = null;
+        PreparedStatement ps = null;
+        boolean exito = false;
+        try {
+            con = ConexionDB.conectar();
+            if (con == null) return false;
+            ps = con.prepareStatement(sql);
+            ps.setString(1, clasificacion.getNombreClasificacion());
+            ps.setString(2, clasificacion.getDescripcion());
+            ps.setString(3, clasificacion.getEstado());
+            ps.setInt(4, clasificacion.getIdClasificacion());
+            exito = ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("ClasificacionPreguntaDAO: Error SQL al actualizar clasificación de pregunta: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            ConexionDB.cerrar(null, ps, con);
+        }
+        return exito;
+    }
+
+    /**
+     * Elimina una clasificación de pregunta por su ID.
+     * @param idClasificacion El ID de la clasificación a eliminar.
+     * @return true si la eliminación fue exitosa, false en caso contrario.
+     */
+    public boolean eliminarClasificacionPregunta(int idClasificacion) {
+        String sql = "DELETE FROM clasificaciones_pregunta WHERE id_clasificacion = ?";
+        Connection con = null;
+        PreparedStatement ps = null;
+        boolean exito = false;
+        try {
+            con = ConexionDB.conectar();
+            if (con == null) return false;
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, idClasificacion);
+            exito = ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("ClasificacionPreguntaDAO: Error SQL al eliminar clasificación de pregunta: " + e.getMessage());
+            e.printStackTrace();
+            // SQLException con código de error 1451 (Cannot delete or update a parent row: a foreign key constraint fails)
+            // indicaría que la clasificación está en uso.
+        } finally {
+            ConexionDB.cerrar(null, ps, con);
+        }
+        return exito;
     }
 }

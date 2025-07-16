@@ -264,4 +264,33 @@ public class EncuestaDetallePreguntaDAO {
         }
         return exito;
     }
+
+    public boolean isPreguntaBancoUsedInActiveEncuestas(int idPreguntaBanco) {
+        String sql = "SELECT COUNT(edp.id_encuesta_detalle_pregunta) " +
+                    "FROM encuesta_detalle_preguntas edp " +
+                    "JOIN encuestas e ON edp.id_encuesta = e.id_encuesta " +
+                    "WHERE edp.id_pregunta_banco = ? AND e.estado = 'Activa'";
+        Connection con = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        int count = 0;
+
+        try {
+            con = ConexionDB.conectar();
+            if (con == null) return false;
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, idPreguntaBanco);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.err.println("EncuestaDetallePreguntaDAO: Error SQL al verificar uso de pregunta en encuestas activas: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            ConexionDB.cerrar(rs, ps, con);
+        }
+        return count > 0; // Retorna true si la pregunta está siendo usada en al menos una encuesta activa
+    }
+
 }

@@ -15,10 +15,11 @@ package SteveJobs.encuestas.servicio;
 import SteveJobs.encuestas.modelo.Usuario;
 import SteveJobs.encuestas.dao.UsuarioDAO;
 import java.time.LocalDate;
+import java.util.List; // Importar List
+
 public class ServicioUsuarios {
 
     private UsuarioDAO usuarioDAO;
-
 
     public ServicioUsuarios() {
         this.usuarioDAO = new UsuarioDAO();
@@ -93,6 +94,35 @@ public class ServicioUsuarios {
             return false;
         }
         return usuarioDAO.actualizarUsuario(usuario);
+    }
+    
+    // Método para obtener todos los usuarios (requerido por UIGestionUsuarios)
+    public List<Usuario> obtenerTodosLosUsuarios() {
+        return usuarioDAO.obtenerTodosLosUsuarios();
+    }
+
+    // Método para actualizar el rol de un usuario (requerido por UIGestionUsuarios)
+    public boolean actualizarRolUsuario(int idUsuario, String nuevoRol) {
+        Usuario usuario = usuarioDAO.obtenerUsuarioPorId(idUsuario);
+        if (usuario == null) {
+            System.err.println("Servicio: Usuario ID " + idUsuario + " no encontrado para actualizar rol.");
+            return false;
+        }
+        // Validar que el nuevo rol sea válido si es necesario
+        if (!"Administrador".equalsIgnoreCase(nuevoRol) && !"Encuestado".equalsIgnoreCase(nuevoRol)) {
+            System.err.println("Servicio: Rol '" + nuevoRol + "' no válido.");
+            return false;
+        }
+        usuario.setRol(nuevoRol); // Actualiza el rol en el objeto modelo
+        // Delega al DAO para persistir el cambio. Asume que usuarioDAO.actualizarUsuario() maneja el rol.
+        return usuarioDAO.actualizarUsuario(usuario); 
+    }
+    
+    // Método para eliminar un usuario (requerido por UIGestionUsuarios)
+    public boolean eliminarUsuario(int idUsuario) {
+        // Aquí podrías añadir lógica de negocio adicional antes de eliminar,
+        // por ejemplo, verificar que el usuario no tenga respuestas de encuestas o encuestas creadas.
+        return usuarioDAO.eliminarUsuario(idUsuario);
     }
 
     public boolean cambiarEstadoUsuario(int idUsuario, String nuevoEstado) {

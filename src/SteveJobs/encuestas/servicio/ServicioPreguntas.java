@@ -14,66 +14,112 @@ package SteveJobs.encuestas.servicio;
 
 import SteveJobs.encuestas.modelo.PreguntaBanco;
 import SteveJobs.encuestas.dao.PreguntaBancoDAO;
+import SteveJobs.encuestas.dao.TipoPreguntaDAO;
+import SteveJobs.encuestas.dao.ClasificacionPreguntaDAO;
+import SteveJobs.encuestas.dao.EncuestaDetallePreguntaDAO; // Importar
+
+import SteveJobs.encuestas.modelo.TipoPregunta;
+import SteveJobs.encuestas.modelo.ClasificacionPregunta;
+
 import java.util.List;
-import java.util.ArrayList;
 
 public class ServicioPreguntas {
-    
+
     private PreguntaBancoDAO preguntaBancoDAO;
+    private TipoPreguntaDAO tipoPreguntaDAO;
+    private ClasificacionPreguntaDAO clasificacionPreguntaDAO;
+    private EncuestaDetallePreguntaDAO encuestaDetallePreguntaDAO; // Nueva instancia
 
     public ServicioPreguntas() {
         this.preguntaBancoDAO = new PreguntaBancoDAO();
+        this.tipoPreguntaDAO = new TipoPreguntaDAO();
+        this.clasificacionPreguntaDAO = new ClasificacionPreguntaDAO();
+        this.encuestaDetallePreguntaDAO = new EncuestaDetallePreguntaDAO(); // Inicializar
     }
 
-    /**
-     * Registra una nueva pregunta en el banco. Realiza validaciones básicas.
-     * @param pregunta El objeto PreguntaBanco a registrar.
-     * @return true si se registró exitosamente, false en caso contrario.
-     */
-    public boolean registrarPreguntaEnBanco(PreguntaBanco pregunta) {
-        if (pregunta == null) {
-            System.err.println("ServicioPreguntas: La pregunta no puede ser nula.");
+    public boolean registrarPreguntaEnBanco(String textoPregunta, String nombreTipo, String nombreClasificacion) {
+        if (textoPregunta == null || textoPregunta.trim().isEmpty()) {
+            System.err.println("Servicio: El texto de la pregunta no puede estar vacío.");
             return false;
         }
-        if (pregunta.getTextoPregunta() == null || pregunta.getTextoPregunta().trim().isEmpty()) {
-            System.err.println("ServicioPreguntas: El texto de la pregunta no puede estar vacío.");
-            return false;
-        }
-        if (pregunta.getIdTipoPregunta() <= 0) { // Asumiendo que los IDs de la BD son positivos
-            System.err.println("ServicioPreguntas: El ID del tipo de pregunta no es válido.");
-            return false;
-        }
-        
-        // Se eliminaron las validaciones de campos que ya no existen en el modelo:
-        // estado, idUsuarioCreador, fechaCreacion, fechaModificacion.
 
-        // Se corrigió la llamada al método del DAO y se adaptó la lógica de retorno.
-        int nuevoId = preguntaBancoDAO.crearPreguntaBanco(pregunta);
-        
-        if (nuevoId > 0) {
-            pregunta.setIdPreguntaBanco(nuevoId); // Actualizamos el ID en el objeto
-            System.out.println("ServicioPreguntas: Pregunta registrada en el banco exitosamente (ID: " + nuevoId + ").");
-            return true;
-        } else {
-            System.err.println("ServicioPreguntas: Falló el registro de la pregunta en el banco.");
+        TipoPregunta tipo = tipoPreguntaDAO.obtenerTipoPreguntaPorNombre(nombreTipo);
+        if (tipo == null) {
+            System.err.println("Servicio: El tipo de pregunta '" + nombreTipo + "' no es válido.");
             return false;
         }
+
+        ClasificacionPregunta clasif = null;
+        Integer idClasificacion = null;
+        if (nombreClasificacion != null && !nombreClasificacion.trim().isEmpty()) {
+            clasif = clasificacionPreguntaDAO.obtenerClasificacionPorNombre(nombreClasificacion);
+            if (clasif == null) {
+                System.err.println("Servicio: La clasificación '" + nombreClasificacion + "' no es válida.");
+                return false;
+            }
+            idClasificacion = clasif.getIdClasificacion();
+        }
+
+        PreguntaBanco nuevaPregunta = new PreguntaBanco();
+        nuevaPregunta.setTextoPregunta(textoPregunta.trim());
+        nuevaPregunta.setIdTipoPregunta(tipo.getIdTipoPregunta());
+        nuevaPregunta.setIdClasificacion(idClasificacion);
+
+        return preguntaBancoDAO.crearPreguntaBanco(nuevaPregunta);
     }
 
-    /**
-     * Obtiene todas las preguntas almacenadas en el banco de preguntas.
-     * @return Una lista de objetos PreguntaBanco.
-     */
     public List<PreguntaBanco> obtenerTodasLasPreguntasDelBanco() {
-        // Se corrigió la llamada al método correcto del DAO
-        List<PreguntaBanco> preguntas = preguntaBancoDAO.obtenerTodasLasPreguntas();
-        
-        if (preguntas == null) { // Por si acaso la conexión falla y el DAO devuelve null
-            System.err.println("ServicioPreguntas: Error al obtener la lista de preguntas (el DAO devolvió null).");
-            return new ArrayList<>(); 
+        return preguntaBancoDAO.obtenerTodasLasPreguntas();
+    }
+
+    // Nuevo método: obtenerPreguntaPorId (requerido por UIGestionBancoPreguntas)
+    public PreguntaBanco obtenerPreguntaPorId(int idPreguntaBanco) {
+        return preguntaBancoDAO.obtenerPreguntaPorId(idPreguntaBanco);
+    }
+
+    // Nuevo método: modificarPreguntaBanco (requerido por UIGestionBancoPreguntas)
+    public boolean modificarPreguntaBanco(int idPreguntaBanco, String nuevoTexto, String nuevoTipoNombre, String nuevaClasificacionNombre) {
+        PreguntaBanco pregunta = preguntaBancoDAO.obtenerPreguntaPorId(idPreguntaBanco);
+        if (pregunta == null) {
+            System.err.println("Servicio: Pregunta del banco con ID " + idPreguntaBanco + " no encontrada para modificar.");
+            return false;
+        }
+
+        TipoPregunta tipo = tipoPreguntaDAO.obtenerTipoPreguntaPorNombre(nuevoTipoNombre);
+        if (tipo == null) {
+            System.err.println("Servicio: Tipo de pregunta '" + nuevoTipoNombre + "' no válido para modificar.");
+            return false;
+        }
+
+        ClasificacionPregunta clasif = null;
+        Integer idClasificacion = null;
+        if (nuevaClasificacionNombre != null && !nuevaClasificacionNombre.trim().isEmpty()) {
+            clasif = clasificacionPreguntaDAO.obtenerClasificacionPorNombre(nuevaClasificacionNombre);
+            if (clasif == null) {
+                System.err.println("Servicio: Clasificación '" + nuevaClasificacionNombre + "' no válida para modificar.");
+                return false;
+            }
+            idClasificacion = clasif.getIdClasificacion();
         }
         
-        System.out.println("ServicioPreguntas: Se obtuvieron " + preguntas.size() + " preguntas del banco.");
-        return preguntas;
+        pregunta.setTextoPregunta(nuevoTexto.trim());
+        pregunta.setIdTipoPregunta(tipo.getIdTipoPregunta());
+        pregunta.setNombreTipoPregunta(tipo.getNombreTipo()); // Actualizar nombre en el modelo
+        pregunta.setIdClasificacion(idClasificacion);
+        pregunta.setNombreClasificacion(nuevaClasificacionNombre); // Actualizar nombre en el modelo
+
+        return preguntaBancoDAO.actualizarPreguntaBanco(pregunta);
+    }
+
+    // Método eliminarPreguntaBanco con la lógica adicional (requerido por UIGestionBancoPreguntas)
+    public boolean eliminarPreguntaBanco(int idPreguntaBanco) {
+        // Lógica de negocio adicional: verificar si la pregunta no está asociada a ninguna encuesta activa
+        if (encuestaDetallePreguntaDAO.isPreguntaBancoUsedInActiveEncuestas(idPreguntaBanco)) {
+            System.err.println("Servicio: No se puede eliminar la pregunta ID " + idPreguntaBanco + " porque está asociada a una o más encuestas activas.");
+            return false;
+        }
+        
+        // Si no está en encuestas activas, se procede a la eliminación
+        return preguntaBancoDAO.eliminarPreguntaBanco(idPreguntaBanco);
     }
 }
