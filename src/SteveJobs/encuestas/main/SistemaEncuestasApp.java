@@ -12,7 +12,7 @@
  */
 package SteveJobs.encuestas.main;
 
-import SteveJobs.encuestas.gui.LoginGUI; // Importar la nueva GUI de Login
+import SteveJobs.encuestas.gui.SistemaEncuestasGUI; // Importar la clase SistemaEncuestasGUI
 import SteveJobs.encuestas.ui.UIAutenticacion; // La UI de consola/JOptionPane existente
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
@@ -56,7 +56,7 @@ public class SistemaEncuestasApp {
                 iniciarUI();
                 break;
             case 1: // Iniciar con GUI (JFrame)
-                iniciarGUI();
+                iniciarGUI(); // Llamada al método corregido
                 break;
             case 2: // Salir
             case JOptionPane.CLOSED_OPTION: // Si el usuario cierra la ventana
@@ -73,16 +73,13 @@ public class SistemaEncuestasApp {
 
     private static void iniciarUI() {
         UIAutenticacion uiAutenticacion = new UIAutenticacion();
-        // El bucle de autenticación se gestiona dentro de UIAutenticacion
-        // hasta que el usuario se loguea, se registra o cierra la aplicación.
         uiAutenticacion.mostrarLogin();
     }
 
     private static void iniciarGUI() {
-        // Aquí se inicializará la primera ventana de tu GUI de JFrame
-        // Por ahora, será la Pantalla de Inicio/Login en JFrame
-        LoginGUI loginGUI = new LoginGUI();
-        loginGUI.setVisible(true);
-        // El resto del flujo de la GUI se gestionará desde esta ventana.
+        // CAMBIO: Ahora iniciamos la ventana principal de la GUI, que es SistemaEncuestasGUI.
+        // SistemaEncuestasGUI se encargará de mostrar LoginGUI dentro de su CardLayout.
+        SistemaEncuestasGUI sistemaEncuestasGUI = new SistemaEncuestasGUI(); // Instancia SistemaEncuestasGUI
+        sistemaEncuestasGUI.setVisible(true); // Hace visible la ventana principal de la GUI
     }
 }

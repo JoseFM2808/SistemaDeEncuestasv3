@@ -1,10 +1,11 @@
+// Archivo: josefm2808/sistemadeencuestasv3/SistemaDeEncuestasv3-b73347d68ca8a40e851f3439418b915b5f3ce710/src/SteveJobs/encuestas/modelo/PreguntaRegistro.java
 package SteveJobs.encuestas.modelo;
 
 public class PreguntaRegistro {
     private int idPreguntaRegistro;
     private String textoPregunta;
-    private String tipoRespuesta;
-    private String opcionesPosibles;
+    private String tipoRespuesta; // Se mantiene el nombre de la propiedad interna
+    private String opcionesPosibles; // Se mantiene el nombre de la propiedad interna
     private boolean esObligatoria;
     private int ordenVisualizacion;
     private String estado;
@@ -37,18 +38,22 @@ public class PreguntaRegistro {
         this.textoPregunta = textoPregunta;
     }
 
-    public String getTipoRespuesta() {
+    // Renombrado para coincidir con la llamada de RegistroUsuarioGUI
+    public String getTipoEntrada() {
         return tipoRespuesta;
     }
 
+    // Mantener setTipoRespuesta si aún se usa internamente
     public void setTipoRespuesta(String tipoRespuesta) {
         this.tipoRespuesta = tipoRespuesta;
     }
 
-    public String getOpcionesPosibles() {
+    // Renombrado para coincidir con la llamada de RegistroUsuarioGUI
+    public String getOpciones() {
         return opcionesPosibles;
     }
 
+    // Mantener setOpcionesPosibles si aún se usa internamente
     public void setOpcionesPosibles(String opcionesPosibles) {
         this.opcionesPosibles = opcionesPosibles;
     }

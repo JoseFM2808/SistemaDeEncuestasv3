@@ -2,153 +2,132 @@ package SteveJobs.encuestas.gui;
 
 import SteveJobs.encuestas.modelo.Usuario;
 import SteveJobs.encuestas.servicio.ServicioAutenticacion;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.ActionListener; // Importar ActionListener
 
 /**
- * Pantalla de Inicio de Sesión (Login) con interfaz gráfica JFrame.
- * Permite al usuario ingresar sus credenciales o acceder a la pantalla de registro.
+ * Panel de Login (JPanel). Permite al usuario ingresar sus credenciales
+ * y autenticarse en el sistema. Notifica a un listener externo (SistemaEncuestasGUI)
+ * sobre acciones como "mostrar_registro" o "login_exitoso".
  *
  * @author José Flores
  */
-public class LoginGUI extends JFrame {
+public class LoginGUI extends JPanel implements ActionListener { // Implementar ActionListener
 
     private JTextField txtEmail;
     private JPasswordField txtPassword;
-    private JLabel lblMensaje; // Para mostrar mensajes de error/éxito
-    private final ServicioAutenticacion servicioAutenticacion;
+    private JButton btnLogin, btnRegistrar;
 
-    public LoginGUI() {
-        super("Sistema de Encuestas - Iniciar Sesión");
-        servicioAutenticacion = new ServicioAutenticacion();
+    private ServicioAutenticacion servicioAutenticacion;
+    private ActionListener parentListener; // Referencia al ActionListener de la ventana padre
+
+    public LoginGUI(ActionListener parentListener) { // Constructor ahora recibe un ActionListener
+        this.parentListener = parentListener; // Almacenar el listener
+        this.servicioAutenticacion = new ServicioAutenticacion();
         initComponents();
-        setupFrame();
     }
 
     private void initComponents() {
-        // Panel principal con un BorderLayout para organizar componentes
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        setLayout(new GridBagLayout());
+        setBorder(BorderFactory.createEmptyBorder(50, 50, 50, 50));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Panel para el título y la bienvenida
-        JPanel headerPanel = new JPanel(new BorderLayout());
         JLabel lblTitulo = new JLabel("Bienvenido al Sistema de Encuestas", SwingConstants.CENTER);
-        lblTitulo.setFont(new Font("Arial", Font.BOLD, 20));
-        headerPanel.add(lblTitulo, BorderLayout.NORTH);
-        JLabel lblSubtitulo = new JLabel("Inicia sesión o regístrate para continuar", SwingConstants.CENTER);
-        lblSubtitulo.setFont(new Font("Arial", Font.PLAIN, 14));
-        headerPanel.add(lblSubtitulo, BorderLayout.CENTER);
-        mainPanel.add(headerPanel, BorderLayout.NORTH);
+        lblTitulo.setFont(new Font("Arial", Font.BOLD, 24));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        add(lblTitulo, gbc);
 
-        // Panel para los campos de entrada (email y contraseña)
-        JPanel inputPanel = new JPanel(new GridLayout(3, 2, 10, 10));
-        inputPanel.setBorder(BorderFactory.createTitledBorder("Credenciales"));
+        JLabel lblSubtitulo = new JLabel("Inicia sesión o regístrate", SwingConstants.CENTER);
+        lblSubtitulo.setFont(new Font("Arial", Font.PLAIN, 16));
+        gbc.gridy = 1;
+        add(lblSubtitulo, gbc);
 
-        inputPanel.add(new JLabel("Email:"));
+        gbc.gridwidth = 1;
+
+        // Email
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        add(new JLabel("Email:"), gbc);
+        gbc.gridx = 1;
         txtEmail = new JTextField(20);
-        // txtEmail.setText("admin@example.com"); // Eliminado: datos de prueba
-        inputPanel.add(txtEmail);
+        add(txtEmail, gbc);
 
-        inputPanel.add(new JLabel("Contraseña:"));
+        // Password
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        add(new JLabel("Contraseña:"), gbc);
+        gbc.gridx = 1;
         txtPassword = new JPasswordField(20);
-        // txtPassword.setText("admin123"); // Eliminado: datos de prueba
-        inputPanel.add(txtPassword);
+        add(txtPassword, gbc);
 
-        lblMensaje = new JLabel("", SwingConstants.CENTER);
-        lblMensaje.setForeground(Color.RED);
-        inputPanel.add(lblMensaje); // Mensajes de error/éxito
-        inputPanel.add(new JLabel("")); // Espaciador
-
-        mainPanel.add(inputPanel, BorderLayout.CENTER);
-
-        // Panel para los botones de acción
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-        JButton btnLogin = new JButton("Iniciar Sesión");
-        JButton btnRegister = new JButton("Registrarse");
-        JButton btnExit = new JButton("Salir");
+        // Botones
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 2;
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
+        btnLogin = new JButton("Iniciar Sesión");
+        btnRegistrar = new JButton("Registrarse");
 
         buttonPanel.add(btnLogin);
-        buttonPanel.add(btnRegister);
-        buttonPanel.add(btnExit);
-        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+        buttonPanel.add(btnRegistrar);
+        add(buttonPanel, gbc);
 
-        // Añadir el panel principal al frame
-        add(mainPanel);
-
-        // --- Eventos de los botones ---
-        btnLogin.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                iniciarSesion();
-            }
-        });
-
-        btnRegister.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                abrirVentanaRegistro();
-            }
-        });
-
-        btnExit.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.exit(0);
-            }
-        });
+        // --- Eventos ---
+        btnLogin.addActionListener(e -> intentarLogin());
+        btnRegistrar.addActionListener(e -> abrirVentanaRegistro()); // Ahora llama al nuevo método
     }
 
-    private void setupFrame() {
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        pack(); // Ajusta el tamaño de la ventana a sus componentes
-        setLocationRelativeTo(null); // Centra la ventana en la pantalla
-        setResizable(false); // Opcional: no permitir redimensionar
-    }
-
-    private void iniciarSesion() {
+    private void intentarLogin() {
         String email = txtEmail.getText().trim();
         String password = new String(txtPassword.getPassword());
 
         if (email.isEmpty() || password.isEmpty()) {
-            lblMensaje.setText("Por favor, ingrese email y contraseña.");
+            JOptionPane.showMessageDialog(this, "Por favor, ingrese email y contraseña.", "Error de Login", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         try {
             Usuario usuario = servicioAutenticacion.autenticar(email, password);
             if (usuario != null) {
-                lblMensaje.setText("¡Bienvenido, " + usuario.getNombres() + "!");
-                JOptionPane.showMessageDialog(this, "Inicio de sesión exitoso. Rol: " + usuario.getRol(), "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                
-                // Redirigir a la pantalla principal según el rol
-                if ("Administrador".equalsIgnoreCase(usuario.getRol())) {
-                    new AdminDashboardGUI(usuario).setVisible(true); // Abre el dashboard de admin
-                } else if ("Encuestado".equalsIgnoreCase(usuario.getRol())) {
-                    new EncuestadoMenuGUI(usuario).setVisible(true); // Abre el menú de encuestado
+                JOptionPane.showMessageDialog(this, "Bienvenido, " + usuario.getNombres() + "!", "Login Exitoso", JOptionPane.INFORMATION_MESSAGE);
+                // Notificar al listener padre sobre el éxito del login
+                if (parentListener != null) {
+                    // Pasar el usuario a la siguiente GUI o al frame principal para gestionar la navegación
+                    ActionEvent event = new ActionEvent(usuario, ActionEvent.ACTION_PERFORMED, "login_exitoso");
+                    parentListener.actionPerformed(event);
                 }
-                this.dispose(); // Cierra la ventana de login
             } else {
-                lblMensaje.setText("Credenciales inválidas. Intente de nuevo.");
+                JOptionPane.showMessageDialog(this, "Credenciales incorrectas.", "Error de Login", JOptionPane.ERROR_MESSAGE);
             }
         } catch (Exception ex) {
-            lblMensaje.setText("Error al iniciar sesión: " + ex.getMessage());
-            System.err.println("Error en LoginGUI al iniciar sesión: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Ocurrió un error al intentar iniciar sesión: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            System.err.println("Error en LoginGUI al intentar login: " + ex.getMessage());
             ex.printStackTrace();
         }
     }
 
     private void abrirVentanaRegistro() {
-        this.setVisible(false); // Oculta la ventana de login
-        RegistroUsuarioGUI registroGUI = new RegistroUsuarioGUI(this); // Pasamos referencia para volver
-        registroGUI.setVisible(true);
+        // Notificar al listener padre (SistemaEncuestasGUI) para que muestre el panel de registro
+        if (parentListener != null) {
+            parentListener.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "mostrar_registro"));
+        }
     }
-    
-    // Método para volver a hacer visible esta ventana (desde RegistroUsuarioGUI)
-    public void mostrarLoginGUI() {
-        this.setVisible(true);
-        txtPassword.setText(""); // Limpiar la contraseña
-        lblMensaje.setText(""); // Limpiar mensajes
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        // Este método se implementa porque LoginGUI ahora es un ActionListener.
+        // En este contexto, LoginGUI no necesita reaccionar a sus propios eventos a través de este método,
+        // ya que los botones usan expresiones lambda directas.
+        // Su propósito principal es permitir que LoginGUI sea pasado como un listener al constructor,
+        // si fuera necesario para subcomponentes internos que la notificaran a ella.
+        // En este caso, solo actúa como un passthrough si es necesario,
+        // pero la notificación principal es hacia parentListener.
     }
 }

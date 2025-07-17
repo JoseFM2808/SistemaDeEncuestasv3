@@ -1,3 +1,4 @@
+// Archivo: josefm2808/sistemadeencuestasv3/SistemaDeEncuestasv3-b73347d68ca8a40e851f3439418b915b5f3ce710/src/SteveJobs/encuestas/servicio/ServicioConfiguracionAdmin.java
 package SteveJobs.encuestas.servicio;
 
 import SteveJobs.encuestas.dao.PreguntaRegistroDAO;
@@ -25,7 +26,8 @@ public class ServicioConfiguracionAdmin {
         return preguntaRegistroDAO.agregarPreguntaRegistro(nuevaPregunta);
     }
 
-    public List<PreguntaRegistro> listarPreguntasRegistro() {
+    // Método renombrado para coincidir con la llamada en RegistroUsuarioGUI
+    public List<PreguntaRegistro> obtenerTodasLasPreguntasRegistro() {
         return preguntaRegistroDAO.obtenerTodasLasPreguntasRegistro();
     }
 

@@ -1,3 +1,4 @@
+// Archivo: josefm2808/sistemadeencuestasv3/SistemaDeEncuestasv3-b73347d68ca8a40e851f3439418b915b5f3ce710/src/SteveJobs/encuestas/servicio/ServicioPreguntas.java
 package SteveJobs.encuestas.servicio;
 
 import SteveJobs.encuestas.modelo.PreguntaBanco;
@@ -65,6 +66,14 @@ public class ServicioPreguntas {
     // Este método ahora llama al método renombrado en TipoPreguntaDAO
     public List<TipoPregunta> obtenerTodosLosTiposPregunta() {
         return tipoPreguntaDAO.obtenerTodosLosTiposPregunta(); //
+    }
+    
+    /**
+     * Nuevo método para obtener todas las clasificaciones.
+     * @return Lista de ClasificacionPregunta.
+     */
+    public List<ClasificacionPregunta> obtenerTodasLasClasificaciones() { // Añadido
+        return clasificacionPreguntaDAO.obtenerTodasLasClasificaciones();
     }
    
     public PreguntaBanco obtenerPreguntaPorId(int idPreguntaBanco) {

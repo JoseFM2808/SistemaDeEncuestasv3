@@ -12,9 +12,11 @@ import java.awt.event.ActionListener;
  *
  * @author José Flores
  */
-public class AdminDashboardGUI extends JFrame {
+public class AdminDashboardGUI extends JFrame implements ActionListener { // Implementar ActionListener
 
     private Usuario administradorActual; // El usuario administrador logueado
+    // Se podría añadir una referencia a SistemaEncuestasGUI si es la ventana principal
+    // private SistemaEncuestasGUI parentFrame;
 
     public AdminDashboardGUI(Usuario admin) {
         super("Sistema de Encuestas - Panel de Administrador");
@@ -22,6 +24,16 @@ public class AdminDashboardGUI extends JFrame {
         initComponents();
         setupFrame();
     }
+
+    /* Si AdminDashboardGUI fuera lanzado por SistemaEncuestasGUI
+    public AdminDashboardGUI(Usuario admin, SistemaEncuestasGUI parentFrame) {
+        super("Sistema de Encuestas - Panel de Administrador");
+        this.administradorActual = admin;
+        this.parentFrame = parentFrame;
+        initComponents();
+        setupFrame();
+    }
+    */
 
     private void initComponents() {
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
@@ -97,8 +109,14 @@ public class AdminDashboardGUI extends JFrame {
 
     private void cerrarSesion() {
         // Al cerrar sesión, volvemos a la pantalla de LoginGUI
-        LoginGUI loginGUI = new LoginGUI();
-        loginGUI.setVisible(true);
+        // CAMBIO: Pasar 'this' (AdminDashboardGUI, que ahora implementa ActionListener)
+        // como el parentListener para el LoginGUI.
+        // Opcional: Si SistemaEncuestasGUI es la ventana principal, sería mejor
+        // que AdminDashboardGUI tuviera una referencia a ella y le notificara
+        // para que SistemaEncuestasGUI maneje el cambio de panel a LoginGUI.
+        // Por simplicidad, y sin una reestructuración mayor, instanciamos aquí.
+        LoginGUI loginGUI = new LoginGUI(this); //
+        loginGUI.setVisible(true); //
         this.dispose(); // Cierra esta ventana del dashboard
     }
 
@@ -138,5 +156,25 @@ public class AdminDashboardGUI extends JFrame {
     // Método para volver a hacer visible esta ventana (cuando un sub-GUI se cierra)
     public void mostrarAdminDashboardGUI() {
         this.setVisible(true);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        // Implementar el método actionPerformed de la interfaz ActionListener.
+        // Aquí se pueden manejar los eventos que LoginGUI u otras GUIs hijas puedan enviar
+        // de vuelta a AdminDashboardGUI.
+        String command = e.getActionCommand();
+        if ("login_exitoso".equals(command)) {
+            // Este caso no debería ocurrir aquí si LoginGUI siempre devuelve a SistemaEncuestasGUI.
+            // Si LoginGUI fuera a redirigir directamente a este dashboard, se manejaría aquí.
+            // Por ahora, se deja vacío o para depuración.
+            System.out.println("AdminDashboardGUI recibió un evento de login exitoso. Esto es inesperado si SistemaEncuestasGUI lo maneja.");
+        } else if ("mostrar_registro".equals(command)) {
+            // Este caso tampoco debería ocurrir aquí si SistemaEncuestasGUI maneja los cambios de panel.
+            System.out.println("AdminDashboardGUI recibió un evento para mostrar registro. Esto es inesperado si SistemaEncuestasGUI lo maneja.");
+        }
+        // No es necesario que esta implementación haga algo complejo,
+        // ya que la interacción principal de LoginGUI (volver a SistemaEncuestasGUI)
+        // se manejaría mejor si AdminDashboardGUI tuviera una referencia a SistemaEncuestasGUI.
     }
 }

@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp; // Importar Timestamp
 import java.util.List;
 import java.util.ArrayList;
 
@@ -161,6 +162,49 @@ public class RespuestaUsuarioDAO {
             exito = ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("RespuestaUsuarioDAO: Error SQL al eliminar respuestas de encuesta: " + e.getMessage());
+            e.printStackTrace();
+
+        } finally {
+            ConexionDB.cerrar(null, ps, con);
+        }
+        return exito;
+    }
+
+    /**
+     * Guarda una respuesta a una pregunta de registro dinámica.
+     * Esta implementación asume que existe una tabla 'respuestas_registro_usuario'
+     * en la base de datos con las columnas id_usuario, id_pregunta_registro, valor_respuesta, fecha_hora_respuesta.
+     * @param idUsuario El ID del usuario que responde.
+     * @param idPreguntaRegistro El ID de la pregunta de registro.
+     * @param valorRespuesta El valor de la respuesta.
+     * @return true si la respuesta fue guardada exitosamente, false en caso contrario.
+     */
+    public boolean guardarRespuestaRegistro(int idUsuario, int idPreguntaRegistro, String valorRespuesta) {
+        String sql = "INSERT INTO respuestas_registro_usuario (id_usuario, id_pregunta_registro, valor_respuesta, fecha_hora_respuesta) VALUES (?, ?, ?, ?)";
+        Connection con = null;
+        PreparedStatement ps = null;
+        boolean exito = false;
+
+        try {
+            con = ConexionDB.conectar();
+            if (con == null) {
+                System.err.println("RespuestaUsuarioDAO: No se pudo conectar a la BD para guardar respuesta de registro.");
+                return false;
+            }
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, idUsuario);
+            ps.setInt(2, idPreguntaRegistro);
+            ps.setString(3, valorRespuesta);
+            ps.setTimestamp(4, new Timestamp(System.currentTimeMillis())); // Usar la fecha y hora actual
+
+            exito = ps.executeUpdate() > 0;
+
+            if (!exito) {
+                System.err.println("RespuestaUsuarioDAO: Falló la inserción de la respuesta de registro para usuario " + idUsuario + ", pregunta " + idPreguntaRegistro);
+            }
+
+        } catch (SQLException e) {
+            System.err.println("RespuestaUsuarioDAO: Error SQL al guardar respuesta de registro: " + e.getMessage());
             e.printStackTrace();
         } finally {
             ConexionDB.cerrar(null, ps, con);

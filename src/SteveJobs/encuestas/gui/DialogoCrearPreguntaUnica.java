@@ -1,8 +1,8 @@
+// Archivo: josefm2808/sistemadeencuestasv3/SistemaDeEncuestasv3-b73347d68ca8a40e851f3439418b915b5f3ce710/src/SteveJobs/encuestas/gui/DialogoCrearPreguntaUnica.java
 package SteveJobs.encuestas.gui;
 
 import SteveJobs.encuestas.modelo.TipoPregunta;
 import SteveJobs.encuestas.modelo.ClasificacionPregunta;
-import SteveJobs.encuestas.servicio.ServicioPreguntas; // Mantener si se usa para otras cosas, pero no para obtener tipos/clasificaciones
 import SteveJobs.encuestas.dao.TipoPreguntaDAO; // Importar
 import SteveJobs.encuestas.dao.ClasificacionPreguntaDAO; // Importar
 
@@ -20,18 +20,16 @@ public class DialogoCrearPreguntaUnica extends JDialog {
     private JTextField txtTextoPregunta;
     private JComboBox<String> cmbTipoPregunta;
     private JComboBox<String> cmbClasificacion;
+    private JCheckBox chkEsDescarte; // Añadido
+    private JTextField txtCriterioDescarte; // Añadido
     private JButton btnAceptar, btnCancelar;
 
-    private String textoPreguntaUnica;
-    private Integer idTipoPreguntaUnica;
-    private Integer idClasificacionUnica;
     private boolean creacionExitosa = false;
 
     public DialogoCrearPreguntaUnica(Frame owner) {
         super(owner, "Crear Pregunta Única para Encuesta", true);
         this.tipoPreguntaDAO = new TipoPreguntaDAO(); // Inicializar
         this.clasificacionPreguntaDAO = new ClasificacionPreguntaDAO(); // Inicializar
-        // this.servicioPreguntas = new ServicioPreguntas(); // Si no se usa, se puede eliminar
 
         initComponents();
         setupDialog();
@@ -77,6 +75,22 @@ public class DialogoCrearPreguntaUnica extends JDialog {
         cmbClasificacion = new JComboBox<>();
         panel.add(cmbClasificacion, gbc);
 
+        // Es pregunta de descarte
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 1;
+        chkEsDescarte = new JCheckBox("Es Pregunta de Descarte"); // Añadido
+        panel.add(chkEsDescarte, gbc);
+
+        // Criterio de descarte
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        txtCriterioDescarte = new JTextField(15); // Añadido
+        txtCriterioDescarte.setToolTipText("Valor que descalifica (ej: 'No', '2', 'Madrid')");
+        txtCriterioDescarte.setEnabled(false); // Deshabilitado por defecto
+        panel.add(txtCriterioDescarte, gbc);
+
         // Botones
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         btnAceptar = new JButton("Aceptar");
@@ -85,14 +99,16 @@ public class DialogoCrearPreguntaUnica extends JDialog {
         buttonPanel.add(btnCancelar);
 
         gbc.gridx = 0;
-        gbc.gridy = 3;
+        gbc.gridy = 4; // Cambiado a gridy 4 por los nuevos componentes
         gbc.gridwidth = 3;
         panel.add(buttonPanel, gbc);
 
         add(panel);
 
+        // Listeners
         btnAceptar.addActionListener(e -> onAceptar());
         btnCancelar.addActionListener(e -> onCancelar());
+        chkEsDescarte.addActionListener(e -> txtCriterioDescarte.setEnabled(chkEsDescarte.isSelected())); // Listener para habilitar/deshabilitar
     }
 
     private void setupDialog() {
@@ -123,27 +139,11 @@ public class DialogoCrearPreguntaUnica extends JDialog {
             return;
         }
 
-        String tipoNombre = (String) cmbTipoPregunta.getSelectedItem();
-        TipoPregunta tipoSeleccionado = tipoPreguntaDAO.obtenerTipoPreguntaPorNombre(tipoNombre); // CORRECCIÓN
-        if (tipoSeleccionado == null) {
-            JOptionPane.showMessageDialog(this, "Seleccione un tipo de pregunta válido.", "Error", JOptionPane.ERROR_MESSAGE);
+        if (chkEsDescarte.isSelected() && txtCriterioDescarte.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Debe especificar un criterio de descarte si la pregunta es de descarte.", "Advertencia", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        idTipoPreguntaUnica = tipoSeleccionado.getIdTipoPregunta();
 
-        String clasificacionNombre = (String) cmbClasificacion.getSelectedItem();
-        if ("Ninguna".equals(clasificacionNombre)) {
-            idClasificacionUnica = null; // No asignar clasificación
-        } else {
-            ClasificacionPregunta clasificacionSeleccionada = clasificacionPreguntaDAO.obtenerClasificacionPorNombre(clasificacionNombre); // CORRECCIÓN
-            if (clasificacionSeleccionada == null) {
-                JOptionPane.showMessageDialog(this, "Seleccione una clasificación válida o 'Ninguna'.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            idClasificacionUnica = clasificacionSeleccionada.getIdClasificacion(); // CORRECCIÓN: getIdClasificacion()
-        }
-
-        textoPreguntaUnica = texto;
         creacionExitosa = true;
         dispose();
     }
@@ -153,19 +153,28 @@ public class DialogoCrearPreguntaUnica extends JDialog {
         dispose();
     }
 
-    public boolean isCreacionExitosa() {
+    public boolean isGuardadoExitoso() { // Renombrado de isCreacionExitosa para coincidir con el uso
         return creacionExitosa;
     }
 
-    public String getTextoPreguntaUnica() {
-        return textoPreguntaUnica;
+    // Métodos getter para acceder a los componentes de entrada
+    public JTextField getTxtTextoPregunta() {
+        return txtTextoPregunta;
     }
 
-    public Integer getIdTipoPreguntaUnica() {
-        return idTipoPreguntaUnica;
+    public JComboBox<String> getCmbTipoPregunta() {
+        return cmbTipoPregunta;
     }
 
-    public Integer getIdClasificacionUnica() {
-        return idClasificacionUnica;
+    public JComboBox<String> getCmbClasificacion() {
+        return cmbClasificacion;
+    }
+
+    public JCheckBox getChkEsDescarte() { // Añadido
+        return chkEsDescarte;
+    }
+
+    public JTextField getTxtCriterioDescarte() { // Añadido
+        return txtCriterioDescarte;
     }
 }

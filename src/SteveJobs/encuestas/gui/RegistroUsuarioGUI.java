@@ -1,173 +1,241 @@
+// Archivo: josefm2808/sistemadeencuestasv3/SistemaDeEncuestasv3-b73347d68ca8a40e851f3439418b915b5f3ce710/src/SteveJobs/encuestas/gui/RegistroUsuarioGUI.java
 package SteveJobs.encuestas.gui;
 
+import SteveJobs.encuestas.modelo.PreguntaRegistro;
+import SteveJobs.encuestas.servicio.ServicioConfiguracionAdmin;
 import SteveJobs.encuestas.servicio.ServicioUsuarios;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Date;
-import com.toedter.calendar.JDateChooser; // Importar JDateChooser
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 
-/**
- * Pantalla de Registro de Usuario con interfaz gráfica JFrame.
- * Permite a nuevos usuarios registrarse en el sistema.
- *
- * @author José Flores
- */
-public class RegistroUsuarioGUI extends JFrame {
+// CAMBIO IMPORTANTE: Extender JPanel en lugar de JFrame
+public class RegistroUsuarioGUI extends JPanel { //
 
-    private JTextField txtDni, txtNombres, txtApellidos, txtEmail;
-    private JPasswordField txtPassword, txtConfirmPassword;
-    private JDateChooser dateChooserFechaNacimiento; // JDateChooser para la fecha de nacimiento
-    private JComboBox<String> cmbGenero, cmbDistrito;
-    private JLabel lblMensaje;
+    private JTextField txtDni, txtNombres, txtApellidos, txtEmail, txtFechaNacimiento, txtGenero, txtDistrito; //
+    private JPasswordField txtPassword, txtConfirmPassword; //
+    private JButton btnRegistrar, btnVolver; //
+    private JPanel dynamicQuestionsPanel; //
+    private Map<Integer, JComponent> dynamicFields; // Para almacenar los componentes dinámicos
 
-    private final ServicioUsuarios servicioUsuarios;
-    private final LoginGUI loginParent; // Referencia a la ventana de login para volver
+    private ServicioUsuarios servicioUsuarios; //
+    private ServicioConfiguracionAdmin servicioConfiguracionAdmin; //
 
-    public RegistroUsuarioGUI(LoginGUI parent) {
-        super("Sistema de Encuestas - Registro de Usuario");
-        this.loginParent = parent;
-        servicioUsuarios = new ServicioUsuarios();
-        initComponents();
-        setupFrame();
+    private ActionListener volverListener; // Para notificar a la ventana principal
+
+    // Constructor ahora acepta un ActionListener para el botón volver
+    public RegistroUsuarioGUI(ActionListener volverListener) { //
+        this.volverListener = volverListener; //
+        servicioUsuarios = new ServicioUsuarios(); //
+        servicioConfiguracionAdmin = new ServicioConfiguracionAdmin(); //
+        dynamicFields = new HashMap<>(); //
+        initComponents(); //
+        // Ya no necesitas setSize, setLocationRelativeTo, etc. aquí
     }
 
     private void initComponents() {
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        setLayout(new BorderLayout(15, 15)); //
+        setBorder(BorderFactory.createEmptyBorder(25, 50, 25, 50)); //
 
-        JLabel lblTitulo = new JLabel("Registro de Nuevo Usuario", SwingConstants.CENTER);
-        lblTitulo.setFont(new Font("Arial", Font.BOLD, 20));
-        mainPanel.add(lblTitulo, BorderLayout.NORTH);
+        JLabel lblTitulo = new JLabel("Registro de Nuevo Usuario", SwingConstants.CENTER); //
+        lblTitulo.setFont(new Font("Arial", Font.BOLD, 24)); //
+        add(lblTitulo, BorderLayout.NORTH); //
 
-        JPanel formPanel = new JPanel(new GridLayout(9, 2, 10, 10)); // 9 filas para los campos
-        formPanel.setBorder(BorderFactory.createTitledBorder("Datos Personales"));
+        JPanel formPanel = new JPanel(new GridBagLayout()); //
+        GridBagConstraints gbc = new GridBagConstraints(); //
+        gbc.insets = new Insets(8, 8, 8, 8); //
+        gbc.fill = GridBagConstraints.HORIZONTAL; //
 
-        formPanel.add(new JLabel("DNI:"));
-        txtDni = new JTextField();
-        formPanel.add(txtDni);
+        // DNI
+        gbc.gridx = 0; gbc.gridy = 0; formPanel.add(new JLabel("DNI:"), gbc); //
+        gbc.gridx = 1; txtDni = new JTextField(20); formPanel.add(txtDni, gbc); //
 
-        formPanel.add(new JLabel("Nombres:"));
-        txtNombres = new JTextField();
-        formPanel.add(txtNombres);
+        // Nombres
+        gbc.gridx = 0; gbc.gridy = 1; formPanel.add(new JLabel("Nombres:"), gbc); //
+        gbc.gridx = 1; txtNombres = new JTextField(20); formPanel.add(txtNombres, gbc); //
 
-        formPanel.add(new JLabel("Apellidos:"));
-        txtApellidos = new JTextField();
-        formPanel.add(txtApellidos);
+        // Apellidos
+        gbc.gridx = 0; gbc.gridy = 2; formPanel.add(new JLabel("Apellidos:"), gbc); //
+        gbc.gridx = 1; txtApellidos = new JTextField(20); formPanel.add(txtApellidos, gbc); //
 
-        formPanel.add(new JLabel("Email:"));
-        txtEmail = new JTextField();
-        formPanel.add(txtEmail);
+        // Email
+        gbc.gridx = 0; gbc.gridy = 3; formPanel.add(new JLabel("Email:"), gbc); //
+        gbc.gridx = 1; txtEmail = new JTextField(20); formPanel.add(txtEmail, gbc); //
 
-        formPanel.add(new JLabel("Contraseña:"));
-        txtPassword = new JPasswordField();
-        formPanel.add(txtPassword);
+        // Password
+        gbc.gridx = 0; gbc.gridy = 4; formPanel.add(new JLabel("Contraseña:"), gbc); //
+        gbc.gridx = 1; txtPassword = new JPasswordField(20); formPanel.add(txtPassword, gbc); //
 
-        formPanel.add(new JLabel("Confirmar Contraseña:"));
-        txtConfirmPassword = new JPasswordField();
-        formPanel.add(txtConfirmPassword);
-        
-        formPanel.add(new JLabel("Fecha Nacimiento:"));
-        dateChooserFechaNacimiento = new JDateChooser(); // Instancia de JDateChooser
-        dateChooserFechaNacimiento.setDateFormatString("yyyy-MM-dd"); // Formato de fecha
-        formPanel.add(dateChooserFechaNacimiento);
-        
-        formPanel.add(new JLabel("Género:"));
-        cmbGenero = new JComboBox<>(new String[]{"", "Masculino", "Femenino", "Otro"});
-        formPanel.add(cmbGenero);
-        
-        formPanel.add(new JLabel("Distrito:"));
-        cmbDistrito = new JComboBox<>(new String[]{"", "Chorrillos", "Barranco", "Miraflores", "San Isidro", "Santiago de Surco"});
-        formPanel.add(cmbDistrito);
+        // Confirm Password
+        gbc.gridx = 0; gbc.gridy = 5; formPanel.add(new JLabel("Confirmar Contraseña:"), gbc); //
+        gbc.gridx = 1; txtConfirmPassword = new JPasswordField(20); formPanel.add(txtConfirmPassword, gbc); //
 
-        mainPanel.add(formPanel, BorderLayout.CENTER);
+        // Fecha de Nacimiento
+        gbc.gridx = 0; gbc.gridy = 6; formPanel.add(new JLabel("Fecha Nacimiento (YYYY-MM-DD):"), gbc); //
+        gbc.gridx = 1; txtFechaNacimiento = new JTextField(20); formPanel.add(txtFechaNacimiento, gbc); //
 
-        lblMensaje = new JLabel("", SwingConstants.CENTER);
-        lblMensaje.setForeground(Color.RED);
-        mainPanel.add(lblMensaje, BorderLayout.SOUTH);
+        // Género
+        gbc.gridx = 0; gbc.gridy = 7; formPanel.add(new JLabel("Género:"), gbc); //
+        gbc.gridx = 1; txtGenero = new JTextField(20); formPanel.add(txtGenero, gbc); //
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-        JButton btnRegister = new JButton("Registrarme");
-        JButton btnBack = new JButton("Volver al Login");
+        // Distrito
+        gbc.gridx = 0; gbc.gridy = 8; formPanel.add(new JLabel("Distrito:"), gbc); //
+        gbc.gridx = 1; txtDistrito = new JTextField(20); formPanel.add(txtDistrito, gbc); //
 
-        buttonPanel.add(btnRegister);
-        buttonPanel.add(btnBack);
-        
-        mainPanel.add(buttonPanel, BorderLayout.PAGE_END); // Asegura que los botones estén al final
+        // Panel para preguntas dinámicas de registro
+        dynamicQuestionsPanel = new JPanel(); //
+        dynamicQuestionsPanel.setLayout(new BoxLayout(dynamicQuestionsPanel, BoxLayout.Y_AXIS)); //
+        loadDynamicRegistrationQuestions(); //
 
-        add(mainPanel);
+        // Añadir el dynamicQuestionsPanel a un JScrollPane si hay muchas preguntas
+        JScrollPane scrollPane = new JScrollPane(dynamicQuestionsPanel); //
+        scrollPane.setBorder(BorderFactory.createTitledBorder("Preguntas Adicionales de Perfil")); //
 
-        // --- Eventos de los botones ---
-        btnRegister.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                registrarUsuario();
+        gbc.gridx = 0; gbc.gridy = 9; //
+        gbc.gridwidth = 2; //
+        gbc.weighty = 1.0; // Para que el scrollPane ocupe espacio vertical
+        gbc.fill = GridBagConstraints.BOTH; //
+        formPanel.add(scrollPane, gbc); //
+
+        add(formPanel, BorderLayout.CENTER); //
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 15)); //
+        btnRegistrar = new JButton("Registrar"); //
+        btnVolver = new JButton("Volver"); //
+        buttonPanel.add(btnRegistrar); //
+        buttonPanel.add(btnVolver); //
+        add(buttonPanel, BorderLayout.SOUTH); //
+
+        btnRegistrar.addActionListener(e -> registrarUsuario()); //
+        btnVolver.addActionListener(e -> { //
+            if (volverListener != null) { //
+                volverListener.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "volver")); //
             }
-        });
-
-        btnBack.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                volverAlLogin();
-            }
-        });
+        }); //
     }
 
-    private void setupFrame() {
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Cierra solo esta ventana
-        pack(); // Ajusta el tamaño de la ventana
-        setLocationRelativeTo(null); // Centra la ventana
-        setResizable(false);
+    private void loadDynamicRegistrationQuestions() {
+        dynamicQuestionsPanel.removeAll(); // Limpiar antes de añadir
+        dynamicFields.clear(); // Limpiar el mapa de campos dinámicos
+
+        List<PreguntaRegistro> preguntas = servicioConfiguracionAdmin.obtenerTodasLasPreguntasRegistro(); //
+        if (preguntas.isEmpty()) { //
+            dynamicQuestionsPanel.add(new JLabel("No hay preguntas de registro adicionales configuradas.")); //
+        } else {
+            for (PreguntaRegistro pr : preguntas) { //
+                JPanel questionRow = new JPanel(new FlowLayout(FlowLayout.LEFT)); //
+                questionRow.add(new JLabel(pr.getTextoPregunta() + ":")); //
+
+                JComponent inputComponent; //
+                switch (pr.getTipoEntrada()) { //
+                    case "texto": //
+                        inputComponent = new JTextField(20); //
+                        break;
+                    case "numero": //
+                        inputComponent = new JTextField(10); //
+                        ((JTextField) inputComponent).setHorizontalAlignment(JTextField.RIGHT); //
+                        break;
+                    case "opcion_simple": //
+                        String[] opcionesSimples = pr.getOpciones().split(","); //
+                        inputComponent = new JComboBox<>(opcionesSimples); //
+                        break;
+                    default: //
+                        inputComponent = new JTextField(20); // Valor por defecto
+                        break;
+                }
+                questionRow.add(inputComponent); //
+                dynamicQuestionsPanel.add(questionRow); //
+                dynamicFields.put(pr.getIdPreguntaRegistro(), inputComponent); //
+            }
+        }
+        dynamicQuestionsPanel.revalidate(); //
+        dynamicQuestionsPanel.repaint(); //
     }
 
     private void registrarUsuario() {
-        String dni = txtDni.getText().trim();
-        String nombres = txtNombres.getText().trim();
-        String apellidos = txtApellidos.getText().trim();
-        String email = txtEmail.getText().trim();
-        String password = new String(txtPassword.getPassword());
-        String confirmPassword = new String(txtConfirmPassword.getPassword());
-        Date fechaNacimiento = dateChooserFechaNacimiento.getDate(); // Obtener la fecha directamente de JDateChooser
-        String genero = (String) cmbGenero.getSelectedItem();
-        String distrito = (String) cmbDistrito.getSelectedItem();
+        String dni = txtDni.getText().trim(); //
+        String nombres = txtNombres.getText().trim(); //
+        String apellidos = txtApellidos.getText().trim(); //
+        String email = txtEmail.getText().trim(); //
+        String password = new String(txtPassword.getPassword()); //
+        String confirmPassword = new String(txtConfirmPassword.getPassword()); //
+        String fechaNacimientoStr = txtFechaNacimiento.getText().trim(); //
+        String genero = txtGenero.getText().trim(); //
+        String distrito = txtDistrito.getText().trim(); //
 
         // Validaciones básicas
-        if (dni.isEmpty() || nombres.isEmpty() || apellidos.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || fechaNacimiento == null || genero == null || genero.isEmpty() || distrito == null || distrito.isEmpty()) {
-            lblMensaje.setText("Todos los campos son obligatorios.");
-            return;
+        if (dni.isEmpty() || nombres.isEmpty() || apellidos.isEmpty() || email.isEmpty() ||
+            password.isEmpty() || confirmPassword.isEmpty() || fechaNacimientoStr.isEmpty() ||
+            genero.isEmpty() || distrito.isEmpty()) { //
+            JOptionPane.showMessageDialog(this, "Por favor, complete todos los campos.", "Error de Registro", JOptionPane.ERROR_MESSAGE); //
+            return; //
         }
 
-        if (!password.equals(confirmPassword)) {
-            lblMensaje.setText("Las contraseñas no coinciden.");
-            return;
+        if (!password.equals(confirmPassword)) { //
+            JOptionPane.showMessageDialog(this, "Las contraseñas no coinciden.", "Error de Registro", JOptionPane.ERROR_MESSAGE); //
+            return; //
         }
-        
+
+        LocalDate fechaNacimiento; //
         try {
-            // Llama al servicio de usuarios para registrar
-            // NOTA: El rol "Encuestado" se asigna por defecto desde ServicioUsuarios
-            servicioUsuarios.registrarNuevoUsuario(dni, nombres, apellidos, email, email, LocalDate.MIN, genero, distrito, dni);
-            lblMensaje.setForeground(new Color(0, 128, 0)); // Verde para éxito
-            lblMensaje.setText("¡Usuario registrado con éxito! Ahora puedes iniciar sesión.");
-            
-            JOptionPane.showMessageDialog(this, "Registro exitoso. ¡Bienvenido!", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-            volverAlLogin(); // Redirige al login
-            
-        } catch (IllegalArgumentException ex) {
-            lblMensaje.setForeground(Color.RED);
-            lblMensaje.setText(ex.getMessage()); // Mensaje de error desde el servicio
-            System.err.println("Error de validación al registrar usuario: " + ex.getMessage());
-        } catch (Exception ex) {
-            lblMensaje.setForeground(Color.RED);
-            lblMensaje.setText("Error al registrar usuario: " + ex.getMessage());
-            System.err.println("Error inesperado al registrar usuario: " + ex.getMessage());
-            ex.printStackTrace();
+            fechaNacimiento = LocalDate.parse(fechaNacimientoStr); //
+        } catch (DateTimeParseException e) {
+            JOptionPane.showMessageDialog(this, "Formato de fecha de nacimiento inválido. Use YYYY-MM-DD.", "Error de Registro", JOptionPane.ERROR_MESSAGE); //
+            return; //
         }
-    }
 
-    private void volverAlLogin() {
-        this.dispose(); // Cierra esta ventana de registro
-        loginParent.mostrarLoginGUI(); // Muestra la ventana de login
+        // Recopilar respuestas a preguntas dinámicas
+        Map<Integer, String> respuestasDinamicas = new HashMap<>(); //
+        boolean dynamicFieldsValid = true; //
+        for (Map.Entry<Integer, JComponent> entry : dynamicFields.entrySet()) { //
+            Integer preguntaId = entry.getKey(); //
+            JComponent component = entry.getValue(); //
+            String respuesta = ""; //
+
+            if (component instanceof JTextField) { //
+                respuesta = ((JTextField) component).getText().trim(); //
+            } else if (component instanceof JComboBox) { //
+                Object selectedItem = ((JComboBox<?>) component).getSelectedItem(); //
+                if (selectedItem != null) { //
+                    respuesta = selectedItem.toString().trim(); //
+                }
+            }
+
+            if (respuesta.isEmpty()) { //
+                JOptionPane.showMessageDialog(this, "Por favor, responda todas las preguntas adicionales.", "Error de Registro", JOptionPane.ERROR_MESSAGE); //
+                dynamicFieldsValid = false; //
+                break; //
+            }
+            respuestasDinamicas.put(preguntaId, respuesta); //
+        }
+
+        if (!dynamicFieldsValid) { //
+            return; //
+        }
+
+        try {
+            boolean registrado = servicioUsuarios.registrarUsuario(
+                    dni, nombres, apellidos, email, password, fechaNacimiento, genero, distrito, respuestasDinamicas); //
+
+            if (registrado) { //
+                JOptionPane.showMessageDialog(this, "Usuario registrado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE); //
+                // Notificar a la ventana principal para que muestre el login
+                if (volverListener != null) { //
+                    volverListener.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "registro_exitoso")); //
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Error al registrar usuario. El email o DNI ya podría estar en uso.", "Error de Registro", JOptionPane.ERROR_MESSAGE); //
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Ocurrió un error inesperado durante el registro: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE); //
+            System.err.println("Error al registrar usuario en GUI: " + ex.getMessage()); //
+            ex.printStackTrace(); //
+        }
     }
 }
