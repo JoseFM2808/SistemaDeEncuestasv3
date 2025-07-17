@@ -1,22 +1,10 @@
-/*
- * Responsable: Pablo Alegre (Refactorizado y completado por Asistente de AED)
- * Relación con otras partes del código:
- * - Implementa la lógica de negocio para la gestión del banco de preguntas.
- * - Se comunica con PreguntaBancoDAO para la persistencia.
- * - Utilizado por la UI (UIGestionBancoPreguntas - si se implementa, y UIConfigurarPreguntasEncuesta).
- * Funcionalidad:
- * - Permite registrar nuevas preguntas en el banco y obtener listados de preguntas del banco.
- * Modelos de Ordenamiento/Estructura de la Información:
- * - N/A (La obtención de listas ordenadas se delega al DAO).
- */
-
 package SteveJobs.encuestas.servicio;
 
 import SteveJobs.encuestas.modelo.PreguntaBanco;
 import SteveJobs.encuestas.dao.PreguntaBancoDAO;
 import SteveJobs.encuestas.dao.TipoPreguntaDAO;
 import SteveJobs.encuestas.dao.ClasificacionPreguntaDAO;
-import SteveJobs.encuestas.dao.EncuestaDetallePreguntaDAO; // Importar
+import SteveJobs.encuestas.dao.EncuestaDetallePreguntaDAO; 
 
 import SteveJobs.encuestas.modelo.TipoPregunta;
 import SteveJobs.encuestas.modelo.ClasificacionPregunta;
@@ -28,13 +16,13 @@ public class ServicioPreguntas {
     private PreguntaBancoDAO preguntaBancoDAO;
     private TipoPreguntaDAO tipoPreguntaDAO;
     private ClasificacionPreguntaDAO clasificacionPreguntaDAO;
-    private EncuestaDetallePreguntaDAO encuestaDetallePreguntaDAO; // Nueva instancia
+    private EncuestaDetallePreguntaDAO encuestaDetallePreguntaDAO; 
 
     public ServicioPreguntas() {
         this.preguntaBancoDAO = new PreguntaBancoDAO();
         this.tipoPreguntaDAO = new TipoPreguntaDAO();
         this.clasificacionPreguntaDAO = new ClasificacionPreguntaDAO();
-        this.encuestaDetallePreguntaDAO = new EncuestaDetallePreguntaDAO(); // Inicializar
+        this.encuestaDetallePreguntaDAO = new EncuestaDetallePreguntaDAO(); 
     }
 
     public boolean registrarPreguntaEnBanco(String textoPregunta, String nombreTipo, String nombreClasificacion) {
@@ -65,21 +53,21 @@ public class ServicioPreguntas {
         nuevaPregunta.setIdTipoPregunta(tipo.getIdTipoPregunta());
         nuevaPregunta.setIdClasificacion(idClasificacion);
 
-        // CORRECTO: El DAO devuelve int (el ID generado)
+        
         int idGenerado = preguntaBancoDAO.crearPreguntaBanco(nuevaPregunta); 
-        return idGenerado > 0; // Se convierte a boolean para el servicio
+        return idGenerado > 0; 
     }
 
     public List<PreguntaBanco> obtenerTodasLasPreguntasDelBanco() {
         return preguntaBancoDAO.obtenerTodasLasPreguntas();
     }
 
-    // Nuevo método: obtenerPreguntaPorId (requerido por UIGestionBancoPreguntas)
+   
     public PreguntaBanco obtenerPreguntaPorId(int idPreguntaBanco) {
         return preguntaBancoDAO.obtenerPreguntaPorId(idPreguntaBanco);
     }
 
-    // Nuevo método: modificarPreguntaBanco (requerido por UIGestionBancoPreguntas)
+    
     public boolean modificarPreguntaBanco(int idPreguntaBanco, String nuevoTexto, String nuevoTipoNombre, String nuevaClasificacionNombre) {
         PreguntaBanco pregunta = preguntaBancoDAO.obtenerPreguntaPorId(idPreguntaBanco);
         if (pregunta == null) {
@@ -106,22 +94,22 @@ public class ServicioPreguntas {
         
         pregunta.setTextoPregunta(nuevoTexto.trim());
         pregunta.setIdTipoPregunta(tipo.getIdTipoPregunta());
-        pregunta.setNombreTipoPregunta(tipo.getNombreTipo()); // Actualizar nombre en el modelo
+        pregunta.setNombreTipoPregunta(tipo.getNombreTipo()); 
         pregunta.setIdClasificacion(idClasificacion);
-        pregunta.setNombreClasificacion(nuevaClasificacionNombre); // Actualizar nombre en el modelo
+        pregunta.setNombreClasificacion(nuevaClasificacionNombre); 
 
         return preguntaBancoDAO.actualizarPreguntaBanco(pregunta);
     }
 
-    // Método eliminarPreguntaBanco con la lógica adicional (requerido por UIGestionBancoPreguntas)
+    
     public boolean eliminarPreguntaBanco(int idPreguntaBanco) {
-        // Lógica de negocio adicional: verificar si la pregunta no está asociada a ninguna encuesta activa
+       
         if (encuestaDetallePreguntaDAO.isPreguntaBancoUsedInActiveEncuestas(idPreguntaBanco)) {
             System.err.println("Servicio: No se puede eliminar la pregunta ID " + idPreguntaBanco + " porque está asociada a una o más encuestas activas.");
             return false;
         }
         
-        // CORRECTO: El DAO devuelve boolean
+       
         return preguntaBancoDAO.eliminarPreguntaBanco(idPreguntaBanco); 
     }
 }

@@ -1,16 +1,3 @@
-/*
- * Responsable: Pablo Alegre
- * Relación con otras partes del código:
- * - Implementa la lógica de negocio para la gestión de usuarios (registro y perfil).
- * - Se comunica con UsuarioDAO para la persistencia.
- * - Utilizado por la UI (UIRegistroUsuario).
- * Funcionalidad:
- * - Permite registrar nuevos usuarios en el sistema, con validaciones de campos.
- * - Proporciona métodos para obtener usuarios y actualizar su perfil.
- * Modelos de Ordenamiento/Estructura de la Información:
- * - N/A (Lógica de negocio, no maneja colecciones ni ordenamiento directo).
- */
-
 package SteveJobs.encuestas.servicio;
 
 import SteveJobs.encuestas.modelo.Usuario;
@@ -65,7 +52,7 @@ public class ServicioUsuarios {
         nuevoUsuario.setGenero(genero != null ? genero.trim() : null);
         nuevoUsuario.setDistrito_residencia(distrito_residencia != null ? distrito_residencia.trim() : null);
         nuevoUsuario.setRol(rol.trim());
-        nuevoUsuario.setEstado("ACTIVO"); // Estado inicial al registrar
+        nuevoUsuario.setEstado("ACTIVO"); 
 
         boolean registrado = usuarioDAO.crearUsuario(nuevoUsuario);
 
@@ -119,18 +106,13 @@ public class ServicioUsuarios {
         return usuarioDAO.eliminarUsuario(idUsuario);
     }
 
-    /**
-     * Actualiza el estado de un usuario (ACTIVO, INACTIVO, etc.).
-     * @param idUsuario El ID del usuario.
-     * @param nuevoEstado El nuevo estado a asignar.
-     * @return true si el estado fue actualizado exitosamente, false en caso contrario.
-     */
+   
     public boolean cambiarEstadoUsuario(int idUsuario, String nuevoEstado) {
         if (nuevoEstado == null || nuevoEstado.trim().isEmpty()) {
             System.err.println("Servicio: El nuevo estado no puede ser nulo o vacío.");
             return false;
         }
-        // Puedes añadir validaciones adicionales aquí para los valores permitidos de 'estado'
+       
         if (!"ACTIVO".equalsIgnoreCase(nuevoEstado) && !"INACTIVO".equalsIgnoreCase(nuevoEstado)) {
              System.err.println("Servicio: El estado '" + nuevoEstado + "' no es un valor permitido (ACTIVO/INACTIVO).");
              return false;
