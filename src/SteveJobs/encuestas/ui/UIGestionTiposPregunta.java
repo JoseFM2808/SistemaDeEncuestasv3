@@ -1,6 +1,6 @@
 package SteveJobs.encuestas.ui;
 
-import SteveJobs.encuestas.dao.TipoPreguntaDAO; // Acceso directo al DAO para simplicidad
+import SteveJobs.encuestas.dao.TipoPreguntaDAO; 
 import SteveJobs.encuestas.modelo.TipoPregunta;
 
 import javax.swing.JOptionPane;
@@ -8,8 +8,7 @@ import java.util.List;
 
 public class UIGestionTiposPregunta {
 
-    private static TipoPreguntaDAO tipoPreguntaDAO = new TipoPreguntaDAO(); // Utiliza el DAO directamente
-
+    private static TipoPreguntaDAO tipoPreguntaDAO = new TipoPreguntaDAO(); 
     public static void mostrarMenu() {
         int opcion;
         do {
@@ -64,15 +63,14 @@ public class UIGestionTiposPregunta {
             return;
         }
         
-        // Verificar si el tipo ya existe
+        
         if (tipoPreguntaDAO.obtenerTipoPreguntaPorNombre(nombreTipo) != null) {
             JOptionPane.showMessageDialog(null, "Ya existe un tipo de pregunta con ese nombre.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         TipoPregunta nuevoTipo = new TipoPregunta(nombreTipo);
-        boolean registrado = tipoPreguntaDAO.crearTipoPregunta(nuevoTipo); // Asume este método en TipoPreguntaDAO
-
+        boolean registrado = tipoPreguntaDAO.crearTipoPregunta(nuevoTipo); 
         if (registrado) {
             JOptionPane.showMessageDialog(null, "Tipo de pregunta registrado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
         } else {
@@ -119,7 +117,7 @@ public class UIGestionTiposPregunta {
             return;
         }
         
-        // Verificar si el nuevo nombre ya existe en otro tipo
+        
         TipoPregunta tipoConMismoNombre = tipoPreguntaDAO.obtenerTipoPreguntaPorNombre(nuevoNombre);
         if (tipoConMismoNombre != null && tipoConMismoNombre.getIdTipoPregunta() != idTipo) {
             JOptionPane.showMessageDialog(null, "Ya existe otro tipo de pregunta con ese nuevo nombre.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -127,7 +125,7 @@ public class UIGestionTiposPregunta {
         }
 
         tipoExistente.setNombreTipo(nuevoNombre);
-        boolean actualizado = tipoPreguntaDAO.actualizarTipoPregunta(tipoExistente); // Asume este método en TipoPreguntaDAO
+        boolean actualizado = tipoPreguntaDAO.actualizarTipoPregunta(tipoExistente); 
 
         if (actualizado) {
             JOptionPane.showMessageDialog(null, "Tipo de pregunta modificado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
@@ -149,7 +147,7 @@ public class UIGestionTiposPregunta {
 
         int confirm = JOptionPane.showConfirmDialog(null, "¿Está seguro de que desea eliminar el tipo de pregunta con ID " + idTipo + "?", "Confirmar Eliminación", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
-            boolean eliminado = tipoPreguntaDAO.eliminarTipoPregunta(idTipo); // Asume este método en TipoPreguntaDAO
+            boolean eliminado = tipoPreguntaDAO.eliminarTipoPregunta(idTipo); 
             if (eliminado) {
                 JOptionPane.showMessageDialog(null, "Tipo de pregunta eliminado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
             } else {
