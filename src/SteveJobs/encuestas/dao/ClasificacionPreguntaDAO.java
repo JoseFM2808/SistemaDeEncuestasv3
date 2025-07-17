@@ -13,12 +13,7 @@ import java.util.List;
 
 public class ClasificacionPreguntaDAO {
 
-    /**
-     * 
-     *
-     * @param nombre 
-     * @return 
-     */
+
     public ClasificacionPregunta obtenerClasificacionPorNombre(String nombre) {
         String sql = "SELECT id_clasificacion, nombre_clasificacion, descripcion, estado FROM clasificaciones_pregunta WHERE nombre_clasificacion = ?";
         Connection con = null;
@@ -52,12 +47,7 @@ public class ClasificacionPreguntaDAO {
         return clasificacion;
     }
 
-    /**
-     * 
-     *
-     * @param id 
-     * @return 
-     */
+
     public ClasificacionPregunta obtenerClasificacionPorId(int id) {
         String sql = "SELECT id_clasificacion, nombre_clasificacion, descripcion, estado FROM clasificaciones_pregunta WHERE id_clasificacion = ?";
         Connection con = null;
@@ -91,21 +81,11 @@ public class ClasificacionPreguntaDAO {
         return clasificacion;
     }
 
-    /**
-     * 
-     *
-     * @param id 
-     * @return 
-     */
     public ClasificacionPregunta obtenerClasificacionPorId(Integer id) {
         if (id == null) return null;
         return obtenerClasificacionPorId(id.intValue());
     }
 
-    /**
-     * 
-     * @return 
-     */
     public List<ClasificacionPregunta> obtenerTodasLasClasificaciones() {
         List<ClasificacionPregunta> clasificaciones = new ArrayList<>();
         String sql = "SELECT id_clasificacion, nombre_clasificacion, descripcion, estado FROM clasificaciones_pregunta ORDER BY nombre_clasificacion ASC";
@@ -136,11 +116,6 @@ public class ClasificacionPreguntaDAO {
         return clasificaciones;
     }
 
-    /**
-     * 
-     * @param clasificacion 
-     * @return 
-     */
     public boolean crearClasificacionPregunta(ClasificacionPregunta clasificacion) {
         String sql = "INSERT INTO clasificaciones_pregunta (nombre_clasificacion, descripcion, estado) VALUES (?, ?, ?)";
         Connection con = null;
@@ -169,11 +144,6 @@ public class ClasificacionPreguntaDAO {
         return exito;
     }
 
-    /**
-     * 
-     * @param clasificacion 
-     * @return 
-     */
     public boolean actualizarClasificacionPregunta(ClasificacionPregunta clasificacion) {
         String sql = "UPDATE clasificaciones_pregunta SET nombre_clasificacion = ?, descripcion = ?, estado = ? WHERE id_clasificacion = ?";
         Connection con = null;
@@ -197,11 +167,6 @@ public class ClasificacionPreguntaDAO {
         return exito;
     }
 
-    /**
-     * 
-     * @param idClasificacion 
-     * @return 
-     */
     public boolean eliminarClasificacionPregunta(int idClasificacion) {
         String sql = "DELETE FROM clasificaciones_pregunta WHERE id_clasificacion = ?";
         Connection con = null;
@@ -216,7 +181,7 @@ public class ClasificacionPreguntaDAO {
         } catch (SQLException e) {
             System.err.println("ClasificacionPreguntaDAO: Error SQL al eliminar clasificación de pregunta: " + e.getMessage());
             e.printStackTrace();
-            
+
         } finally {
             ConexionDB.cerrar(null, ps, con);
         }
