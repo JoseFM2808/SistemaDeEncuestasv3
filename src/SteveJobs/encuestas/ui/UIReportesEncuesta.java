@@ -1,24 +1,8 @@
-/*
- * Responsable: José Flores
- * Relación con otras partes del código:
- * - Es la interfaz de usuario para ver los reportes de encuestas.
- * - Se comunica con ServicioResultados para generar los reportes (ahora con filtro).
- * - Se comunica con ServicioEncuestas para obtener la lista de encuestas disponibles.
- * - Utiliza la PilaNavegacion para permitir volver al menú anterior.
- * Funcionalidad:
- * - Permite al administrador seleccionar una encuesta y visualizar sus resultados
- * consolidados (frecuencia de respuestas categóricas y promedios de respuestas numéricas),
- * con la opción de filtrar por tipo de pregunta.
- * Modelos de Ordenamiento/Estructura de la Información:
- * - Utiliza List para mostrar las encuestas disponibles.
- * - Emplea la Pila (Stack) a través de PilaNavegacion para la gestión del flujo.
- * - (Indirectamente) se beneficia de los algoritmos de la capa de ServicioResultados.
- */
 package SteveJobs.encuestas.ui;
 
 import SteveJobs.encuestas.modelo.Encuesta;
-import SteveJobs.encuestas.modelo.RespuestaUsuario; // Importar RespuestaUsuario
-import SteveJobs.encuestas.modelo.Usuario; // Si el menú de reportes necesita el usuario logueado
+import SteveJobs.encuestas.modelo.RespuestaUsuario; 
+import SteveJobs.encuestas.modelo.Usuario; 
 import SteveJobs.encuestas.servicio.ServicioEncuestas;
 import SteveJobs.encuestas.servicio.ServicioResultados;
 import SteveJobs.encuestas.util.PilaNavegacion;
@@ -31,16 +15,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
-import java.util.HashMap; // ¡CORRECCIÓN: Importar HashMap!
+import java.util.HashMap; 
 
 public class UIReportesEncuesta {
 
     private static ServicioResultados servicioResultados = new ServicioResultados();
     private static ServicioEncuestas servicioEncuestas = new ServicioEncuestas();
 
-    /**
-     * Muestra el menú de reportes de encuestas para el administrador.
-     */
+   
     public static void mostrarMenu() {
         boolean salir = false;
         while (!salir) {
@@ -77,10 +59,7 @@ public class UIReportesEncuesta {
         }
     }
 
-    /**
-     * Permite al administrador seleccionar una encuesta y ver su reporte, con
-     * opción de filtro.
-     */
+    
     private static void verReporteDeEncuestaUI() {
         List<Encuesta> encuestas = servicioEncuestas.obtenerTodasLasEncuestasOrdenadasPorNombre();
 
@@ -110,7 +89,7 @@ public class UIReportesEncuesta {
         try {
             int idEncuestaSeleccionada = Integer.parseInt(seleccionEncuestaStr.split(":")[0]);
 
-            // --- Lógica para el filtro por tipo de pregunta (REQMS-005) ---
+           
             String tipoPreguntaFiltro = null;
             String[] tiposDisponibles = {"SIMPLE", "MÚLTIPLE", "NUMERO", "TEXTO_CORTO", "FECHA", "DESCRIPCIÓN", "NINGUNO (ver todos)"};
 
@@ -136,20 +115,19 @@ public class UIReportesEncuesta {
                 }
             }
 
-            // CREAR EL MAPA DE FILTROS PARA EL SERVICIO
+           
             Map<String, String> filtros = new HashMap<>();
             if (tipoPreguntaFiltro != null) {
                 filtros.put("tipoPregunta", tipoPreguntaFiltro);
             }
 
-            // OBTENER LA LISTA DE RESPUESTAS FILTRADAS
+            
             List<RespuestaUsuario> respuestasFiltradas = servicioResultados.filtrarResultados(idEncuestaSeleccionada, filtros);
 
-            // Generar los reportes usando ServicioResultados, pasando la lista de respuestas filtradas
+           
             Map<String, Map<String, Integer>> reporteFrecuencia = servicioResultados.generarReporteFrecuenciaRespuestas(respuestasFiltradas);
             Map<String, Double> reportePromedios = servicioResultados.calcularPromediosPorPregunta(respuestasFiltradas);
 
-            // Exportar el reporte a texto para mostrarlo
             String reporteTexto = servicioResultados.exportarReporteATexto(reporteFrecuencia, reportePromedios);
 
             JTextArea textArea = new JTextArea(reporteTexto);
