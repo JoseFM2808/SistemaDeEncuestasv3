@@ -1,74 +1,142 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package SteveJobs.encuestas.gui;
 
+import SteveJobs.encuestas.modelo.Encuesta;
+import com.toedter.calendar.JDateChooser; // Importar JDateChooser
 import javax.swing.*;
 import java.awt.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
+/**
+ * Componente JPanel para mostrar y editar los metadatos de una encuesta.
+ * Utilizado dentro de diálogos o frames de gestión de encuestas.
+ *
+ * @author José Flores (Adaptado para JCalendar)
+ */
 public class EncuestaMetadatosGUI extends JPanel {
-   private JTextField txtNombre;
+
+    private JTextField txtNombre, txtPublicoObjetivo, txtPerfilRequerido;
     private JTextArea txtDescripcion;
-    private JComboBox<String> comboEstado;
+    private JDateChooser dateChooserFechaInicio, dateChooserFechaFin; // JDateChooser para fechas
+    private JComboBox<String> cmbEstado; // Para el estado de la encuesta
 
     public EncuestaMetadatosGUI() {
-        // Configuración general del panel
-        setLayout(new BorderLayout(10, 10));
-        setBorder(BorderFactory.createTitledBorder("Metadatos de la Encuesta"));
+        initComponents();
+    }
 
-        // Panel interno con GridBagLayout para organizar los campos
-        JPanel panelCampos = new JPanel(new GridBagLayout());
+    private void initComponents() {
+        setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.insets = new Insets(5, 5, 5, 5); // Márgenes entre componentes
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Campo: Nombre
+        // Título del panel
+        JLabel lblPanelTitulo = new JLabel("Detalles de la Encuesta", SwingConstants.CENTER);
+        lblPanelTitulo.setFont(new Font("Arial", Font.BOLD, 16));
         gbc.gridx = 0;
         gbc.gridy = 0;
-        panelCampos.add(new JLabel("Nombre:"), gbc);
+        gbc.gridwidth = 2; // Ocupa dos columnas
+        add(lblPanelTitulo, gbc);
 
-        gbc.gridx = 1;
-        txtNombre = new JTextField(20);
-        panelCampos.add(txtNombre, gbc);
-
-        // Campo: Descripción
+        // Nombre
+        gbc.gridy++;
         gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.anchor = GridBagConstraints.NORTHWEST;
-        panelCampos.add(new JLabel("Descripción:"), gbc);
-
+        gbc.gridwidth = 1;
+        add(new JLabel("Nombre:"), gbc);
         gbc.gridx = 1;
-        txtDescripcion = new JTextArea(4, 20);
+        txtNombre = new JTextField(25);
+        add(txtNombre, gbc);
+
+        // Descripción
+        gbc.gridy++;
+        gbc.gridx = 0;
+        add(new JLabel("Descripción:"), gbc);
+        gbc.gridx = 1;
+        txtDescripcion = new JTextArea(4, 25);
         txtDescripcion.setLineWrap(true);
         txtDescripcion.setWrapStyleWord(true);
         JScrollPane scrollDescripcion = new JScrollPane(txtDescripcion);
-        panelCampos.add(scrollDescripcion, gbc);
+        add(scrollDescripcion, gbc);
 
-        // Campo: Estado
+        // Fecha de Inicio
+        gbc.gridy++;
         gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.anchor = GridBagConstraints.WEST;
-        panelCampos.add(new JLabel("Estado:"), gbc);
-
+        add(new JLabel("Fecha Inicio:"), gbc);
         gbc.gridx = 1;
-        comboEstado = new JComboBox<>(new String[] { "Borrador", "Activa", "Cerrada" });
-        panelCampos.add(comboEstado, gbc);
+        dateChooserFechaInicio = new JDateChooser();
+        dateChooserFechaInicio.setDateFormatString("yyyy-MM-dd");
+        add(dateChooserFechaInicio, gbc);
 
-        // Agregar el panel de campos al panel principal
-        add(panelCampos, BorderLayout.CENTER);
+        // Fecha de Fin
+        gbc.gridy++;
+        gbc.gridx = 0;
+        add(new JLabel("Fecha Fin:"), gbc);
+        gbc.gridx = 1;
+        dateChooserFechaFin = new JDateChooser();
+        dateChooserFechaFin.setDateFormatString("yyyy-MM-dd");
+        add(dateChooserFechaFin, gbc);
+
+        // Público Objetivo
+        gbc.gridy++;
+        gbc.gridx = 0;
+        add(new JLabel("Público Objetivo:"), gbc);
+        gbc.gridx = 1;
+        txtPublicoObjetivo = new JTextField(25);
+        add(txtPublicoObjetivo, gbc);
+
+        // Perfil Requerido
+        gbc.gridy++;
+        gbc.gridx = 0;
+        add(new JLabel("Perfil Requerido:"), gbc);
+        gbc.gridx = 1;
+        txtPerfilRequerido = new JTextField(25);
+        add(txtPerfilRequerido, gbc);
+        
+        // Estado (para modificación, en creación se establece por defecto "BORRADOR")
+        gbc.gridy++;
+        gbc.gridx = 0;
+        add(new JLabel("Estado:"), gbc);
+        gbc.gridx = 1;
+        cmbEstado = new JComboBox<>(new String[]{"BORRADOR", "ACTIVA", "CERRADA", "CANCELADA", "ARCHIVADA"});
+        add(cmbEstado, gbc);
     }
 
-    // Getters públicos si necesitas acceso desde otra clase
-    public JTextField getTxtNombre() {
-        return txtNombre;
+    // --- Métodos para cargar/obtener datos ---
+    public void cargarDatosEncuesta(Encuesta encuesta) {
+        if (encuesta != null) {
+            txtNombre.setText(encuesta.getNombre());
+            txtDescripcion.setText(encuesta.getDescripcion());
+            dateChooserFechaInicio.setDate(encuesta.getFechaInicio());
+            dateChooserFechaFin.setDate(encuesta.getFechaFin());
+            txtPublicoObjetivo.setText(encuesta.getPublicoObjetivo());
+            txtPerfilRequerido.setText(encuesta.getPerfilRequerido());
+            cmbEstado.setSelectedItem(encuesta.getEstado());
+            // Si la encuesta es para modificar, habilitar el cambio de estado
+            cmbEstado.setEnabled(true); 
+        } else {
+            // Limpiar campos si no hay encuesta para cargar
+            limpiarCampos();
+            cmbEstado.setSelectedItem("BORRADOR"); // Por defecto en creación
+            cmbEstado.setEnabled(false); // No se permite cambiar el estado en creación inicial
+        }
     }
 
-    public JTextArea getTxtDescripcion() {
-        return txtDescripcion;
+    public void limpiarCampos() {
+        txtNombre.setText("");
+        txtDescripcion.setText("");
+        dateChooserFechaInicio.setDate(null);
+        dateChooserFechaFin.setDate(null);
+        txtPublicoObjetivo.setText("");
+        txtPerfilRequerido.setText("");
+        cmbEstado.setSelectedItem("BORRADOR");
     }
 
-    public JComboBox<String> getComboEstado() {
-        return comboEstado;
-    } 
+    // --- Getters para acceder a los componentes desde fuera ---
+    public JTextField getTxtNombre() { return txtNombre; }
+    public JTextArea getTxtDescripcion() { return txtDescripcion; }
+    public JDateChooser getDateChooserFechaInicio() { return dateChooserFechaInicio; }
+    public JDateChooser getDateChooserFechaFin() { return dateChooserFechaFin; }
+    public JTextField getTxtPublicoObjetivo() { return txtPublicoObjetivo; }
+    public JTextField getTxtPerfilRequerido() { return txtPerfilRequerido; }
+    public JComboBox<String> getCmbEstado() { return cmbEstado; }
 }

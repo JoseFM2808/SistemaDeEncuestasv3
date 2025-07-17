@@ -102,47 +102,39 @@ public class AdminDashboardGUI extends JFrame {
         this.dispose(); // Cierra esta ventana del dashboard
     }
 
-    // --- Métodos Placeholder para las futuras GUIs de gestión ---
+    // --- Métodos para las futuras GUIs de gestión ---
     private void mostrarGestionEncuestasGUI() {
-        JOptionPane.showMessageDialog(this, "Redirigiendo a la Gestión de Encuestas (GUI en desarrollo)...", "Info", JOptionPane.INFORMATION_MESSAGE);
-        // Aquí, en el futuro, se instanciará y mostrará la GestionEncuestasGUI real
-        // this.setVisible(false); // Ocultar el dashboard si la nueva ventana es modal o principal
-        // new GestionEncuestasGUI(administradorActual, this).setVisible(true);
+        GestionEncuestasGUI gestionEncuestas = new GestionEncuestasGUI(administradorActual, this);
+        gestionEncuestas.setVisible(true);
+        this.setVisible(false); // Ocultar el dashboard
     }
 
     private void mostrarGestionBancoPreguntasGUI() {
         JOptionPane.showMessageDialog(this, "Redirigiendo a la Gestión del Banco de Preguntas (GUI en desarrollo)...", "Info", JOptionPane.INFORMATION_MESSAGE);
-        // this.setVisible(false);
-        // new GestionBancoPreguntasGUI(administradorActual, this).setVisible(true);
     }
 
     private void mostrarGestionPreguntasRegistroGUI() {
         JOptionPane.showMessageDialog(this, "Redirigiendo a la Gestión de Preguntas de Registro (GUI en desarrollo)...", "Info", JOptionPane.INFORMATION_MESSAGE);
-        // this.setVisible(false);
-        // new GestionPreguntasRegistroGUI(administradorActual, this).setVisible(true);
     }
     
     private void mostrarGestionTiposPreguntaGUI() {
         JOptionPane.showMessageDialog(this, "Redirigiendo a la Gestión de Tipos de Pregunta (GUI en desarrollo)...", "Info", JOptionPane.INFORMATION_MESSAGE);
-        // this.setVisible(false);
-        // new GestionTiposPreguntaGUI(administradorActual, this).setVisible(true);
     }
     
     private void mostrarGestionClasificacionesGUI() {
         JOptionPane.showMessageDialog(this, "Redirigiendo a la Gestión de Clasificaciones (GUI en desarrollo)...", "Info", JOptionPane.INFORMATION_MESSAGE);
-        // this.setVisible(false);
-        // new GestionClasificacionesGUI(administradorActual, this).setVisible(true);
     }
 
     private void mostrarGestionUsuariosGUI() {
         JOptionPane.showMessageDialog(this, "Redirigiendo a la Gestión de Usuarios (GUI en desarrollo)...", "Info", JOptionPane.INFORMATION_MESSAGE);
-        // this.setVisible(false);
-        // new GestionUsuariosGUI(administradorActual, this).setVisible(true);
     }
 
     private void mostrarVerResultadosGUI() {
         JOptionPane.showMessageDialog(this, "Redirigiendo a Ver Resultados de Encuestas (GUI en desarrollo)...", "Info", JOptionPane.INFORMATION_MESSAGE);
-        // this.setVisible(false);
-        // new VerResultadosGUI(administradorActual, this).setVisible(true);
+    }
+    
+    // Método para volver a hacer visible esta ventana (cuando un sub-GUI se cierra)
+    public void mostrarAdminDashboardGUI() {
+        this.setVisible(true);
     }
 }
