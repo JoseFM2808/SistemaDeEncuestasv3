@@ -1,17 +1,3 @@
-/*
- * Responsable: José Flores (Implementado y Refactorizado con Asistente de AED)
- * Relación con otras partes del código:
- * - Es el menú principal para los usuarios con el rol de Encuestado.
- * - Se comunica con ServicioEncuestas para obtener encuestas disponibles.
- * - Se comunica con ServicioParticipacion para registrar las respuestas.
- * Funcionalidad:
- * - Presenta un menú de opciones para el encuestado, principalmente para
- * visualizar y responder encuestas activas que califican para su perfil.
- * Modelos de Ordenamiento/Estructura de la Información:
- * - Utiliza List para mostrar y manejar colecciones de encuestas y preguntas.
- * - Emplea el ordenamiento para las preguntas de la encuesta (Comparator.comparingInt).
- */
-
 package SteveJobs.encuestas.ui;
 
 import SteveJobs.encuestas.modelo.Encuesta;
@@ -89,7 +75,7 @@ public class UIMenuEncuestado {
         List<RespuestaUsuario> respuestasRecopiladas = new ArrayList<>();
         List<EncuestaDetallePregunta> preguntas = encuesta.getPreguntasAsociadas();
 
-        // Ordenar preguntas por el campo 'orden' si no vienen ordenadas del DAO
+        
         preguntas.sort(Comparator.comparingInt(EncuestaDetallePregunta::getOrdenEnEncuesta));
 
         boolean descartado = false;
@@ -98,7 +84,7 @@ public class UIMenuEncuestado {
                     "Pregunta " + pregunta.getOrdenEnEncuesta() + ":\n" + pregunta.getTextoPreguntaMostrable(),
                     "Respondiendo Encuesta...", JOptionPane.QUESTION_MESSAGE);
 
-            if (respuesta == null) { // Usuario canceló
+            if (respuesta == null) { 
                 JOptionPane.showMessageDialog(null, "Encuesta cancelada.", "Cancelado", JOptionPane.WARNING_MESSAGE);
                 return;
             }
@@ -106,11 +92,11 @@ public class UIMenuEncuestado {
             RespuestaUsuario r = new RespuestaUsuario(pregunta.getIdEncuestaDetalle(), encuestado.getId_usuario(), respuesta);
             respuestasRecopiladas.add(r);
 
-            // Lógica de descarte
+            
             if (pregunta.isEsPreguntaDescarte() && respuesta.equalsIgnoreCase(pregunta.getCriterioDescarteValor())) {
                 JOptionPane.showMessageDialog(null, "Gracias por tu participación. Según tus respuestas, no cumples con el perfil completo para esta encuesta.", "Participación Finalizada", JOptionPane.INFORMATION_MESSAGE);
                 descartado = true;
-                break; // Termina el bucle de preguntas
+                break; 
             }
         }
 
