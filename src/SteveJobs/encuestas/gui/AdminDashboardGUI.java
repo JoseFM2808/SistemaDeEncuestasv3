@@ -29,7 +29,7 @@ public class AdminDashboardGUI extends JFrame {
 
         // Panel superior para bienvenida e información del usuario
         JPanel headerPanel = new JPanel(new BorderLayout());
-        JLabel lblBienvenida = new JLabel("<html>Bienvenido, <b>" + administradorActual.getNombres() + " " + administradorActual.getApellidos() + "</b> (ID: " + administradorActual.getIdUsuario() + ")</html>", SwingConstants.CENTER);
+        JLabel lblBienvenida = new JLabel("<html>Bienvenido, <b>" + administradorActual.getNombres() + " " + administradorActual.getApellidos() + "</b> (ID: " + administradorActual.getId_usuario() + ")</html>", SwingConstants.CENTER);
         lblBienvenida.setFont(new Font("Arial", Font.BOLD, 18));
         headerPanel.add(lblBienvenida, BorderLayout.NORTH);
         JLabel lblRol = new JLabel("Rol: " + administradorActual.getRol(), SwingConstants.CENTER);
