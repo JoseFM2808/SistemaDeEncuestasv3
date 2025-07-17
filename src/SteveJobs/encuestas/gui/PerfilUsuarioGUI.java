@@ -100,7 +100,7 @@ public class PerfilUsuarioGUI extends JFrame {
     private void cargarDatosPerfil() {
         try {
             // Recargar el usuario por si sus datos fueron actualizados en otro lado
-            usuarioActual = servicioUsuarios.obtenerUsuarioPorId(usuarioActual.getIdUsuario());
+            usuarioActual = servicioUsuarios.obtenerUsuarioPorId(usuarioActual.getId_usuario());
             if (usuarioActual != null) {
                 lblDni.setText(usuarioActual.getDni());
                 lblNombres.setText(usuarioActual.getNombres());
@@ -108,14 +108,14 @@ public class PerfilUsuarioGUI extends JFrame {
                 lblEmail.setText(usuarioActual.getEmail());
                 
                 SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-                if (usuarioActual.getFechaNacimiento() != null) {
-                    lblFechaNacimiento.setText(sdf.format(usuarioActual.getFechaNacimiento()));
+                if (usuarioActual.getFecha_nacimiento()!= null) {
+                    lblFechaNacimiento.setText(sdf.format(usuarioActual.getFecha_nacimiento()));
                 } else {
                     lblFechaNacimiento.setText("No especificado");
                 }
                 
                 lblGenero.setText(usuarioActual.getGenero());
-                lblDistrito.setText(usuarioActual.getDistrito());
+                lblDistrito.setText(usuarioActual.getDistrito_residencia());
             } else {
                 JOptionPane.showMessageDialog(this, "No se pudo cargar la información del usuario.", "Error", JOptionPane.ERROR_MESSAGE);
                 volverAlMenu(); // Vuelve si no se encuentra el usuario
