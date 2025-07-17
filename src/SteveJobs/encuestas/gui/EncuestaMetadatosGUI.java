@@ -15,9 +15,10 @@ import java.util.Date;
  */
 public class EncuestaMetadatosGUI extends JPanel {
 
-    private JTextField txtNombre, txtPublicoObjetivo, txtPerfilRequerido;
+    private JTextField txtNombre, txtPerfilRequerido;
     private JTextArea txtDescripcion;
     private JDateChooser dateChooserFechaInicio, dateChooserFechaFin; // JDateChooser para fechas
+    private JCheckBox chkEsPublica; // CAMBIADO: De JTextField a JCheckBox
     private JComboBox<String> cmbEstado; // Para el estado de la encuesta
 
     public EncuestaMetadatosGUI() {
@@ -76,13 +77,13 @@ public class EncuestaMetadatosGUI extends JPanel {
         dateChooserFechaFin.setDateFormatString("yyyy-MM-dd");
         add(dateChooserFechaFin, gbc);
 
-        // Público Objetivo
+        // Es Pública (antes Público Objetivo)
         gbc.gridy++;
         gbc.gridx = 0;
-        add(new JLabel("Público Objetivo:"), gbc);
+        add(new JLabel("Es Pública:"), gbc); // CAMBIADO: Texto del Label
         gbc.gridx = 1;
-        txtPublicoObjetivo = new JTextField(25);
-        add(txtPublicoObjetivo, gbc);
+        chkEsPublica = new JCheckBox(); // CAMBIADO: JCheckBox en lugar de JTextField
+        add(chkEsPublica, gbc);
 
         // Perfil Requerido
         gbc.gridy++;
@@ -108,17 +109,22 @@ public class EncuestaMetadatosGUI extends JPanel {
             txtDescripcion.setText(encuesta.getDescripcion());
             dateChooserFechaInicio.setDate(encuesta.getFechaInicio());
             dateChooserFechaFin.setDate(encuesta.getFechaFin());
-            txtPublicoObjetivo.setText(String.valueOf(encuesta.getPublicoObjetivo()));
+            chkEsPublica.setSelected(encuesta.isEsPublica()); // CAMBIADO: usa setSelected
             txtPerfilRequerido.setText(encuesta.getPerfilRequerido());
             cmbEstado.setSelectedItem(encuesta.getEstado());
             // Si la encuesta es para modificar, habilitar el cambio de estado
-            cmbEstado.setEnabled(true); 
+            cmbEstado.setEnabled(true);
+            // Habilitar/deshabilitar txtPerfilRequerido basado en chkEsPublica
+            txtPerfilRequerido.setEnabled(!chkEsPublica.isSelected());
         } else {
             // Limpiar campos si no hay encuesta para cargar
             limpiarCampos();
             cmbEstado.setSelectedItem("BORRADOR"); // Por defecto en creación
             cmbEstado.setEnabled(false); // No se permite cambiar el estado en creación inicial
+            txtPerfilRequerido.setEnabled(true); // En creación, por defecto podría ser perfilado o se activará/desactivará con el checkbox
         }
+        // Listener para el JCheckBox: habilita/deshabilita txtPerfilRequerido
+        chkEsPublica.addActionListener(e -> txtPerfilRequerido.setEnabled(!chkEsPublica.isSelected()));
     }
 
     public void limpiarCampos() {
@@ -126,7 +132,7 @@ public class EncuestaMetadatosGUI extends JPanel {
         txtDescripcion.setText("");
         dateChooserFechaInicio.setDate(null);
         dateChooserFechaFin.setDate(null);
-        txtPublicoObjetivo.setText("");
+        chkEsPublica.setSelected(false); // CAMBIADO: por defecto no pública
         txtPerfilRequerido.setText("");
         cmbEstado.setSelectedItem("BORRADOR");
     }
@@ -136,7 +142,7 @@ public class EncuestaMetadatosGUI extends JPanel {
     public JTextArea getTxtDescripcion() { return txtDescripcion; }
     public JDateChooser getDateChooserFechaInicio() { return dateChooserFechaInicio; }
     public JDateChooser getDateChooserFechaFin() { return dateChooserFechaFin; }
-    public JTextField getTxtPublicoObjetivo() { return txtPublicoObjetivo; }
+    public boolean isEsPublicaSelected() { return chkEsPublica.isSelected(); } // CAMBIADO: Nuevo getter para el JCheckBox
     public JTextField getTxtPerfilRequerido() { return txtPerfilRequerido; }
     public JComboBox<String> getCmbEstado() { return cmbEstado; }
 }

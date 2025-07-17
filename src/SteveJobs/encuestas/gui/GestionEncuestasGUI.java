@@ -50,12 +50,19 @@ public class GestionEncuestasGUI extends JFrame {
         mainPanel.add(lblTitulo, BorderLayout.NORTH);
 
         // --- Panel de la tabla de encuestas ---
-        String[] columnNames = {"ID", "Nombre", "Descripción", "F. Inicio", "F. Fin", "Público", "Perfil", "Estado"};
+        // CAMBIADO: "Público" a "Es Pública" en los nombres de columna
+        String[] columnNames = {"ID", "Nombre", "Descripción", "F. Inicio", "F. Fin", "Es Pública", "Perfil", "Estado"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
-            public boolean isCellEditable(int row, int column) {
+            public boolean isCellEditable(int row, int intColumn) { // Cambiado 'column' a 'intColumn' para evitar conflicto
                 return false; // Las celdas no son editables
             }
+            // Opcional: Para que la columna "Es Pública" se renderice como checkbox visualmente en la tabla.
+            // @Override
+            // public Class<?> getColumnClass(int columnIndex) {
+            //     if (columnIndex == 5) return Boolean.class; // Columna "Es Pública" (índice 5)
+            //     return super.getColumnClass(columnIndex);
+            // }
         };
         tblEncuestas = new JTable(tableModel);
         tblEncuestas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -109,13 +116,14 @@ public class GestionEncuestasGUI extends JFrame {
         });
     }
 
-    private void cargarEncuestas() {
+    public void cargarEncuestas() {
         tableModel.setRowCount(0); // Limpiar tabla
         try {
             List<Encuesta> encuestas = servicioEncuestas.obtenerTodasLasEncuestasOrdenadasPorNombre();
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
             if (encuestas.isEmpty()) {
+                // CAMBIADO: Ajustado el número de columnas para que coincida con el nuevo tamaño
                 tableModel.addRow(new Object[]{"", "", "No hay encuestas registradas.", "", "", "", "", ""});
                 tblEncuestas.setEnabled(false);
                 return;
@@ -128,8 +136,8 @@ public class GestionEncuestasGUI extends JFrame {
                     encuesta.getDescripcion(),
                     encuesta.getFechaInicio() != null ? sdf.format(encuesta.getFechaInicio()) : "N/A",
                     encuesta.getFechaFin() != null ? sdf.format(encuesta.getFechaFin()) : "N/A",
-                    encuesta.getPublicoObjetivo(),
-                    encuesta.getPerfilRequerido(),
+                    encuesta.isEsPublica() ? "Sí" : "No", // CAMBIADO: Muestra "Sí" o "No"
+                    encuesta.getPerfilRequerido() != null && !encuesta.getPerfilRequerido().isEmpty() ? encuesta.getPerfilRequerido() : "N/A", // Muestra N/A si es nulo o vacío
                     encuesta.getEstado()
                 });
             }
@@ -165,6 +173,7 @@ public class GestionEncuestasGUI extends JFrame {
     }
 
     private void crearNuevaEncuesta() {
+        // Pasa el ID del administrador actual a DialogoEncuestaMetadatos
         DialogoEncuestaMetadatos dialogo = new DialogoEncuestaMetadatos(this, "Crear Nueva Encuesta", null, administradorActual);
         dialogo.setVisible(true);
 
@@ -178,6 +187,7 @@ public class GestionEncuestasGUI extends JFrame {
         Encuesta encuestaSeleccionada = getSelectedEncuesta();
         if (encuestaSeleccionada == null) return;
 
+        // Pasa el ID del administrador actual a DialogoEncuestaMetadatos
         DialogoEncuestaMetadatos dialogo = new DialogoEncuestaMetadatos(this, "Modificar Encuesta", encuestaSeleccionada, administradorActual);
         dialogo.setVisible(true);
 
@@ -263,8 +273,12 @@ public class GestionEncuestasGUI extends JFrame {
             try {
                 // Pasa el id del administrador actual al método copiarEncuesta
                 Encuesta nuevaEncuesta = servicioEncuestas.copiarEncuesta(encuestaSeleccionada.getIdEncuesta(), administradorActual.getId_usuario());
-                JOptionPane.showMessageDialog(this, "Encuesta copiada exitosamente como: '" + nuevaEncuesta.getNombre() + "' (ID: " + nuevaEncuesta.getIdEncuesta() + ").", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                cargarEncuestas(); // Recargar la tabla
+                if (nuevaEncuesta != null) {
+                    JOptionPane.showMessageDialog(this, "Encuesta copiada exitosamente como: '" + nuevaEncuesta.getNombre() + "' (ID: " + nuevaEncuesta.getIdEncuesta() + ").", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                    cargarEncuestas(); // Recargar la tabla
+                } else {
+                    JOptionPane.showMessageDialog(this, "No se pudo copiar la encuesta.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Error al copiar encuesta: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 System.err.println("Error en GestionEncuestasGUI al copiar encuesta: " + ex.getMessage());

@@ -117,7 +117,7 @@ public class UIGestionPreguntasRegistro {
     }
 
     private static void listarPreguntasUIConsole() {
-        List<PreguntaRegistro> preguntas = servicioConfig.listarPreguntasRegistro();
+        List<PreguntaRegistro> preguntas = servicioConfig.obtenerTodasLasPreguntasRegistro();
         if (preguntas.isEmpty()) {
             System.out.println("\n------------------------------------");
             System.out.println("No hay preguntas de registro definidas.");
@@ -130,9 +130,9 @@ public class UIGestionPreguntasRegistro {
         for (PreguntaRegistro pr : preguntas) {
             System.out.println("ID: " + pr.getIdPreguntaRegistro());
             System.out.println("  Texto: " + pr.getTextoPregunta());
-            System.out.println("  Tipo: " + pr.getTipoRespuesta());
-            if (pr.getOpcionesPosibles() != null && !pr.getOpcionesPosibles().isEmpty()) {
-                System.out.println("  Opciones: " + pr.getOpcionesPosibles());
+            System.out.println("  Tipo: " + pr.getTipoEntrada());
+            if (pr.getOpciones()!= null && !pr.getOpciones().isEmpty()) {
+                System.out.println("  Opciones: " + pr.getOpciones());
             }
             System.out.println("  Obligatoria: " + (pr.isEsObligatoria() ? "Sí" : "No"));
             System.out.println("  Orden: " + pr.getOrdenVisualizacion());

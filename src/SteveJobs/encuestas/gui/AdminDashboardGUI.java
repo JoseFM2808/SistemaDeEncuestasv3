@@ -1,6 +1,12 @@
 package SteveJobs.encuestas.gui;
 
 import SteveJobs.encuestas.modelo.Usuario;
+import SteveJobs.encuestas.ui.UIGestionBancoPreguntas; // Importar
+import SteveJobs.encuestas.ui.UIGestionPreguntasRegistro; // Importar
+import SteveJobs.encuestas.ui.UIGestionTiposPregunta; // Importar
+import SteveJobs.encuestas.ui.UIGestionClasificacionesPregunta; // Importar
+import SteveJobs.encuestas.ui.UIGestionUsuarios; // Importar
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -12,11 +18,11 @@ import java.awt.event.ActionListener;
  *
  * @author José Flores
  */
-public class AdminDashboardGUI extends JFrame implements ActionListener { // Implementar ActionListener
+public class AdminDashboardGUI extends JFrame implements ActionListener {
 
-    private Usuario administradorActual; // El usuario administrador logueado
+    private Usuario administradorActual;
     // Se podría añadir una referencia a SistemaEncuestasGUI si es la ventana principal
-    // private SistemaEncuestasGUI parentFrame;
+    // private SistemaEncuestasGUI parentFrame; // Descomentar y usar si se pasa como constructor
 
     public AdminDashboardGUI(Usuario admin) {
         super("Sistema de Encuestas - Panel de Administrador");
@@ -50,7 +56,7 @@ public class AdminDashboardGUI extends JFrame implements ActionListener { // Imp
         mainPanel.add(headerPanel, BorderLayout.NORTH);
 
         // Panel central con botones para las opciones del administrador
-        JPanel optionsPanel = new JPanel(new GridLayout(4, 2, 15, 15)); // 4 filas, 2 columnas
+        JPanel optionsPanel = new JPanel(new GridLayout(4, 2, 15, 15));
         optionsPanel.setBorder(BorderFactory.createTitledBorder("Opciones de Gestión"));
 
         JButton btnGestionEncuestas = new JButton("Gestionar Encuestas");
@@ -77,11 +83,11 @@ public class AdminDashboardGUI extends JFrame implements ActionListener { // Imp
 
         // --- Eventos de los botones ---
         btnGestionEncuestas.addActionListener(e -> mostrarGestionEncuestasGUI());
-        btnGestionBancoPreguntas.addActionListener(e -> mostrarGestionBancoPreguntasGUI());
-        btnGestionPreguntasRegistro.addActionListener(e -> mostrarGestionPreguntasRegistroGUI());
-        btnGestionTiposPregunta.addActionListener(e -> mostrarGestionTiposPreguntaGUI());
-        btnGestionClasificaciones.addActionListener(e -> mostrarGestionClasificacionesGUI());
-        btnGestionUsuarios.addActionListener(e -> mostrarGestionUsuariosGUI());
+        btnGestionBancoPreguntas.addActionListener(e -> mostrarGestionBancoPreguntasUI()); // Cambio aquí
+        btnGestionPreguntasRegistro.addActionListener(e -> mostrarGestionPreguntasRegistroUI()); // Cambio aquí
+        btnGestionTiposPregunta.addActionListener(e -> mostrarGestionTiposPreguntaUI()); // Cambio aquí
+        btnGestionClasificaciones.addActionListener(e -> mostrarGestionClasificacionesUI()); // Cambio aquí
+        btnGestionUsuarios.addActionListener(e -> mostrarGestionUsuariosUI()); // Cambio aquí
         btnVerResultados.addActionListener(e -> mostrarVerResultadosGUI());
 
         btnCerrarSesion.addActionListener(new ActionListener() {
@@ -102,55 +108,66 @@ public class AdminDashboardGUI extends JFrame implements ActionListener { // Imp
 
     private void setupFrame() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 600); // Tamaño inicial
+        setSize(800, 600);
         setLocationRelativeTo(null);
         setResizable(true);
     }
 
     private void cerrarSesion() {
-        // Al cerrar sesión, volvemos a la pantalla de LoginGUI
-        // CAMBIO: Pasar 'this' (AdminDashboardGUI, que ahora implementa ActionListener)
-        // como el parentListener para el LoginGUI.
-        // Opcional: Si SistemaEncuestasGUI es la ventana principal, sería mejor
-        // que AdminDashboardGUI tuviera una referencia a ella y le notificara
-        // para que SistemaEncuestasGUI maneje el cambio de panel a LoginGUI.
-        // Por simplicidad, y sin una reestructuración mayor, instanciamos aquí.
-        LoginGUI loginGUI = new LoginGUI(this); //
-        loginGUI.setVisible(true); //
-        this.dispose(); // Cierra esta ventana del dashboard
+        LoginGUI loginGUI = new LoginGUI(this);
+        loginGUI.setVisible(true);
+        this.dispose();
     }
 
     // --- Métodos para las futuras GUIs de gestión ---
+
+    // Este ya estaba implementado para usar GestionEncuestasGUI (JFrame)
     private void mostrarGestionEncuestasGUI() {
         GestionEncuestasGUI gestionEncuestas = new GestionEncuestasGUI(administradorActual, this);
         gestionEncuestas.setVisible(true);
-        this.setVisible(false); // Ocultar el dashboard
+        this.setVisible(false);
     }
 
-    private void mostrarGestionBancoPreguntasGUI() {
-        JOptionPane.showMessageDialog(this, "Redirigiendo a la Gestión del Banco de Preguntas (GUI en desarrollo)...", "Info", JOptionPane.INFORMATION_MESSAGE);
+    // REDIRECCIONAR A LAS UIs DE CONSOLA/JOPTIONPANE
+    private void mostrarGestionBancoPreguntasUI() {
+        // Oculta la ventana actual del dashboard
+        this.setVisible(false);
+        // Llama al método estático que muestra el menú de gestión del banco de preguntas (JOptionPane/Consola)
+        UIGestionBancoPreguntas.mostrarMenu();
+        // Cuando UIGestionBancoPreguntas.mostrarMenu() termine (el usuario seleccione 0),
+        // vuelve a mostrar el dashboard
+        this.setVisible(true);
     }
 
-    private void mostrarGestionPreguntasRegistroGUI() {
-        JOptionPane.showMessageDialog(this, "Redirigiendo a la Gestión de Preguntas de Registro (GUI en desarrollo)...", "Info", JOptionPane.INFORMATION_MESSAGE);
+    private void mostrarGestionPreguntasRegistroUI() {
+        this.setVisible(false);
+        UIGestionPreguntasRegistro.mostrarMenu();
+        this.setVisible(true);
     }
     
-    private void mostrarGestionTiposPreguntaGUI() {
-        JOptionPane.showMessageDialog(this, "Redirigiendo a la Gestión de Tipos de Pregunta (GUI en desarrollo)...", "Info", JOptionPane.INFORMATION_MESSAGE);
+    private void mostrarGestionTiposPreguntaUI() {
+        this.setVisible(false);
+        UIGestionTiposPregunta.mostrarMenu();
+        this.setVisible(true);
     }
     
-    private void mostrarGestionClasificacionesGUI() {
-        JOptionPane.showMessageDialog(this, "Redirigiendo a la Gestión de Clasificaciones (GUI en desarrollo)...", "Info", JOptionPane.INFORMATION_MESSAGE);
+    private void mostrarGestionClasificacionesUI() {
+        this.setVisible(false);
+        UIGestionClasificacionesPregunta.mostrarMenu();
+        this.setVisible(true);
     }
 
-    private void mostrarGestionUsuariosGUI() {
-        JOptionPane.showMessageDialog(this, "Redirigiendo a la Gestión de Usuarios (GUI en desarrollo)...", "Info", JOptionPane.INFORMATION_MESSAGE);
+    private void mostrarGestionUsuariosUI() {
+        this.setVisible(false);
+        UIGestionUsuarios.mostrarMenu();
+        this.setVisible(true);
     }
 
+    // Este ya estaba implementado para usar ReportesEncuestaGUI (JFrame)
     private void mostrarVerResultadosGUI() {
         ReportesEncuestaGUI reportesGUI = new ReportesEncuestaGUI(this);
         reportesGUI.setVisible(true);
-        this.setVisible(false); // Ocultar el dashboard
+        this.setVisible(false);
     }
     
     // Método para volver a hacer visible esta ventana (cuando un sub-GUI se cierra)
@@ -160,21 +177,11 @@ public class AdminDashboardGUI extends JFrame implements ActionListener { // Imp
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        // Implementar el método actionPerformed de la interfaz ActionListener.
-        // Aquí se pueden manejar los eventos que LoginGUI u otras GUIs hijas puedan enviar
-        // de vuelta a AdminDashboardGUI.
         String command = e.getActionCommand();
         if ("login_exitoso".equals(command)) {
-            // Este caso no debería ocurrir aquí si LoginGUI siempre devuelve a SistemaEncuestasGUI.
-            // Si LoginGUI fuera a redirigir directamente a este dashboard, se manejaría aquí.
-            // Por ahora, se deja vacío o para depuración.
             System.out.println("AdminDashboardGUI recibió un evento de login exitoso. Esto es inesperado si SistemaEncuestasGUI lo maneja.");
         } else if ("mostrar_registro".equals(command)) {
-            // Este caso tampoco debería ocurrir aquí si SistemaEncuestasGUI maneja los cambios de panel.
             System.out.println("AdminDashboardGUI recibió un evento para mostrar registro. Esto es inesperado si SistemaEncuestasGUI lo maneja.");
         }
-        // No es necesario que esta implementación haga algo complejo,
-        // ya que la interacción principal de LoginGUI (volver a SistemaEncuestasGUI)
-        // se manejaría mejor si AdminDashboardGUI tuviera una referencia a SistemaEncuestasGUI.
     }
 }

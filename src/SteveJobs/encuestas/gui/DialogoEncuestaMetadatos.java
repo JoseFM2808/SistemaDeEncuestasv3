@@ -35,12 +35,18 @@ public class DialogoEncuestaMetadatos extends JDialog {
         // Cargar datos si es para edición
         if (encuestaParaEditar != null) {
             panelMetadatos.cargarDatosEncuesta(encuestaParaEditar);
+        } else {
+            // Asegurarse de que el txtPerfilRequerido se habilite/deshabilite correctamente
+            // en base al estado inicial del checkbox cuando es una nueva encuesta.
+            // Por defecto, chkEsPublica es false (no pública) al iniciar una nueva encuesta,
+            // por lo tanto, el campo de perfil debe estar habilitado.
+            panelMetadatos.getTxtPerfilRequerido().setEnabled(!panelMetadatos.isEsPublicaSelected());
         }
     }
 
     private void initComponents() {
         // EncuestaMetadatosGUI es un JPanel, lo instanciamos y agregamos
-        panelMetadatos = new EncuestaMetadatosGUI(); 
+        panelMetadatos = new EncuestaMetadatosGUI();
         add(panelMetadatos, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -78,16 +84,34 @@ public class DialogoEncuestaMetadatos extends JDialog {
         String descripcion = panelMetadatos.getTxtDescripcion().getText().trim();
         Date utilFechaInicio = panelMetadatos.getDateChooserFechaInicio().getDate();
         Date utilFechaFin = panelMetadatos.getDateChooserFechaFin().getDate();
-        String publicoObjetivoStr = panelMetadatos.getTxtPublicoObjetivo().getText().trim(); // Obtener como String
+        boolean esPublica = panelMetadatos.isEsPublicaSelected(); // CAMBIADO: Obtener boolean del JCheckBox
         String perfilRequerido = panelMetadatos.getTxtPerfilRequerido().getText().trim();
-        String estado = (String) panelMetadatos.getCmbEstado().getSelectedItem(); // Se obtiene, pero no se pasa a modificarMetadatosEncuesta
+        String estado = (String) panelMetadatos.getCmbEstado().getSelectedItem();
 
-        if (nombre.isEmpty() || descripcion.isEmpty() || utilFechaInicio == null || utilFechaFin == null || 
-            publicoObjetivoStr.isEmpty() || perfilRequerido.isEmpty() || estado == null || estado.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Todos los campos son obligatorios.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+        // Validación de campos obligatorios
+        if (nombre.isEmpty() || descripcion.isEmpty() || utilFechaInicio == null || utilFechaFin == null || estado == null || estado.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Todos los campos de metadatos (nombre, descripción, fechas, estado) son obligatorios.", "Advertencia", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
+        // Validación específica para perfilRequerido si la encuesta no es pública
+        if (!esPublica && perfilRequerido.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Si la encuesta no es pública, el campo 'Perfil Requerido' es obligatorio.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        // Si es pública, el perfil requerido puede ser vacío o nulo
+        if (esPublica && !perfilRequerido.isEmpty()) {
+            // Opcional: advertir o limpiar el perfil requerido si la encuesta es pública
+            int confirm = JOptionPane.showConfirmDialog(this, "Has marcado la encuesta como pública, pero has introducido un 'Perfil Requerido'. ¿Deseas ignorar el perfil requerido (se limpiará) o es un error?", "Advertencia de Perfil", JOptionPane.YES_NO_CANCEL_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                perfilRequerido = null; // Limpiar el perfil si el usuario lo confirma
+                panelMetadatos.getTxtPerfilRequerido().setText(""); // Actualizar la GUI
+            } else if (confirm == JOptionPane.CANCEL_OPTION) {
+                return; // No guardar y permitir al usuario corregir
+            }
+            // Si elige NO_OPTION, se asume que el perfil requerido será almacenado pero no se usará si la encuesta es pública.
+        }
+
         if (utilFechaInicio.after(utilFechaFin)) {
             JOptionPane.showMessageDialog(this, "La fecha de inicio no puede ser posterior a la fecha de fin.", "Advertencia", JOptionPane.WARNING_MESSAGE);
             return;
@@ -97,24 +121,16 @@ public class DialogoEncuestaMetadatos extends JDialog {
         Timestamp fechaInicio = new Timestamp(utilFechaInicio.getTime());
         Timestamp fechaFin = new Timestamp(utilFechaFin.getTime());
 
-        int publicoObjetivo;
-        try {
-            publicoObjetivo = Integer.parseInt(publicoObjetivoStr);
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "El público objetivo debe ser un número entero válido.", "Error de Formato", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
         try {
             if (encuestaParaEditar == null) { // Crear nueva encuesta
                 servicioEncuestas.registrarNuevaEncuesta(
-                    nombre, descripcion, fechaInicio, fechaFin, publicoObjetivo, 
-                    perfilRequerido, administradorCreador.getId_usuario() // Usar getId_usuario() de Usuario
+                    nombre, descripcion, fechaInicio, fechaFin, esPublica, // CAMBIADO: pasa boolean
+                    perfilRequerido, administradorCreador.getId_usuario()
                 );
             } else { // Modificar encuesta existente
                 servicioEncuestas.modificarMetadatosEncuesta(
                     encuestaParaEditar.getIdEncuesta(), nombre, descripcion, fechaInicio, fechaFin,
-                    publicoObjetivo, perfilRequerido // Se quita el argumento 'estado'
+                    esPublica, perfilRequerido // CAMBIADO: pasa boolean
                 );
             }
             guardadoExitoso = true;

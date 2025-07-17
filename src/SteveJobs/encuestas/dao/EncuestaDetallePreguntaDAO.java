@@ -28,7 +28,8 @@ public class EncuestaDetallePreguntaDAO {
     }
 
     public boolean agregarPreguntaAEncuesta(EncuestaDetallePregunta detalle) {
-        String sql = "INSERT INTO encuestas_detalle_pregunta " +
+        // CAMBIADO: 'encuestas_detalle_pregunta' a 'encuesta_preguntas'
+        String sql = "INSERT INTO encuesta_preguntas " +
                      "(id_encuesta, id_pregunta_banco, texto_pregunta_unica, id_tipo_pregunta_unica, id_clasificacion_unica, " +
                      "orden_en_encuesta, es_pregunta_descarte, criterio_descarte_valor) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -40,7 +41,7 @@ public class EncuestaDetallePreguntaDAO {
             if (con == null) return false;
             ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setInt(1, detalle.getIdEncuesta());
-            
+
             if (detalle.getIdPreguntaBanco() != null) {
                 ps.setInt(2, detalle.getIdPreguntaBanco());
                 ps.setNull(3, java.sql.Types.VARCHAR);
@@ -82,7 +83,8 @@ public class EncuestaDetallePreguntaDAO {
     }
 
     public boolean actualizarDetallePregunta(EncuestaDetallePregunta detalle) {
-        String sql = "UPDATE encuestas_detalle_pregunta SET " +
+        // CAMBIADO: 'encuestas_detalle_pregunta' a 'encuesta_preguntas'
+        String sql = "UPDATE encuesta_preguntas SET " +
                      "id_pregunta_banco = ?, texto_pregunta_unica = ?, id_tipo_pregunta_unica = ?, id_clasificacion_unica = ?, " +
                      "orden_en_encuesta = ?, es_pregunta_descarte = ?, criterio_descarte_valor = ? " +
                      "WHERE id_encuesta_detalle = ?";
@@ -130,7 +132,8 @@ public class EncuestaDetallePreguntaDAO {
     }
 
     public EncuestaDetallePregunta obtenerPreguntaDetallePorId(int idDetalle) {
-        String sql = "SELECT * FROM encuestas_detalle_pregunta WHERE id_encuesta_detalle = ?";
+        // CAMBIADO: 'encuestas_detalle_pregunta' a 'encuesta_preguntas'
+        String sql = "SELECT * FROM encuesta_preguntas WHERE id_encuesta_detalle = ?";
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -190,7 +193,8 @@ public class EncuestaDetallePreguntaDAO {
 
     public List<EncuestaDetallePregunta> obtenerPreguntasPorEncuesta(int idEncuesta) {
         List<EncuestaDetallePregunta> preguntas = new ArrayList<>();
-        String sql = "SELECT * FROM encuestas_detalle_pregunta WHERE id_encuesta = ? ORDER BY orden_en_encuesta ASC";
+        // CAMBIADO: 'encuestas_detalle_pregunta' a 'encuesta_preguntas'
+        String sql = "SELECT * FROM encuesta_preguntas WHERE id_encuesta = ? ORDER BY orden_en_encuesta ASC";
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -248,7 +252,8 @@ public class EncuestaDetallePreguntaDAO {
     }
 
     public int contarPreguntasEnEncuesta(int idEncuesta) {
-        String sql = "SELECT COUNT(*) FROM encuestas_detalle_pregunta WHERE id_encuesta = ?";
+        // CAMBIADO: 'encuestas_detalle_pregunta' a 'encuesta_preguntas'
+        String sql = "SELECT COUNT(*) FROM encuesta_preguntas WHERE id_encuesta = ?";
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -272,7 +277,8 @@ public class EncuestaDetallePreguntaDAO {
     }
 
     public boolean eliminarPreguntaDeEncuesta(int idEncuestaDetalle) {
-        String sql = "DELETE FROM encuestas_detalle_pregunta WHERE id_encuesta_detalle = ?";
+        // CAMBIADO: 'encuestas_detalle_pregunta' a 'encuesta_preguntas'
+        String sql = "DELETE FROM encuesta_preguntas WHERE id_encuesta_detalle = ?";
         Connection con = null;
         PreparedStatement ps = null;
         boolean exito = false;
@@ -290,9 +296,10 @@ public class EncuestaDetallePreguntaDAO {
         }
         return exito;
     }
-    
+
     public boolean eliminarTodasPreguntasDeEncuesta(int idEncuesta) {
-        String sql = "DELETE FROM encuestas_detalle_pregunta WHERE id_encuesta = ?";
+        // CAMBIADO: 'encuestas_detalle_pregunta' a 'encuesta_preguntas'
+        String sql = "DELETE FROM encuesta_preguntas WHERE id_encuesta = ?";
         Connection con = null;
         PreparedStatement ps = null;
         boolean exito = false;
@@ -312,9 +319,10 @@ public class EncuestaDetallePreguntaDAO {
         }
         return exito;
     }
-    
+
     public boolean isPreguntaBancoUsedInActiveEncuestas(int idPreguntaBanco) {
-        String sql = "SELECT COUNT(edp.id_encuesta_detalle) FROM encuestas_detalle_pregunta edp " +
+        // CAMBIADO: 'encuestas_detalle_pregunta' a 'encuesta_preguntas'
+        String sql = "SELECT COUNT(edp.id_encuesta_detalle) FROM encuesta_preguntas edp " +
                      "JOIN encuestas e ON edp.id_encuesta = e.id_encuesta " +
                      "WHERE edp.id_pregunta_banco = ? AND e.estado = 'Activa'";
         Connection con = null;
@@ -340,9 +348,9 @@ public class EncuestaDetallePreguntaDAO {
         return inUse;
     }
 
-    // Nuevo método para actualizar solo el orden de una pregunta
     public boolean actualizarOrdenPregunta(int idEncuestaDetalle, int nuevoOrden) {
-        String sql = "UPDATE encuestas_detalle_pregunta SET orden_en_encuesta = ? WHERE id_encuesta_detalle = ?";
+        // CAMBIADO: 'encuestas_detalle_pregunta' a 'encuesta_preguntas'
+        String sql = "UPDATE encuesta_preguntas SET orden_en_encuesta = ? WHERE id_encuesta_detalle = ?";
         Connection con = null;
         PreparedStatement ps = null;
         boolean exito = false;

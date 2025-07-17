@@ -1,190 +1,150 @@
 package SteveJobs.encuestas.dao;
 
-import SteveJobs.encuestas.modelo.ClasificacionPregunta;
+import SteveJobs.encuestas.modelo.Encuesta;
 import SteveJobs.encuestas.conexion.ConexionDB;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClasificacionPreguntaDAO {
+public class EncuestaDAO {
 
-
-    public ClasificacionPregunta obtenerClasificacionPorNombre(String nombre) {
-        String sql = "SELECT id_clasificacion, nombre_clasificacion, descripcion, estado FROM clasificaciones_pregunta WHERE nombre_clasificacion = ?";
+    public int crearEncuesta(Encuesta encuesta) {
+        // Cambiado 'publico_objetivo' a 'es_publica'
+        String sql = "INSERT INTO encuestas (nombre, descripcion, fecha_inicio, fecha_fin, es_publica, perfil_requerido, estado, fecha_creacion, id_admin_creador) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         Connection con = null;
         PreparedStatement ps = null;
-        ResultSet rs = null;
-        ClasificacionPregunta clasificacion = null;
+        ResultSet generatedKeys = null;
+        int idGenerado = -1;
 
         try {
             con = ConexionDB.conectar();
-            if (con == null) {
-                System.err.println("ClasificacionPreguntaDAO: No se pudo conectar a la BD para obtener clasificación por nombre.");
-                return null;
-            }
-            ps = con.prepareStatement(sql);
-            ps.setString(1, nombre);
-            rs = ps.executeQuery();
+            ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, encuesta.getNombre());
+            ps.setString(2, encuesta.getDescripcion());
+            ps.setTimestamp(3, encuesta.getFechaInicio());
+            ps.setTimestamp(4, encuesta.getFechaFin());
+            // CAMBIADO: usa el nuevo getter isEsPublica() y setBoolean
+            ps.setBoolean(5, encuesta.isEsPublica());
+            ps.setString(6, encuesta.getPerfilRequerido());
+            ps.setString(7, encuesta.getEstado());
+            ps.setTimestamp(8, encuesta.getFechaCreacion());
+            ps.setInt(9, encuesta.getIdAdminCreador());
 
-            if (rs.next()) {
-                clasificacion = new ClasificacionPregunta();
-                clasificacion.setIdClasificacion(rs.getInt("id_clasificacion"));
-                clasificacion.setNombreClasificacion(rs.getString("nombre_clasificacion"));
-                clasificacion.setDescripcion(rs.getString("descripcion"));
-                clasificacion.setEstado(rs.getString("estado"));
+            if (ps.executeUpdate() > 0) {
+                generatedKeys = ps.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    idGenerado = generatedKeys.getInt(1);
+                }
             }
         } catch (SQLException e) {
-            System.err.println("ClasificacionPreguntaDAO: Error SQL al obtener clasificación de pregunta por nombre: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("DAO Error al crear encuesta: " + e.getMessage());
+        } finally {
+            ConexionDB.cerrar(generatedKeys, ps, con);
+        }
+        return idGenerado;
+    }
+
+    public Encuesta obtenerEncuestaPorId(int idEncuesta) {
+        String sql = "SELECT * FROM encuestas WHERE id_encuesta = ?";
+        Connection con = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        Encuesta encuesta = null;
+        try {
+            con = ConexionDB.conectar();
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, idEncuesta);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                encuesta = new Encuesta();
+                encuesta.setIdEncuesta(rs.getInt("id_encuesta"));
+                encuesta.setNombre(rs.getString("nombre"));
+                encuesta.setDescripcion(rs.getString("descripcion"));
+                encuesta.setFechaInicio(rs.getTimestamp("fecha_inicio"));
+                encuesta.setFechaFin(rs.getTimestamp("fecha_fin"));
+                // CAMBIADO: lee la columna 'es_publica' como boolean
+                encuesta.setEsPublica(rs.getBoolean("es_publica"));
+                encuesta.setPerfilRequerido(rs.getString("perfil_requerido"));
+                encuesta.setEstado(rs.getString("estado"));
+                encuesta.setFechaCreacion(rs.getTimestamp("fecha_creacion"));
+                encuesta.setIdAdminCreador(rs.getInt("id_admin_creador"));
+            }
+        } catch (SQLException e) {
+            System.err.println("DAO Error al obtener encuesta por ID: " + e.getMessage());
         } finally {
             ConexionDB.cerrar(rs, ps, con);
         }
-        return clasificacion;
+        return encuesta;
     }
 
-
-    public ClasificacionPregunta obtenerClasificacionPorId(int id) {
-        String sql = "SELECT id_clasificacion, nombre_clasificacion, descripcion, estado FROM clasificaciones_pregunta WHERE id_clasificacion = ?";
-        Connection con = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        ClasificacionPregunta clasificacion = null;
-
-        try {
-            con = ConexionDB.conectar();
-            if (con == null) {
-                System.err.println("ClasificacionPreguntaDAO: No se pudo conectar a la BD para obtener clasificación por ID.");
-                return null;
-            }
-            ps = con.prepareStatement(sql);
-            ps.setInt(1, id);
-            rs = ps.executeQuery();
-
-            if (rs.next()) {
-                clasificacion = new ClasificacionPregunta();
-                clasificacion.setIdClasificacion(rs.getInt("id_clasificacion"));
-                clasificacion.setNombreClasificacion(rs.getString("nombre_clasificacion"));
-                clasificacion.setDescripcion(rs.getString("descripcion"));
-                clasificacion.setEstado(rs.getString("estado"));
-            }
-        } catch (SQLException e) {
-            System.err.println("ClasificacionPreguntaDAO: Error SQL al obtener clasificación de pregunta por ID: " + e.getMessage());
-            e.printStackTrace();
-        } finally {
-            ConexionDB.cerrar(rs, ps, con);
-        }
-        return clasificacion;
-    }
-
-    public ClasificacionPregunta obtenerClasificacionPorId(Integer id) {
-        if (id == null) return null;
-        return obtenerClasificacionPorId(id.intValue());
-    }
-
-    public List<ClasificacionPregunta> obtenerTodasLasClasificaciones() {
-        List<ClasificacionPregunta> clasificaciones = new ArrayList<>();
-        String sql = "SELECT id_clasificacion, nombre_clasificacion, descripcion, estado FROM clasificaciones_pregunta ORDER BY nombre_clasificacion ASC";
-        Connection con = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-
-        try {
-            con = ConexionDB.conectar();
-            if (con == null) return clasificaciones;
-            ps = con.prepareStatement(sql);
-            rs = ps.executeQuery();
+    public List<Encuesta> obtenerTodasLasEncuestas() {
+        List<Encuesta> lista = new ArrayList<>();
+        String sql = "SELECT * FROM encuestas ORDER BY fecha_creacion DESC";
+        try (Connection con = ConexionDB.conectar();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                ClasificacionPregunta clasificacion = new ClasificacionPregunta();
-                clasificacion.setIdClasificacion(rs.getInt("id_clasificacion"));
-                clasificacion.setNombreClasificacion(rs.getString("nombre_clasificacion"));
-                clasificacion.setDescripcion(rs.getString("descripcion"));
-                clasificacion.setEstado(rs.getString("estado"));
-                clasificaciones.add(clasificacion);
+                Encuesta encuesta = new Encuesta();
+                encuesta.setIdEncuesta(rs.getInt("id_encuesta"));
+                encuesta.setNombre(rs.getString("nombre"));
+                encuesta.setDescripcion(rs.getString("descripcion"));
+                encuesta.setEstado(rs.getString("estado"));
+                encuesta.setFechaInicio(rs.getTimestamp("fecha_inicio"));
+                encuesta.setFechaFin(rs.getTimestamp("fecha_fin"));
+                // CAMBIADO: lee la columna 'es_publica' como boolean
+                encuesta.setEsPublica(rs.getBoolean("es_publica"));
+                lista.add(encuesta);
             }
         } catch (SQLException e) {
-            System.err.println("ClasificacionPreguntaDAO: Error SQL al obtener todas las clasificaciones de pregunta: " + e.getMessage());
-            e.printStackTrace();
-        } finally {
-            ConexionDB.cerrar(rs, ps, con);
+            System.err.println("DAO Error al obtener todas las encuestas: " + e.getMessage());
         }
-        return clasificaciones;
+        return lista;
     }
 
-    public boolean crearClasificacionPregunta(ClasificacionPregunta clasificacion) {
-        String sql = "INSERT INTO clasificaciones_pregunta (nombre_clasificacion, descripcion, estado) VALUES (?, ?, ?)";
-        Connection con = null;
-        PreparedStatement ps = null;
-        boolean exito = false;
-        try {
-            con = ConexionDB.conectar();
-            if (con == null) return false;
-            ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS); 
-            ps.setString(1, clasificacion.getNombreClasificacion());
-            ps.setString(2, clasificacion.getDescripcion());
-            ps.setString(3, clasificacion.getEstado());
-            if (ps.executeUpdate() > 0) {
-                ResultSet rs = ps.getGeneratedKeys();
-                if(rs.next()){
-                    clasificacion.setIdClasificacion(rs.getInt(1));
-                }
-                exito = true;
-            }
+    public boolean actualizarEncuesta(Encuesta encuesta) {
+        // Cambiado 'publico_objetivo' a 'es_publica'
+        String sql = "UPDATE encuestas SET nombre = ?, descripcion = ?, fecha_inicio = ?, fecha_fin = ?, es_publica = ?, perfil_requerido = ?, estado = ? WHERE id_encuesta = ?";
+        try (Connection con = ConexionDB.conectar();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, encuesta.getNombre());
+            ps.setString(2, encuesta.getDescripcion());
+            ps.setTimestamp(3, encuesta.getFechaInicio());
+            ps.setTimestamp(4, encuesta.getFechaFin());
+            // CAMBIADO: usa el nuevo getter isEsPublica()
+            ps.setBoolean(5, encuesta.isEsPublica());
+            ps.setString(6, encuesta.getPerfilRequerido());
+            ps.setString(7, encuesta.getEstado());
+            ps.setInt(8, encuesta.getIdEncuesta());
+            return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("ClasificacionPreguntaDAO: Error SQL al crear clasificación de pregunta: " + e.getMessage());
-            e.printStackTrace();
-        } finally {
-            ConexionDB.cerrar(null, ps, con);
+            System.err.println("DAO Error al actualizar encuesta: " + e.getMessage());
+            return false;
         }
-        return exito;
     }
 
-    public boolean actualizarClasificacionPregunta(ClasificacionPregunta clasificacion) {
-        String sql = "UPDATE clasificaciones_pregunta SET nombre_clasificacion = ?, descripcion = ?, estado = ? WHERE id_clasificacion = ?";
-        Connection con = null;
-        PreparedStatement ps = null;
-        boolean exito = false;
-        try {
-            con = ConexionDB.conectar();
-            if (con == null) return false;
-            ps = con.prepareStatement(sql);
-            ps.setString(1, clasificacion.getNombreClasificacion());
-            ps.setString(2, clasificacion.getDescripcion());
-            ps.setString(3, clasificacion.getEstado());
-            ps.setInt(4, clasificacion.getIdClasificacion());
-            exito = ps.executeUpdate() > 0;
+    public boolean actualizarEstadoEncuesta(int idEncuesta, String nuevoEstado) {
+        String sql = "UPDATE encuestas SET estado = ? WHERE id_encuesta = ?";
+        try (Connection con = ConexionDB.conectar();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, nuevoEstado);
+            ps.setInt(2, idEncuesta);
+            return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("ClasificacionPreguntaDAO: Error SQL al actualizar clasificación de pregunta: " + e.getMessage());
-            e.printStackTrace();
-        } finally {
-            ConexionDB.cerrar(null, ps, con);
+            System.err.println("DAO Error al actualizar estado de encuesta: " + e.getMessage());
+            return false;
         }
-        return exito;
     }
 
-    public boolean eliminarClasificacionPregunta(int idClasificacion) {
-        String sql = "DELETE FROM clasificaciones_pregunta WHERE id_clasificacion = ?";
-        Connection con = null;
-        PreparedStatement ps = null;
-        boolean exito = false;
-        try {
-            con = ConexionDB.conectar();
-            if (con == null) return false;
-            ps = con.prepareStatement(sql);
-            ps.setInt(1, idClasificacion);
-            exito = ps.executeUpdate() > 0;
+    public boolean eliminarEncuesta(int idEncuesta) {
+        String sql = "DELETE FROM encuestas WHERE id_encuesta = ?";
+        try (Connection con = ConexionDB.conectar();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idEncuesta);
+            return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("ClasificacionPreguntaDAO: Error SQL al eliminar clasificación de pregunta: " + e.getMessage());
-            e.printStackTrace();
-
-        } finally {
-            ConexionDB.cerrar(null, ps, con);
+            System.err.println("DAO Error al eliminar encuesta: " + e.getMessage());
+            return false;
         }
-        return exito;
     }
 }

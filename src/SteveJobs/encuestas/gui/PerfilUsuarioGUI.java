@@ -7,6 +7,7 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
 
 /**
  * Pantalla para que el usuario encuestado consulte su información de perfil.
@@ -108,14 +109,16 @@ public class PerfilUsuarioGUI extends JFrame {
                 lblEmail.setText(usuarioActual.getEmail());
                 
                 SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-                if (usuarioActual.getFecha_nacimiento()!= null) {
-                    lblFechaNacimiento.setText(sdf.format(usuarioActual.getFecha_nacimiento()));
+                if (usuarioActual.getFecha_nacimiento() != null) {
+                    // CORREGIDO: Convertir LocalDate a java.util.Date antes de formatear
+                    java.util.Date fechaNacimientoUtilDate = java.util.Date.from(usuarioActual.getFecha_nacimiento().atStartOfDay(ZoneId.systemDefault()).toInstant());
+                    lblFechaNacimiento.setText(sdf.format(fechaNacimientoUtilDate));
                 } else {
                     lblFechaNacimiento.setText("No especificado");
                 }
                 
-                lblGenero.setText(usuarioActual.getGenero());
-                lblDistrito.setText(usuarioActual.getDistrito_residencia());
+                lblGenero.setText(usuarioActual.getGenero() != null ? usuarioActual.getGenero() : "No especificado");
+                lblDistrito.setText(usuarioActual.getDistrito_residencia() != null ? usuarioActual.getDistrito_residencia() : "No especificado");
             } else {
                 JOptionPane.showMessageDialog(this, "No se pudo cargar la información del usuario.", "Error", JOptionPane.ERROR_MESSAGE);
                 volverAlMenu(); // Vuelve si no se encuentra el usuario

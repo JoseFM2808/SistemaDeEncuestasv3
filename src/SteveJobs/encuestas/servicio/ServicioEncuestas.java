@@ -11,6 +11,8 @@ import SteveJobs.encuestas.modelo.PreguntaBanco;
 import SteveJobs.encuestas.modelo.TipoPregunta;
 import SteveJobs.encuestas.modelo.ClasificacionPregunta;
 import SteveJobs.encuestas.modelo.Usuario;
+import SteveJobs.encuestas.dao.PreguntaRegistroDAO; // Necesario para obtener preguntas de registro
+import SteveJobs.encuestas.dao.RespuestaUsuarioDAO; // Necesario para obtener respuestas de usuario
 
 import java.sql.Timestamp;
 import java.text.ParseException;
@@ -30,6 +32,8 @@ public class ServicioEncuestas {
     private PreguntaBancoDAO preguntaBancoDAO;
     private TipoPreguntaDAO tipoPreguntaDAO;
     private ClasificacionPreguntaDAO clasificacionPreguntaDAO;
+    private PreguntaRegistroDAO preguntaRegistroDAO; // Instancia para acceder a preguntas de registro
+    private RespuestaUsuarioDAO respuestaUsuarioDAO; // Instancia para acceder a respuestas de registro
 
     public ServicioEncuestas() {
         this.encuestaDAO = new EncuestaDAO();
@@ -37,9 +41,12 @@ public class ServicioEncuestas {
         this.preguntaBancoDAO = new PreguntaBancoDAO();
         this.tipoPreguntaDAO = new TipoPreguntaDAO();
         this.clasificacionPreguntaDAO = new ClasificacionPreguntaDAO();
+        this.preguntaRegistroDAO = new PreguntaRegistroDAO(); // Inicializar
+        this.respuestaUsuarioDAO = new RespuestaUsuarioDAO(); // Inicializar
     }
 
-    public int registrarNuevaEncuesta(String nombre, String descripcion, Timestamp fechaInicio, Timestamp fechaFin, int publicoObjetivo, String perfilRequerido, int idAdmin) {
+    // CAMBIADO: 'publicoObjetivo' a 'esPublica' (boolean)
+    public int registrarNuevaEncuesta(String nombre, String descripcion, Timestamp fechaInicio, Timestamp fechaFin, boolean esPublica, String perfilRequerido, int idAdmin) {
         if (nombre == null || nombre.trim().isEmpty()) {
             System.err.println("Servicio: El nombre de la encuesta es obligatorio.");
             return -1;
@@ -48,18 +55,26 @@ public class ServicioEncuestas {
             System.err.println("Servicio: La fecha de fin no puede ser anterior a la de inicio.");
             return -1;
         }
-       
+
         if (fechaInicio.before(new Timestamp(System.currentTimeMillis()))) {
             System.err.println("Servicio: La fecha de inicio no puede ser anterior a la fecha y hora actuales.");
             return -1;
         }
+        
+        // Si no es pública y no tiene perfil requerido, es un error de configuración
+        if (!esPublica && (perfilRequerido == null || perfilRequerido.trim().isEmpty())) {
+            System.err.println("Servicio: Si la encuesta no es pública, debe tener un perfil requerido definido.");
+            return -1;
+        }
+        // No hay validación de JSON aquí, ya que hemos adaptado la BD para almacenar cadena simple.
+        // Si el perfil requerido es proporcionado, se asume que está en el formato de cadena simple.
 
         Encuesta nuevaEncuesta = new Encuesta();
         nuevaEncuesta.setNombre(nombre.trim());
         nuevaEncuesta.setDescripcion(descripcion);
         nuevaEncuesta.setFechaInicio(fechaInicio);
         nuevaEncuesta.setFechaFin(fechaFin);
-        nuevaEncuesta.setPublicoObjetivo(publicoObjetivo);
+        nuevaEncuesta.setEsPublica(esPublica); // CAMBIO AQUÍ
         nuevaEncuesta.setPerfilRequerido(perfilRequerido);
         nuevaEncuesta.setIdAdminCreador(idAdmin);
         nuevaEncuesta.setEstado("Borrador");
@@ -67,13 +82,14 @@ public class ServicioEncuestas {
         
         return encuestaDAO.crearEncuesta(nuevaEncuesta);
     }
-    
+
     public List<Encuesta> obtenerTodasLasEncuestasOrdenadasPorNombre() {
         List<Encuesta> encuestas = encuestaDAO.obtenerTodasLasEncuestas();
         if (encuestas == null || encuestas.size() <= 1) {
             return encuestas;
         }
 
+        // Algoritmo de ordenamiento por inserción (Insertion Sort)
         for (int i = 1; i < encuestas.size(); i++) {
             Encuesta encuestaActual = encuestas.get(i);
             String nombreActual = encuestaActual.getNombre() != null ? encuestaActual.getNombre() : "";
@@ -86,12 +102,13 @@ public class ServicioEncuestas {
         }
         return encuestas;
     }
-    
+
     public Encuesta buscarEncuestaEnListaPorId(List<Encuesta> listaEncuestas, int idBuscado) {
         if (listaEncuestas == null || listaEncuestas.isEmpty()) return null;
-        
+
+        // Implementación de búsqueda binaria
         List<Encuesta> copiaOrdenadaPorId = new ArrayList<>(listaEncuestas);
-        copiaOrdenadaPorId.sort(Comparator.comparingInt(Encuesta::getIdEncuesta));
+        copiaOrdenadaPorId.sort(Comparator.comparingInt(Encuesta::getIdEncuesta)); // Asegura que esté ordenada por ID
 
         int izq = 0, der = copiaOrdenadaPorId.size() - 1;
         while (izq <= der) {
@@ -109,7 +126,6 @@ public class ServicioEncuestas {
     }
 
     private Timestamp convertirStringATimestamp(String fechaStr) {
-
         if (fechaStr == null || fechaStr.trim().isEmpty()) return null;
         try {
             SimpleDateFormat dateFormat;
@@ -126,17 +142,26 @@ public class ServicioEncuestas {
             return null;
         }
     }
-    
-    public boolean modificarMetadatosEncuesta(int idEncuesta, String nuevoNombre, String nuevaDescripcion, Timestamp nuevaFechaInicio, Timestamp nuevaFechaFin, int nuevoPublicoObj, String nuevoPerfilDef) {
+
+    // CAMBIADO: 'nuevoPublicoObj' a 'nuevaEsPublica' (boolean)
+    public boolean modificarMetadatosEncuesta(int idEncuesta, String nuevoNombre, String nuevaDescripcion, Timestamp nuevaFechaInicio, Timestamp nuevaFechaFin, boolean nuevaEsPublica, String nuevoPerfilDef) {
         Encuesta encuesta = encuestaDAO.obtenerEncuestaPorId(idEncuesta);
         if (encuesta == null) {
             return false;
         }
+        // Validar que si la encuesta no es pública, debe tener un perfil requerido definido.
+        if (!nuevaEsPublica && (nuevoPerfilDef == null || nuevoPerfilDef.trim().isEmpty())) {
+            System.err.println("Servicio: Si la encuesta no es pública, debe tener un perfil requerido definido.");
+            return false;
+        }
+        // No hay validación de JSON aquí, ya que hemos adaptado la BD para almacenar cadena simple.
+        // Si el perfil requerido es proporcionado, se asume que está en el formato de cadena simple.
+        
         encuesta.setNombre(nuevoNombre);
         encuesta.setDescripcion(nuevaDescripcion);
         encuesta.setFechaInicio(nuevaFechaInicio);
         encuesta.setFechaFin(nuevaFechaFin);
-        encuesta.setPublicoObjetivo(nuevoPublicoObj);
+        encuesta.setEsPublica(nuevaEsPublica); // CAMBIO AQUÍ
         encuesta.setPerfilRequerido(nuevoPerfilDef);
 
         return encuestaDAO.actualizarEncuesta(encuesta);
@@ -157,34 +182,68 @@ public class ServicioEncuestas {
     }
 
     public boolean eliminarEncuesta(int idEncuesta) {
-
         System.out.println("Servicio: Intentando eliminar preguntas asociadas a encuesta ID " + idEncuesta);
+        // La eliminación de respuestas asociadas a encuesta_detalle_pregunta
+        // y luego a encuesta_detalle_pregunta se maneja por ON DELETE CASCADE en la BD.
+        // Solo necesitamos eliminar la encuesta, lo que debería propagarse.
+        // Si no estás seguro de CASCADE, mantener el método eliminarTodasPreguntasDeEncuesta es más seguro.
         boolean preguntasEliminadas = encuestaDetalleDAO.eliminarTodasPreguntasDeEncuesta(idEncuesta);
 
         System.out.println("Servicio: Eliminando encuesta ID " + idEncuesta);
         return encuestaDAO.eliminarEncuesta(idEncuesta);
     }
-
+    
+    // MODIFICADO: Lógica de filtrado para encuestas disponibles
     public List<Encuesta> obtenerEncuestasActivasParaUsuario(Usuario usuario) {
         System.out.println("Servicio: obtenerEncuestasActivasParaUsuario - Aplicando lógica de filtrado por perfil.");
         List<Encuesta> todasActivas = encuestaDAO.obtenerTodasLasEncuestas();
         List<Encuesta> activasFiltradas = new ArrayList<>();
 
+        Timestamp ahora = new Timestamp(System.currentTimeMillis());
+        
+        // Instanciar ServicioParticipacion aquí para usar haUsuarioRespondidoEncuesta
+        ServicioParticipacion servicioParticipacion = new ServicioParticipacion(); 
+
         for(Encuesta e : todasActivas){
-            if("Activa".equalsIgnoreCase(e.getEstado())){
-                if (cumplePerfil(e.getPerfilRequerido(), usuario)) {
-                    activasFiltradas.add(e);
-                } else {
-                    System.out.println("Servicio: Encuesta ID " + e.getIdEncuesta() + " no cumple con el perfil del usuario ID " + usuario.getId_usuario() + ".");
+            // 1. Verificar estado Activa y fechas válidas
+            if("Activa".equalsIgnoreCase(e.getEstado()) &&
+               (e.getFechaInicio() == null || !e.getFechaInicio().after(ahora)) &&
+               (e.getFechaFin() == null || !e.getFechaFin().before(ahora)) )
+            {
+                // 2. Verificar si el usuario ya ha respondido la encuesta
+                if (servicioParticipacion.haUsuarioRespondidoEncuesta(usuario.getId_usuario(), e.getIdEncuesta())) {
+                    System.out.println("Servicio: Encuesta ID " + e.getIdEncuesta() + " ya respondida por usuario ID " + usuario.getId_usuario());
+                    continue; // Saltar a la siguiente encuesta
                 }
+
+                // 3. Aplicar lógica de 'esPublica' o 'perfil_requerido'
+                if (e.isEsPublica()) { // Si es pública, añadir directamente
+                    activasFiltradas.add(e);
+                    System.out.println("Servicio: Encuesta ID " + e.getIdEncuesta() + " es pública y disponible para usuario ID " + usuario.getId_usuario());
+                } else { // Si no es pública, verificar perfil requerido
+                    if (e.getPerfilRequerido() != null && !e.getPerfilRequerido().trim().isEmpty()) {
+                        if (cumplePerfil(e.getPerfilRequerido(), usuario)) {
+                            activasFiltradas.add(e);
+                            System.out.println("Servicio: Encuesta ID " + e.getIdEncuesta() + " cumple perfil para usuario ID " + usuario.getId_usuario());
+                        } else {
+                            System.out.println("Servicio: Encuesta ID " + e.getIdEncuesta() + " no cumple con el perfil requerido para usuario ID " + usuario.getId_usuario() + ".");
+                        }
+                    } else {
+                        // Si no es pública pero no tiene perfil requerido definido (mala configuración o no aplica)
+                        System.out.println("Servicio: Encuesta ID " + e.getIdEncuesta() + " no es pública pero no tiene perfil requerido definido. No se mostrará.");
+                    }
+                }
+            } else {
+                System.out.println("Servicio: Encuesta ID " + e.getIdEncuesta() + " no está activa o fuera de fechas.");
             }
         }
         return activasFiltradas;
     }
 
+    // Método cumplePerfil adaptado para parsear formato de cadena simple (no JSON)
     private boolean cumplePerfil(String perfilRequerido, Usuario usuario) {
         if (perfilRequerido == null || perfilRequerido.trim().isEmpty()) {
-            return true;
+            return true; // Si no hay perfil requerido, se asume que cumple (esto se usará cuando esPublica sea false y perfilRequerido sea null)
         }
 
         String[] condiciones = perfilRequerido.trim().split(";");
@@ -204,11 +263,17 @@ public class ServicioEncuestas {
             switch (clave) {
                 case "GENERO":
                     if (usuario.getGenero() == null || !usuario.getGenero().equalsIgnoreCase(valor)) {
+                        System.out.println("No cumple por género. Requerido: " + valor + ", Usuario: " + usuario.getGenero());
                         return false;
                     }
                     break;
                 case "DISTRITO":
+                    // Si el valor es una lista separada por comas (ej. "Miraflores,San Isidro")
+                    // la lógica actual solo compararía el primer valor.
+                    // Para soportar múltiples distritos, 'valor' debería ser tratado como una lista de strings.
+                    // Para una reestructuración mínima, la lógica actual compara estrictamente el valor.
                     if (usuario.getDistrito_residencia() == null || !usuario.getDistrito_residencia().equalsIgnoreCase(valor)) {
+                        System.out.println("No cumple por distrito. Requerido: " + valor + ", Usuario: " + usuario.getDistrito_residencia());
                         return false;
                     }
                     break;
@@ -235,7 +300,7 @@ public class ServicioEncuestas {
                         } else if (valor.startsWith("=")) {
                              int edadExacta = Integer.parseInt(valor.substring(1));
                              if (edadUsuario != edadExacta) return false;
-                        } else {
+                        } else { // Si es un número simple, se considera como edad mínima
                             int edadMin = Integer.parseInt(valor);
                             if (edadUsuario < edadMin) return false;
                         }
@@ -244,7 +309,9 @@ public class ServicioEncuestas {
                         return false;
                     }
                     break;
-                
+                // Si tienes otras preguntas de registro que se manejan como parte del perfil
+                // Puedes añadir más casos aquí, obteniendo las respuestas del usuario
+                // para esas preguntas de registro si las has implementado.
                 default:
                     System.out.println("Servicio: Clave de perfil '" + clave + "' no reconocida. Se asume que se cumple.");
                     break;
@@ -252,7 +319,6 @@ public class ServicioEncuestas {
         }
         return true;
     }
-
 
     public boolean asociarPreguntaDelBancoAEncuesta(int idEncuesta, int idPreguntaBanco, int orden, boolean esDescarte, String criterioDescarte) {
         if (encuestaDetalleDAO.contarPreguntasEnEncuesta(idEncuesta) >= 12) {
@@ -326,7 +392,7 @@ public class ServicioEncuestas {
     public boolean eliminarPreguntaDeEncuesta(int idEncuesta, int idEncuestaDetalle){
         return encuestaDetalleDAO.eliminarPreguntaDeEncuesta(idEncuestaDetalle);
     }
-    
+
     public boolean eliminarPreguntaDeEncuestaServicio(int idEncuestaDetalle) {
         return encuestaDetalleDAO.eliminarPreguntaDeEncuesta(idEncuestaDetalle);
     }
@@ -335,6 +401,7 @@ public class ServicioEncuestas {
         return encuestaDetalleDAO.obtenerPreguntasPorEncuesta(idEncuesta);
     }
 
+    // CAMBIADO: 'copia.setPublicoObjetivo' a 'copia.setEsPublica' (boolean)
     public Encuesta copiarEncuesta(int idEncuestaOriginal, int idAdminCopia) {
         Encuesta original = encuestaDAO.obtenerEncuestaPorId(idEncuestaOriginal);
         if (original == null) return null;
@@ -344,19 +411,19 @@ public class ServicioEncuestas {
         copia.setDescripcion(original.getDescripcion());
         copia.setFechaInicio(original.getFechaInicio());
         copia.setFechaFin(original.getFechaFin());
-        copia.setPublicoObjetivo(original.getPublicoObjetivo());
+        copia.setEsPublica(original.isEsPublica()); // CAMBIO AQUÍ
         copia.setPerfilRequerido(original.getPerfilRequerido());
         copia.setIdAdminCreador(idAdminCopia);
         copia.setEstado("Borrador");
         copia.setFechaCreacion(new Timestamp(System.currentTimeMillis()));
-        
+
         int idNuevaEncuesta = encuestaDAO.crearEncuesta(copia);
         if (idNuevaEncuesta != -1) {
             copia.setIdEncuesta(idNuevaEncuesta);
             List<EncuestaDetallePregunta> detallesOriginales = encuestaDetalleDAO.obtenerPreguntasPorEncuesta(idEncuestaOriginal);
             for(EncuestaDetallePregunta detalle : detallesOriginales) {
-                detalle.setIdEncuesta(idNuevaEncuesta); 
-                detalle.setIdEncuestaDetalle(0);
+                detalle.setIdEncuesta(idNuevaEncuesta);
+                detalle.setIdEncuestaDetalle(0); // Para que AUTO_INCREMENT genere un nuevo ID
                 encuestaDetalleDAO.agregarPreguntaAEncuesta(detalle);
             }
             return copia;
@@ -368,22 +435,23 @@ public class ServicioEncuestas {
         Encuesta encuesta = encuestaDAO.obtenerEncuestaPorId(idEncuesta);
         if (encuesta != null) {
             List<EncuestaDetallePregunta> preguntas = encuestaDetalleDAO.obtenerPreguntasPorEncuesta(idEncuesta);
-            PreguntaBancoDAO pbDao = new PreguntaBancoDAO(); 
-            TipoPreguntaDAO tpDao = new TipoPreguntaDAO();
-            ClasificacionPreguntaDAO cpDao = new ClasificacionPreguntaDAO();
+            // Las instancias de DAO ya se inicializan en el constructor de ServicioEncuestas, no es necesario crearlas de nuevo aquí.
+            // PreguntaBancoDAO pbDao = new PreguntaBancoDAO(); 
+            // TipoPreguntaDAO tpDao = new TipoPreguntaDAO();
+            // ClasificacionPreguntaDAO cpDao = new ClasificacionPreguntaDAO();
 
             for(EncuestaDetallePregunta edp : preguntas) {
-                if (edp.getIdPreguntaBanco() != null) { 
-                    PreguntaBanco preguntaBanco = pbDao.obtenerPreguntaPorId(edp.getIdPreguntaBanco());
+                if (edp.getIdPreguntaBanco() != null) {
+                    PreguntaBanco preguntaBanco = preguntaBancoDAO.obtenerPreguntaPorId(edp.getIdPreguntaBanco());
                     if (preguntaBanco != null) {
-                        TipoPregunta tipo = tpDao.obtenerTipoPreguntaPorId(preguntaBanco.getIdTipoPregunta());
+                        TipoPregunta tipo = tipoPreguntaDAO.obtenerTipoPreguntaPorId(preguntaBanco.getIdTipoPregunta());
                         if(tipo != null) {
                             preguntaBanco.setNombreTipoPregunta(tipo.getNombreTipo());
                             edp.setTipoPreguntaObj(tipo);
                         }
 
                         if(preguntaBanco.getIdClasificacion() != null && preguntaBanco.getIdClasificacion() > 0){
-                            ClasificacionPregunta clasif = cpDao.obtenerClasificacionPorId(preguntaBanco.getIdClasificacion());
+                            ClasificacionPregunta clasif = clasificacionPreguntaDAO.obtenerClasificacionPorId(preguntaBanco.getIdClasificacion());
                             if(clasif != null) {
                                 preguntaBanco.setNombreClasificacion(clasif.getNombreClasificacion());
                                 edp.setClasificacionPreguntaObj(clasif);
@@ -393,13 +461,13 @@ public class ServicioEncuestas {
                     edp.setPreguntaDelBanco(preguntaBanco);
                 } else if (edp.getTextoPreguntaUnica() != null) {
                     if (edp.getIdTipoPreguntaUnica() != null) {
-                        TipoPregunta tipoUnica = tpDao.obtenerTipoPreguntaPorId(edp.getIdTipoPreguntaUnica());
+                        TipoPregunta tipoUnica = tipoPreguntaDAO.obtenerTipoPreguntaPorId(edp.getIdTipoPreguntaUnica());
                         if(tipoUnica != null) {
                             edp.setTipoPreguntaObj(tipoUnica);
                         }
                     }
                      if (edp.getIdClasificacionUnica() != null) {
-                        ClasificacionPregunta clasifUnica = cpDao.obtenerClasificacionPorId(edp.getIdClasificacionUnica());
+                        ClasificacionPregunta clasifUnica = clasificacionPreguntaDAO.obtenerClasificacionPorId(edp.getIdClasificacionUnica());
                         if(clasifUnica != null) {
                             edp.setClasificacionPreguntaObj(clasifUnica);
                         }
@@ -430,17 +498,14 @@ public class ServicioEncuestas {
         return null;
     }
 
-    // NUEVO MÉTODO: Obtener una pregunta detalle por su ID (para la GUI)
     public EncuestaDetallePregunta obtenerPreguntaDetallePorId(int idEncuestaDetalle) {
         return encuestaDetalleDAO.obtenerPreguntaDetallePorId(idEncuestaDetalle);
     }
 
-    // NUEVO MÉTODO: Actualizar un objeto EncuestaDetallePregunta (para la GUI de modificación)
     public boolean actualizarDetallePregunta(EncuestaDetallePregunta detalle) {
         return encuestaDetalleDAO.actualizarDetallePregunta(detalle);
     }
 
-    // NUEVO MÉTODO: Mover preguntas en la encuesta (cambiar su orden)
     public boolean moverPreguntaEnEncuesta(int idEncuesta, int idEncuestaDetalleAMover, boolean moverArriba) {
         List<EncuestaDetallePregunta> preguntas = encuestaDetalleDAO.obtenerPreguntasPorEncuesta(idEncuesta);
         if (preguntas == null || preguntas.isEmpty()) {

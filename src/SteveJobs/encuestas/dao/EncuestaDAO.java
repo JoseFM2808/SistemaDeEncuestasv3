@@ -9,7 +9,8 @@ import java.util.List;
 public class EncuestaDAO {
 
     public int crearEncuesta(Encuesta encuesta) {
-        String sql = "INSERT INTO encuestas (nombre, descripcion, fecha_inicio, fecha_fin, publico_objetivo, perfil_requerido, estado, fecha_creacion, id_admin_creador) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        // Cambiado 'publico_objetivo' a 'es_publica'
+        String sql = "INSERT INTO encuestas (nombre, descripcion, fecha_inicio, fecha_fin, es_publica, perfil_requerido, estado, fecha_creacion, id_admin_creador) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet generatedKeys = null;
@@ -22,7 +23,8 @@ public class EncuestaDAO {
             ps.setString(2, encuesta.getDescripcion());
             ps.setTimestamp(3, encuesta.getFechaInicio());
             ps.setTimestamp(4, encuesta.getFechaFin());
-            ps.setInt(5, encuesta.getPublicoObjetivo());
+            // CAMBIADO: usa el nuevo getter isEsPublica() y setBoolean
+            ps.setBoolean(5, encuesta.isEsPublica());
             ps.setString(6, encuesta.getPerfilRequerido());
             ps.setString(7, encuesta.getEstado());
             ps.setTimestamp(8, encuesta.getFechaCreacion());
@@ -41,7 +43,7 @@ public class EncuestaDAO {
         }
         return idGenerado;
     }
-    
+
     public Encuesta obtenerEncuestaPorId(int idEncuesta) {
         String sql = "SELECT * FROM encuestas WHERE id_encuesta = ?";
         Connection con = null;
@@ -60,7 +62,8 @@ public class EncuestaDAO {
                 encuesta.setDescripcion(rs.getString("descripcion"));
                 encuesta.setFechaInicio(rs.getTimestamp("fecha_inicio"));
                 encuesta.setFechaFin(rs.getTimestamp("fecha_fin"));
-                encuesta.setPublicoObjetivo(rs.getInt("publico_objetivo"));
+                // CAMBIADO: lee la columna 'es_publica' como boolean
+                encuesta.setEsPublica(rs.getBoolean("es_publica"));
                 encuesta.setPerfilRequerido(rs.getString("perfil_requerido"));
                 encuesta.setEstado(rs.getString("estado"));
                 encuesta.setFechaCreacion(rs.getTimestamp("fecha_creacion"));
@@ -89,6 +92,8 @@ public class EncuestaDAO {
                 encuesta.setEstado(rs.getString("estado"));
                 encuesta.setFechaInicio(rs.getTimestamp("fecha_inicio"));
                 encuesta.setFechaFin(rs.getTimestamp("fecha_fin"));
+                // CAMBIADO: lee la columna 'es_publica' como boolean
+                encuesta.setEsPublica(rs.getBoolean("es_publica"));
                 lista.add(encuesta);
             }
         } catch (SQLException e) {
@@ -96,16 +101,18 @@ public class EncuestaDAO {
         }
         return lista;
     }
-    
+
     public boolean actualizarEncuesta(Encuesta encuesta) {
-        String sql = "UPDATE encuestas SET nombre = ?, descripcion = ?, fecha_inicio = ?, fecha_fin = ?, publico_objetivo = ?, perfil_requerido = ?, estado = ? WHERE id_encuesta = ?";
+        // Cambiado 'publico_objetivo' a 'es_publica'
+        String sql = "UPDATE encuestas SET nombre = ?, descripcion = ?, fecha_inicio = ?, fecha_fin = ?, es_publica = ?, perfil_requerido = ?, estado = ? WHERE id_encuesta = ?";
         try (Connection con = ConexionDB.conectar();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, encuesta.getNombre());
             ps.setString(2, encuesta.getDescripcion());
             ps.setTimestamp(3, encuesta.getFechaInicio());
             ps.setTimestamp(4, encuesta.getFechaFin());
-            ps.setInt(5, encuesta.getPublicoObjetivo());
+            // CAMBIADO: usa el nuevo getter isEsPublica()
+            ps.setBoolean(5, encuesta.isEsPublica());
             ps.setString(6, encuesta.getPerfilRequerido());
             ps.setString(7, encuesta.getEstado());
             ps.setInt(8, encuesta.getIdEncuesta());
@@ -115,10 +122,10 @@ public class EncuestaDAO {
             return false;
         }
     }
-    
+
     public boolean actualizarEstadoEncuesta(int idEncuesta, String nuevoEstado) {
-         String sql = "UPDATE encuestas SET estado = ? WHERE id_encuesta = ?";
-         try (Connection con = ConexionDB.conectar();
+        String sql = "UPDATE encuestas SET estado = ? WHERE id_encuesta = ?";
+        try (Connection con = ConexionDB.conectar();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, nuevoEstado);
             ps.setInt(2, idEncuesta);
@@ -128,7 +135,7 @@ public class EncuestaDAO {
             return false;
         }
     }
-    
+
     public boolean eliminarEncuesta(int idEncuesta) {
         String sql = "DELETE FROM encuestas WHERE id_encuesta = ?";
         try (Connection con = ConexionDB.conectar();

@@ -6,6 +6,7 @@ import SteveJobs.encuestas.servicio.ServicioUsuarios;
 import javax.swing.JOptionPane;
 import java.util.List;
 import java.time.LocalDate;
+import java.sql.Timestamp; // Importar Timestamp
 
 public class UIGestionUsuarios {
 
@@ -17,7 +18,7 @@ public class UIGestionUsuarios {
             String menu = "--- Gestión de Usuarios ---\n"
                     + "1. Listar Todos los Usuarios\n"
                     + "2. Modificar Perfil de Usuario\n"
-                    + "3. Cambiar Rol de Usuario\n" 
+                    + "3. Cambiar Rol de Usuario\n" // Opcional, si se permite cambiar roles
                     + "4. Eliminar Usuario\n"
                     + "0. Volver al Menú Principal";
             String input = JOptionPane.showInputDialog(null, menu, "Menú Gestión Usuarios", JOptionPane.PLAIN_MESSAGE);
@@ -72,6 +73,7 @@ public class UIGestionUsuarios {
             sb.append("Nombres: ").append(u.getNombres()).append(" ").append(u.getApellidos()).append("\n");
             sb.append("Email: ").append(u.getEmail()).append("\n");
             sb.append("Rol: ").append(u.getRol()).append("\n");
+            sb.append("Estado: ").append(u.getEstado()).append("\n"); // Mostrar el estado actual
             sb.append("--------------------------------------\n");
         }
         JOptionPane.showMessageDialog(null, sb.toString(), "Lista de Usuarios", JOptionPane.PLAIN_MESSAGE);
@@ -103,43 +105,56 @@ public class UIGestionUsuarios {
         String nuevoEmail = JOptionPane.showInputDialog("Nuevo Email (actual: " + usuario.getEmail() + "):", usuario.getEmail());
         if (nuevoEmail == null) return;
         
-        
-        String fechaNacStr = JOptionPane.showInputDialog("Nueva Fecha Nacimiento (YYYY-MM-DD, actual: " + usuario.getFecha_nacimiento() + "):", usuario.getFecha_nacimiento().toString());
-        if (fechaNacStr == null) return;
-        LocalDate nuevaFechaNacimiento;
-        try {
-            nuevaFechaNacimiento = LocalDate.parse(fechaNacStr);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Formato de fecha inválido. Use YYYY-MM-DD.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
+        // Manejo de Fecha de Nacimiento
+        String fechaNacStr = JOptionPane.showInputDialog("Nueva Fecha Nacimiento (YYYY-MM-DD, actual: " + (usuario.getFecha_nacimiento() != null ? usuario.getFecha_nacimiento().toString() : "N/A") + "):", 
+                                                         (usuario.getFecha_nacimiento() != null ? usuario.getFecha_nacimiento().toString() : ""));
+        LocalDate nuevaFechaNacimiento = usuario.getFecha_nacimiento(); // Preserva el valor actual por defecto
+        if (fechaNacStr != null && !fechaNacStr.trim().isEmpty()) {
+            try {
+                nuevaFechaNacimiento = LocalDate.parse(fechaNacStr);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "Formato de fecha inválido. Use YYYY-MM-DD.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        } else if (fechaNacStr != null && fechaNacStr.trim().isEmpty()) {
+            nuevaFechaNacimiento = null; // Si el usuario borra la fecha, se establece a null
         }
 
-        String[] generos = {"MASCULINO", "FEMENINO", "OTRO"};
+
+        String[] generos = {"MASCULINO", "FEMENINO", "OTRO", "No especificado"}; // Añadir "No especificado" o similar si es válido
         String nuevoGenero = (String) JOptionPane.showInputDialog(null, 
-                "Nuevo Género (actual: " + usuario.getGenero() + "):", "Seleccionar Género", 
+                "Nuevo Género (actual: " + (usuario.getGenero() != null ? usuario.getGenero() : "N/A") + "):", "Seleccionar Género", 
                 JOptionPane.QUESTION_MESSAGE, null, generos, usuario.getGenero());
-        if (nuevoGenero == null) return;
+        if (nuevoGenero == null) return; // Si el usuario cancela
 
-        String nuevoDistrito = JOptionPane.showInputDialog("Nuevo Distrito (actual: " + usuario.getDistrito_residencia() + "):", usuario.getDistrito_residencia());
-        if (nuevoDistrito == null) return;
+        String nuevoDistrito = JOptionPane.showInputDialog("Nuevo Distrito (actual: " + (usuario.getDistrito_residencia() != null ? usuario.getDistrito_residencia() : "N/A") + "):", 
+                                                          (usuario.getDistrito_residencia() != null ? usuario.getDistrito_residencia() : ""));
+        if (nuevoDistrito == null) return; // Si el usuario cancela
 
-       
+
+        // Crear un objeto Usuario temporal con los nuevos datos
         Usuario usuarioActualizado = new Usuario();
         usuarioActualizado.setId_usuario(idUsuario);
-        usuarioActualizado.setDni(nuevoDni);
-        usuarioActualizado.setNombres(nuevosNombres);
-        usuarioActualizado.setApellidos(nuevosApellidos);
-        usuarioActualizado.setEmail(nuevoEmail);
+        usuarioActualizado.setDni(nuevoDni.trim());
+        usuarioActualizado.setNombres(nuevosNombres.trim());
+        usuarioActualizado.setApellidos(nuevosApellidos.trim());
+        usuarioActualizado.setEmail(nuevoEmail.trim());
         usuarioActualizado.setFecha_nacimiento(nuevaFechaNacimiento);
         usuarioActualizado.setGenero(nuevoGenero);
-        usuarioActualizado.setDistrito_residencia(nuevoDistrito);
+        usuarioActualizado.setDistrito_residencia(nuevoDistrito.trim().isEmpty() ? null : nuevoDistrito.trim()); // Si el usuario borra el distrito, se guarda como null
+        
+        // ¡IMPORTANTE! Preservar la clave, rol y estado del usuario original
+        // Ya que no se modifican en esta UI de perfil.
+        usuarioActualizado.setClave(usuario.getClave()); 
         usuarioActualizado.setRol(usuario.getRol()); 
+        usuarioActualizado.setEstado(usuario.getEstado()); 
+        usuarioActualizado.setFecha_registro(usuario.getFecha_registro()); // También la fecha de registro
 
         boolean actualizado = servicioUsuarios.actualizarPerfilUsuario(usuarioActualizado);
         if (actualizado) {
             JOptionPane.showMessageDialog(null, "Perfil de usuario actualizado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
         } else {
-            JOptionPane.showMessageDialog(null, "Error al actualizar el perfil del usuario.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Error al actualizar el perfil del usuario. Verifique los datos (DNI/Email duplicado) o la consola para más detalles.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -166,7 +181,7 @@ public class UIGestionUsuarios {
                 JOptionPane.QUESTION_MESSAGE, null, roles, usuario.getRol());
         if (nuevoRol == null) return;
 
-        boolean actualizado = servicioUsuarios.actualizarRolUsuario(idUsuario, nuevoRol); 
+        boolean actualizado = servicioUsuarios.actualizarRolUsuario(idUsuario, nuevoRol);
         if (actualizado) {
             JOptionPane.showMessageDialog(null, "Rol de usuario actualizado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
         } else {

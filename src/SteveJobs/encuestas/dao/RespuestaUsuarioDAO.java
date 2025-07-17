@@ -25,7 +25,9 @@ public class RespuestaUsuarioDAO {
         PreparedStatement ps = null;
         boolean exito = true;
 
-        String sql = "INSERT INTO respuestas_usuario (id_usuario, id_encuesta, id_encuesta_detalle_pregunta, valor_respuesta, fecha_hora_respuesta) VALUES (?, ?, ?, ?, ?)";
+        // La tabla 'respuestas' ya tiene 'id_encuesta' y 'id_encuesta_detalle_pregunta'.
+        // Asegúrate de que el modelo RespuestaUsuario tenga el idEncuesta.
+        String sql = "INSERT INTO respuestas (id_usuario, id_encuesta, id_encuesta_detalle_pregunta, valor_respuesta, fecha_hora_respuesta) VALUES (?, ?, ?, ?, ?)";
 
         try {
             con = ConexionDB.conectar();
@@ -37,7 +39,7 @@ public class RespuestaUsuarioDAO {
 
             for (RespuestaUsuario respuesta : respuestas) {
                 ps.setInt(1, respuesta.getIdUsuario());
-                ps.setInt(2, respuesta.getIdEncuesta()); 
+                ps.setInt(2, respuesta.getIdEncuesta()); // Asume que idEncuesta ya está en el modelo RespuestaUsuario
                 ps.setInt(3, respuesta.getIdEncuestaDetallePregunta());
                 ps.setString(4, respuesta.getValorRespuesta());
                 ps.setTimestamp(5, respuesta.getFechaHoraRespuesta());
@@ -83,10 +85,12 @@ public class RespuestaUsuarioDAO {
 
     public List<RespuestaUsuario> obtenerRespuestasPorEncuesta(int idEncuesta) {
         List<RespuestaUsuario> respuestas = new ArrayList<>();
-        String sql = "SELECT ru.id_respuesta, ru.id_usuario, ru.id_encuesta, ru.id_encuesta_detalle_pregunta, " +
+        // CORREGIDO: Se hace un JOIN con `encuesta_preguntas` para obtener `id_encuesta`
+        String sql = "SELECT ru.id_respuesta, ru.id_usuario, edp.id_encuesta, ru.id_encuesta_detalle_pregunta, " +
                      "ru.valor_respuesta, ru.fecha_hora_respuesta " +
-                     "FROM respuestas_usuario ru " +
-                     "WHERE ru.id_encuesta = ?";
+                     "FROM respuestas ru " +
+                     "JOIN encuesta_preguntas edp ON ru.id_encuesta_detalle_pregunta = edp.id_encuesta_detalle " +
+                     "WHERE edp.id_encuesta = ?"; // Filtramos por el id_encuesta de la tabla unida
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -102,6 +106,7 @@ public class RespuestaUsuarioDAO {
                 RespuestaUsuario respuesta = new RespuestaUsuario();
                 respuesta.setIdRespuesta(rs.getInt("id_respuesta"));
                 respuesta.setIdUsuario(rs.getInt("id_usuario"));
+                // CAMBIADO: Obtiene id_encuesta de la tabla unida (edp)
                 respuesta.setIdEncuesta(rs.getInt("id_encuesta")); 
                 respuesta.setIdEncuestaDetallePregunta(rs.getInt("id_encuesta_detalle_pregunta"));
                 respuesta.setValorRespuesta(rs.getString("valor_respuesta"));
@@ -123,7 +128,11 @@ public class RespuestaUsuarioDAO {
     }
     
     public boolean haUsuarioRespondidoEncuesta(int idUsuario, int idEncuesta) {
-        String sql = "SELECT COUNT(*) FROM respuestas_usuario WHERE id_usuario = ? AND id_encuesta = ?";
+        // CORREGIDO: Se hace JOIN para verificar si el usuario ha respondido la encuesta
+        // a través de sus preguntas.
+        String sql = "SELECT COUNT(ru.id_respuesta) FROM respuestas ru " +
+                     "JOIN encuesta_preguntas edp ON ru.id_encuesta_detalle_pregunta = edp.id_encuesta_detalle " +
+                     "WHERE ru.id_usuario = ? AND edp.id_encuesta = ?";
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -150,7 +159,13 @@ public class RespuestaUsuarioDAO {
     }
 
     public boolean eliminarRespuestasDeEncuesta(int idEncuesta) {
-        String sql = "DELETE FROM respuestas_usuario WHERE id_encuesta = ?";
+        // CORREGIDO: Aunque la tabla `respuestas` tiene id_encuesta, para ser estrictos
+        // con la estructura actual (donde `id_encuesta` en `respuestas` viene del modelo)
+        // sería más robusto eliminar basado en un JOIN. Sin embargo, para no re-estructurar,
+        // confiaremos en que el modelo de `RespuestaUsuario` se llena correctamente
+        // y la FK en la BD maneja la integridad.
+        // La tabla `respuestas` sí tiene la columna `id_encuesta` directamente.
+        String sql = "DELETE FROM respuestas WHERE id_encuesta = ?";
         Connection con = null;
         PreparedStatement ps = null;
         boolean exito = false;
@@ -172,15 +187,15 @@ public class RespuestaUsuarioDAO {
 
     /**
      * Guarda una respuesta a una pregunta de registro dinámica.
-     * Esta implementación asume que existe una tabla 'respuestas_registro_usuario'
-     * en la base de datos con las columnas id_usuario, id_pregunta_registro, valor_respuesta, fecha_hora_respuesta.
+     * Esta implementación ahora inserta en la nueva tabla `respuestas_registro`.
      * @param idUsuario El ID del usuario que responde.
      * @param idPreguntaRegistro El ID de la pregunta de registro.
      * @param valorRespuesta El valor de la respuesta.
      * @return true si la respuesta fue guardada exitosamente, false en caso contrario.
      */
     public boolean guardarRespuestaRegistro(int idUsuario, int idPreguntaRegistro, String valorRespuesta) {
-        String sql = "INSERT INTO respuestas_registro_usuario (id_usuario, id_pregunta_registro, valor_respuesta, fecha_hora_respuesta) VALUES (?, ?, ?, ?)";
+        // CAMBIADO: Se inserta en la nueva tabla `respuestas_registro`
+        String sql = "INSERT INTO respuestas_registro (id_usuario, id_pregunta_registro, valor_respuesta, fecha_hora_respuesta) VALUES (?, ?, ?, ?)";
         Connection con = null;
         PreparedStatement ps = null;
         boolean exito = false;

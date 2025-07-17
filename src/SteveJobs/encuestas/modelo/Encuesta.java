@@ -11,7 +11,7 @@ public class Encuesta {
     private String descripcion;
     private Timestamp fechaInicio;
     private Timestamp fechaFin;
-    private int publicoObjetivo;
+    private boolean esPublica; // CAMBIADO: de int publicoObjetivo a boolean esPublica
     private String perfilRequerido;
     private String estado;
     private Timestamp fechaCreacion;
@@ -21,7 +21,7 @@ public class Encuesta {
     public Encuesta() {
         this.preguntasAsociadas = new ArrayList<>();
     }
-    
+
     public int getIdEncuesta() {
         return idEncuesta;
     }
@@ -62,12 +62,14 @@ public class Encuesta {
         this.fechaFin = fechaFin;
     }
 
-    public int getPublicoObjetivo() {
-        return publicoObjetivo;
+    // NUEVO MÉTODO GETTER para esPublica (antes getPublicoObjetivo)
+    public boolean isEsPublica() {
+        return esPublica;
     }
 
-    public void setPublicoObjetivo(int publicoObjetivo) {
-        this.publicoObjetivo = publicoObjetivo;
+    // NUEVO MÉTODO SETTER para esPublica (antes setPublicoObjetivo)
+    public void setEsPublica(boolean esPublica) {
+        this.esPublica = esPublica;
     }
 
     public String getPerfilRequerido() {
