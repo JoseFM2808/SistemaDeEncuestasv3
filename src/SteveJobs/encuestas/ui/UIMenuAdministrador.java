@@ -24,7 +24,7 @@ import javax.swing.JOptionPane;
 public class UIMenuAdministrador {
 
     private final PilaNavegacion<Runnable> historialMenu;
-    private final Usuario administradorActual;
+    private final Usuario administradorActual; // Este es el atributo correcto
 
     public UIMenuAdministrador(Usuario administradorActual) {
         this.historialMenu = new PilaNavegacion<>();
@@ -37,7 +37,7 @@ public class UIMenuAdministrador {
         while (!historialMenu.isEmpty()) {
             try {
                 historialMenu.peek().run(); // Ejecutar el menú actual
-            } catch (Exception e) {
+            } catch (Exception e) { // Descomentado/Restaurado el bloque catch
                 JOptionPane.showMessageDialog(null, "Ha ocurrido un error inesperado: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 System.err.println("Error en UIMenuAdministrador: " + e.getMessage());
                 e.printStackTrace(); // Para depuración
@@ -45,7 +45,10 @@ public class UIMenuAdministrador {
                     historialMenu.pop();
                 } else { // Si es el menú principal, salir de la aplicación o reintentar
                     JOptionPane.showMessageDialog(null, "Volviendo al menú principal de la aplicación...", "Error", JOptionPane.INFORMATION_MESSAGE);
-                    historialMenu.clear(); // Limpiar pila para forzar salida o re-inicio
+                    // CORRECCIÓN: Vaciar la pila pop a pop, ya que PilaNavegacion no tiene clear()
+                    while (!historialMenu.isEmpty()) { //
+                        historialMenu.pop(); //
+                    } //
                 }
             }
         }
@@ -63,7 +66,7 @@ public class UIMenuAdministrador {
                       6. Gestionar Usuarios
                       7. Ver Resultados de Encuestas
                       8. Cerrar Sesión
-                      """.formatted(administradorActual.getNombres(), administradorActual.getApellidos(), administradorActual.getIdUsuario());
+                      """.formatted(administradorActual.getNombres(), administradorActual.getApellidos(), administradorActual.getId_usuario()); // CORRECCIÓN: getId_usuario()
 
         String opcionStr = JOptionPane.showInputDialog(null, menu, "Menú Administrador", JOptionPane.PLAIN_MESSAGE);
 
@@ -111,44 +114,37 @@ public class UIMenuAdministrador {
     // --- Métodos para cada sub-menú, que llaman a sus respectivas UI ---
 
     private void gestionarEncuestas() {
-        UIGestionEncuestas uiGestionEncuestas = new UIGestionEncuestas();
-        uiGestionEncuestas.mostrarMenuGestionEncuestas(); // Ejecuta el flujo de gestión de encuestas
+        UIGestionEncuestas.mostrarMenu(administradorActual); // CORRECTO: Llamar al método estático y pasar el adminActual
         historialMenu.pop(); // Una vez que termina el flujo, vuelve al menú de administrador
     }
 
     private void gestionarBancoPreguntas() {
-        UIGestionBancoPreguntas uiGestionBanco = new UIGestionBancoPreguntas();
-        uiGestionBanco.mostrarMenuGestionBancoPreguntas(); // Ejecuta el flujo de gestión del banco
+        UIGestionBancoPreguntas.mostrarMenu(); // CORRECTO: Llamar al método estático de la clase UI
         historialMenu.pop();
     }
 
     private void gestionarPreguntasRegistro() {
-        UIGestionPreguntasRegistro uiGestionPreguntasRegistro = new UIGestionPreguntasRegistro();
-        uiGestionPreguntasRegistro.mostrarMenuGestionPreguntasRegistro(); // Ejecuta el flujo
+        UIGestionPreguntasRegistro.mostrarMenu(); // CORRECTO: Llamar al método estático de la clase UI
         historialMenu.pop();
     }
     
     private void gestionarTiposPregunta() {
-        UIGestionTiposPregunta uiGestionTiposPregunta = new UIGestionTiposPregunta();
-        uiGestionTiposPregunta.mostrarMenuGestionTiposPregunta(); // Ejecuta el flujo
+        UIGestionTiposPregunta.mostrarMenu(); // CORRECTO: Llamar al método estático de la clase UI
         historialMenu.pop();
     }
     
     private void gestionarClasificacionesPregunta() {
-        UIGestionClasificacionesPregunta uiGestionClasificacionesPregunta = new UIGestionClasificacionesPregunta();
-        uiGestionClasificacionesPregunta.mostrarMenuGestionClasificacionesPregunta(); // Ejecuta el flujo
+        UIGestionClasificacionesPregunta.mostrarMenu(); // CORRECTO: Llamar al método estático de la clase UI
         historialMenu.pop();
     }
 
     private void gestionarUsuarios() {
-        UIGestionUsuarios uiGestionUsuarios = new UIGestionUsuarios();
-        uiGestionUsuarios.mostrarMenuGestionUsuarios(); // Ejecuta el flujo
+        UIGestionUsuarios.mostrarMenu(); // CORRECTO: Llamar al método estático de la clase UI
         historialMenu.pop();
     }
 
     private void verResultadosEncuestas() {
-        UIReportesEncuesta uiReportesEncuesta = new UIReportesEncuesta();
-        uiReportesEncuesta.mostrarMenuReportes(); // Ejecuta el flujo
+        UIReportesEncuesta.mostrarMenu(); // CORRECTO: Llamar al método estático de la clase UI
         historialMenu.pop();
     }
 }

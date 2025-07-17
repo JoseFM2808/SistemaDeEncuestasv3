@@ -17,6 +17,7 @@
 package SteveJobs.encuestas.ui;
 
 import SteveJobs.encuestas.modelo.Encuesta;
+import SteveJobs.encuestas.modelo.RespuestaUsuario; // Importar RespuestaUsuario
 import SteveJobs.encuestas.modelo.Usuario; // Si el menú de reportes necesita el usuario logueado
 import SteveJobs.encuestas.servicio.ServicioEncuestas;
 import SteveJobs.encuestas.servicio.ServicioResultados;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
+import java.util.HashMap; // ¡CORRECCIÓN: Importar HashMap!
 
 public class UIReportesEncuesta {
 
@@ -76,7 +78,8 @@ public class UIReportesEncuesta {
     }
 
     /**
-     * Permite al administrador seleccionar una encuesta y ver su reporte, con opción de filtro.
+     * Permite al administrador seleccionar una encuesta y ver su reporte, con
+     * opción de filtro.
      */
     private static void verReporteDeEncuestaUI() {
         List<Encuesta> encuestas = servicioEncuestas.obtenerTodasLasEncuestasOrdenadasPorNombre();
@@ -110,34 +113,42 @@ public class UIReportesEncuesta {
             // --- Lógica para el filtro por tipo de pregunta (REQMS-005) ---
             String tipoPreguntaFiltro = null;
             String[] tiposDisponibles = {"SIMPLE", "MÚLTIPLE", "NUMERO", "TEXTO_CORTO", "FECHA", "DESCRIPCIÓN", "NINGUNO (ver todos)"};
-            
+
             int confirmFilter = JOptionPane.showConfirmDialog(
-                null, 
-                "¿Desea aplicar un filtro por tipo de pregunta al reporte?", 
-                "Aplicar Filtro", 
-                JOptionPane.YES_NO_OPTION
+                    null,
+                    "¿Desea aplicar un filtro por tipo de pregunta al reporte?",
+                    "Aplicar Filtro",
+                    JOptionPane.YES_NO_OPTION
             );
 
             if (confirmFilter == JOptionPane.YES_OPTION) {
                 String filtroSeleccionado = (String) JOptionPane.showInputDialog(
-                    null,
-                    "Seleccione el tipo de pregunta a filtrar (se mostrarán SOLO las de este tipo):",
-                    "Filtro por Tipo de Pregunta",
-                    JOptionPane.QUESTION_MESSAGE,
-                    null,
-                    tiposDisponibles,
-                    tiposDisponibles[0]
+                        null,
+                        "Seleccione el tipo de pregunta a filtrar (se mostrarán SOLO las de este tipo):",
+                        "Filtro por Tipo de Pregunta",
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        tiposDisponibles,
+                        tiposDisponibles[0]
                 );
                 if (filtroSeleccionado != null && !filtroSeleccionado.equals("NINGUNO (ver todos)")) {
                     tipoPreguntaFiltro = filtroSeleccionado;
                 }
             }
 
-            // Generar los reportes usando ServicioResultados, pasando el filtro
-            // Los métodos ya excluyen internamente "Descripción" y "TEXTO_CORTO" para frecuencia
-            Map<String, Map<String,Integer>> reporteFrecuencia = servicioResultados.generarReporteFrecuenciaRespuestas(idEncuestaSeleccionada);
-            Map<String, Double> reportePromedios = servicioResultados.calcularPromediosPorPregunta(idEncuestaSeleccionada);
-            
+            // CREAR EL MAPA DE FILTROS PARA EL SERVICIO
+            Map<String, String> filtros = new HashMap<>();
+            if (tipoPreguntaFiltro != null) {
+                filtros.put("tipoPregunta", tipoPreguntaFiltro);
+            }
+
+            // OBTENER LA LISTA DE RESPUESTAS FILTRADAS
+            List<RespuestaUsuario> respuestasFiltradas = servicioResultados.filtrarResultados(idEncuestaSeleccionada, filtros);
+
+            // Generar los reportes usando ServicioResultados, pasando la lista de respuestas filtradas
+            Map<String, Map<String, Integer>> reporteFrecuencia = servicioResultados.generarReporteFrecuenciaRespuestas(respuestasFiltradas);
+            Map<String, Double> reportePromedios = servicioResultados.calcularPromediosPorPregunta(respuestasFiltradas);
+
             // Exportar el reporte a texto para mostrarlo
             String reporteTexto = servicioResultados.exportarReporteATexto(reporteFrecuencia, reportePromedios);
 
