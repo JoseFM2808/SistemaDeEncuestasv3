@@ -46,8 +46,8 @@ public class EncuestadoMenuGUI extends JFrame {
         add(mainPanel);
 
         // --- Eventos de los botones ---
-        btnVerEncuestas.addActionListener(e -> JOptionPane.showMessageDialog(this, "Funcionalidad: Ver Encuestas Disponibles (GUI en desarrollo)"));
-        btnConsultarPerfil.addActionListener(e -> JOptionPane.showMessageDialog(this, "Funcionalidad: Consultar Mi Perfil (GUI en desarrollo)"));
+        btnVerEncuestas.addActionListener(e -> mostrarEncuestasDisponiblesGUI());
+        btnConsultarPerfil.addActionListener(e -> mostrarPerfilUsuarioGUI());
 
         btnCerrarSesion.addActionListener(new ActionListener() {
             @Override
@@ -77,5 +77,22 @@ public class EncuestadoMenuGUI extends JFrame {
         LoginGUI loginGUI = new LoginGUI();
         loginGUI.setVisible(true);
         this.dispose(); // Cierra esta ventana del menú encuestado
+    }
+
+    private void mostrarPerfilUsuarioGUI() {
+        PerfilUsuarioGUI perfilGUI = new PerfilUsuarioGUI(encuestadoActual, this);
+        perfilGUI.setVisible(true);
+        this.setVisible(false); // Oculta el menú del encuestado
+    }
+
+    private void mostrarEncuestasDisponiblesGUI() {
+        EncuestasDisponiblesGUI encuestasGUI = new EncuestasDisponiblesGUI(encuestadoActual, this);
+        encuestasGUI.setVisible(true);
+        this.setVisible(false); // Oculta el menú del encuestado
+    }
+    
+    // Método para volver a hacer visible esta ventana
+    public void mostrarEncuestadoMenuGUI() {
+        this.setVisible(true);
     }
 }
