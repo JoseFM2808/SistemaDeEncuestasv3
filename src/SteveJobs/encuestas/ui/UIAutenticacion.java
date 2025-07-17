@@ -1,16 +1,3 @@
-/*
- * Responsable: Pablo Alegre
- * Relación con otras partes del código:
- * - Es la interfaz de usuario para el inicio de sesión.
- * - Se comunica con ServicioAutenticacion para validar las credenciales.
- * - Es el punto de partida inicial para acceder a los menús de rol (UIMenuAdministrador, UIMenuEncuestado).
- * Funcionalidad:
- * - Solicita y recolecta las credenciales (email, contraseña) del usuario.
- * - Muestra mensajes de éxito o error de autenticación.
- * Modelos de Ordenamiento/Estructura de la Información:
- * - N/A (Clase de interfaz de usuario).
- */
-
 package SteveJobs.encuestas.ui;
 
 import SteveJobs.encuestas.modelo.Usuario;
@@ -56,7 +43,6 @@ public class UIAutenticacion {
         Usuario usuarioAutenticado = servicioAuth.autenticar(email.trim(), password);
 
         if (usuarioAutenticado != null) {
-            // Usar getNombres() y getApellidos() y getRol() según el modelo Usuario actualizado
             String nombreCompleto = ( (usuarioAutenticado.getNombres() != null ? usuarioAutenticado.getNombres() : "") + " " +
                                       (usuarioAutenticado.getApellidos() != null ? usuarioAutenticado.getApellidos() : "") ).trim();
             JOptionPane.showMessageDialog(null,
@@ -91,8 +77,8 @@ public class UIAutenticacion {
 
         if (usuario != null) {
             System.out.println("Usuario autenticado: " + usuario.getEmail());
-            System.out.println("ID: " + usuario.getId_usuario()); // Corregido getIdUsuario a getId_usuario
-            System.out.println("Rol: " + usuario.getRol()); // Corregido getTipoNivel a getRol
+            System.out.println("ID: " + usuario.getId_usuario()); 
+            System.out.println("Rol: " + usuario.getRol()); 
         } else {
             System.out.println("El login fue cancelado o falló.");
         }

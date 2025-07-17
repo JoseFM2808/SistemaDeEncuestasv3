@@ -1,17 +1,9 @@
-/*
- * Autores del Módulo:
- * - Alfredo Swidin
- * - Asistente de AED (Corrección de validación de fechas y perfil_requerido)
- *
- * Responsabilidad Principal:
- * - UI para gestión de encuestas
- */
 package SteveJobs.encuestas.ui;
 
 import SteveJobs.encuestas.modelo.Encuesta;
 import SteveJobs.encuestas.modelo.Usuario;
 import SteveJobs.encuestas.servicio.ServicioEncuestas;
-import SteveJobs.encuestas.util.PilaNavegacion; // Importar PilaNavegacion
+import SteveJobs.encuestas.util.PilaNavegacion; 
 
 import javax.swing.JOptionPane;
 import java.sql.Timestamp;
@@ -124,7 +116,6 @@ public class UIGestionEncuestas {
         Timestamp fechaFin = obtenerFechaDesdeJOptionPane("Fecha de Fin:", "Crear Encuesta");
         if (fechaFin == null) return;
 
-        // --- CORRECCIÓN: Validar fechas antes de llamar al servicio ---
         if (fechaFin.before(fechaInicio)) {
             JOptionPane.showMessageDialog(null, "La fecha de fin no puede ser anterior a la de inicio.", "Error de Fechas", JOptionPane.ERROR_MESSAGE);
             return;
@@ -142,13 +133,11 @@ public class UIGestionEncuestas {
         }
 
         String definicionPerfilInput = JOptionPane.showInputDialog(null, "Definición del perfil del encuestado (ej. { \"distrito_residencia\": [\"Surco\"] } o dejar vacío):", "Crear Encuesta", JOptionPane.PLAIN_MESSAGE);
-        // --- CORRECCIÓN: Pasar null si el perfil es vacío para evitar error de JSON inválido ---
+      
         String definicionPerfil = (definicionPerfilInput != null && !definicionPerfilInput.trim().isEmpty()) ? definicionPerfilInput.trim() : null;
-        // --- FIN CORRECCIÓN ---
 
         int idAdmin = (adminLogueado != null) ? adminLogueado.getId_usuario() : 0;
-        
-        // El publicoObjetivo y perfilRequerido se pasaban como 0 y "" antes, ahora se pasan los valores correctos
+
         int idNuevaEncuesta = servicioEncuestas.registrarNuevaEncuesta(nombre.trim(), descripcion, fechaInicio, fechaFin, publicoObjetivo, definicionPerfil, idAdmin);
 
         if (idNuevaEncuesta != -1) {
@@ -159,7 +148,6 @@ public class UIGestionEncuestas {
     }
 
     private static void listarEncuestasUI() {
-        // Se llama al método que devuelve la lista ya ordenada por nombre
         List<Encuesta> encuestas = servicioEncuestas.obtenerTodasLasEncuestasOrdenadasPorNombre();
         if (encuestas.isEmpty()) {
             JOptionPane.showMessageDialog(null, "No hay encuestas registradas.", "Listar Encuestas", JOptionPane.INFORMATION_MESSAGE);
@@ -167,13 +155,11 @@ public class UIGestionEncuestas {
         }
         StringBuilder sb = new StringBuilder("Encuestas Registradas (Orden Alfabético):\n\n");
         for (Encuesta e : encuestas) {
-            // Usando los getters correctos del modelo Encuesta
             sb.append("ID: ").append(e.getIdEncuesta())
               .append(" - Nombre: ").append(e.getNombre())
               .append(" - Estado: ").append(e.getEstado())
               .append("\n  Vigencia: ").append(e.getFechaInicio()).append(" a ").append(e.getFechaFin());
-            
-            // Si el perfil requerido no es nulo, lo mostramos
+
             if (e.getPerfilRequerido() != null && !e.getPerfilRequerido().trim().isEmpty()) {
                  sb.append("\n  Perfil Requerido: ").append(e.getPerfilRequerido());
             }
@@ -189,7 +175,6 @@ public class UIGestionEncuestas {
     }
 
     private static Encuesta seleccionarEncuestaParaAccion(String accion) {
-        // Se obtiene la lista ordenada para que el usuario vea lo mismo que en "Listar"
         List<Encuesta> encuestas = servicioEncuestas.obtenerTodasLasEncuestasOrdenadasPorNombre();
         if (encuestas.isEmpty()) {
             JOptionPane.showMessageDialog(null, "No hay encuestas para " + accion + ".", "Error", JOptionPane.INFORMATION_MESSAGE);
@@ -222,8 +207,8 @@ public class UIGestionEncuestas {
         detalles.append("Público Objetivo: ").append(encuesta.getPublicoObjetivo()).append("\n");
         detalles.append("Perfil Requerido: ").append(encuesta.getPerfilRequerido() != null ? encuesta.getPerfilRequerido() : "(No definido)").append("\n");
         detalles.append("Estado: ").append(encuesta.getEstado()).append("\n");
-        detalles.append("Fecha Creación: ").append(encuesta.getFechaCreacion()).append("\n"); // Añadido para visibilidad
-        detalles.append("ID Admin Creador: ").append(encuesta.getIdAdminCreador()).append("\n"); // Añadido para visibilidad
+        detalles.append("Fecha Creación: ").append(encuesta.getFechaCreacion()).append("\n"); 
+        detalles.append("ID Admin Creador: ").append(encuesta.getIdAdminCreador()).append("\n"); 
 
 
         JTextArea textArea = new JTextArea(detalles.toString());
@@ -234,20 +219,17 @@ public class UIGestionEncuestas {
         int opcion = JOptionPane.showConfirmDialog(null, scrollPane, "Detalles Encuesta ID: " + encuesta.getIdEncuesta() + " - ¿Modificar?", JOptionPane.YES_NO_OPTION);
 
         if (opcion == JOptionPane.YES_OPTION) {
-             // Usando los getters correctos para pre-rellenar los diálogos de modificación
             String nuevoNombre = JOptionPane.showInputDialog(null, "Nuevo nombre:", encuesta.getNombre());
             if (nuevoNombre == null || nuevoNombre.trim().isEmpty()) { JOptionPane.showMessageDialog(null, "El nombre no puede estar vacío.", "Error", JOptionPane.WARNING_MESSAGE); return; }
 
             String nuevaDesc = JOptionPane.showInputDialog(null, "Nueva descripción:", encuesta.getDescripcion());
             
-            // Para fechas, podemos ofrecer la opción de mantener las actuales o ingresar nuevas.
             Timestamp nuevaFechaInicio = obtenerFechaDesdeJOptionPane("Nueva Fecha de Inicio (actual: " + encuesta.getFechaInicio() + "):", "Modificar Encuesta");
-            if (nuevaFechaInicio == null) nuevaFechaInicio = encuesta.getFechaInicio(); // Si cancela o inválido, mantiene la actual
+            if (nuevaFechaInicio == null) nuevaFechaInicio = encuesta.getFechaInicio(); 
 
             Timestamp nuevaFechaFin = obtenerFechaDesdeJOptionPane("Nueva Fecha de Fin (actual: " + encuesta.getFechaFin() + "):", "Modificar Encuesta");
-            if (nuevaFechaFin == null) nuevaFechaFin = encuesta.getFechaFin(); // Si cancela o inválido, mantiene la actual
-            
-            // Validar fechas después de la nueva captura
+            if (nuevaFechaFin == null) nuevaFechaFin = encuesta.getFechaFin(); 
+
             if (nuevaFechaFin.before(nuevaFechaInicio)) {
                  JOptionPane.showMessageDialog(null, "La nueva fecha de fin no puede ser anterior a la nueva fecha de inicio.", "Error de Fechas", JOptionPane.ERROR_MESSAGE);
                  return;
@@ -262,12 +244,12 @@ public class UIGestionEncuestas {
                     JOptionPane.showMessageDialog(null, "Cantidad de público debe ser un número válido.", "Error de Formato", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-            } else if (nuevoPublicoStr != null) { // Si se borra y se presiona OK
-                nuevoPublicoObj = 0; // O el valor que desees por defecto
+            } else if (nuevoPublicoStr != null) { 
+                nuevoPublicoObj = 0; 
             }
 
             String nuevoPerfilDefInput = JOptionPane.showInputDialog(null, "Nueva definición del perfil (actual: " + (encuesta.getPerfilRequerido() != null ? encuesta.getPerfilRequerido() : "(No definido)") + "):", "Modificar Encuesta", JOptionPane.PLAIN_MESSAGE);
-            String nuevoPerfilDef = (nuevoPerfilDefInput != null && !nuevoPerfilDefInput.trim().isEmpty()) ? nuevoPerfilDefInput.trim() : null; // Pasa null si es vacío
+            String nuevoPerfilDef = (nuevoPerfilDefInput != null && !nuevoPerfilDefInput.trim().isEmpty()) ? nuevoPerfilDefInput.trim() : null; 
 
 
             if (servicioEncuestas.modificarMetadatosEncuesta(encuesta.getIdEncuesta(), nuevoNombre.trim(), nuevaDesc,
@@ -346,7 +328,7 @@ public class UIGestionEncuestas {
         }
 
         try {
-            int idBuscado = Integer.parseInt(idStr.trim()); // Corregido: parseInt de idStr, no de un nuevo showInputDialog
+            int idBuscado = Integer.parseInt(idStr.trim()); 
             List<Encuesta> todasLasEncuestas = servicioEncuestas.obtenerTodasLasEncuestasOrdenadasPorNombre();
             Encuesta encuestaEncontrada = servicioEncuestas.buscarEncuestaEnListaPorId(todasLasEncuestas, idBuscado);
 

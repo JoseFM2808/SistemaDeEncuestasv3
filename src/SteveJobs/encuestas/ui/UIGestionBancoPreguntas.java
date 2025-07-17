@@ -4,8 +4,8 @@ import SteveJobs.encuestas.modelo.PreguntaBanco;
 import SteveJobs.encuestas.modelo.TipoPregunta;
 import SteveJobs.encuestas.modelo.ClasificacionPregunta;
 import SteveJobs.encuestas.servicio.ServicioPreguntas;
-import SteveJobs.encuestas.dao.TipoPreguntaDAO; // Necesario para obtener tipos de pregunta
-import SteveJobs.encuestas.dao.ClasificacionPreguntaDAO; // Necesario para obtener clasificaciones
+import SteveJobs.encuestas.dao.TipoPreguntaDAO; 
+import SteveJobs.encuestas.dao.ClasificacionPreguntaDAO; 
 
 import javax.swing.JOptionPane;
 import java.util.List;
@@ -14,8 +14,8 @@ import java.util.stream.Collectors;
 public class UIGestionBancoPreguntas {
 
     private static ServicioPreguntas servicioPreguntas = new ServicioPreguntas();
-    private static TipoPreguntaDAO tipoPreguntaDAO = new TipoPreguntaDAO(); // Instancia para obtener tipos
-    private static ClasificacionPreguntaDAO clasificacionPreguntaDAO = new ClasificacionPreguntaDAO(); // Instancia para obtener clasificaciones
+    private static TipoPreguntaDAO tipoPreguntaDAO = new TipoPreguntaDAO();
+    private static ClasificacionPreguntaDAO clasificacionPreguntaDAO = new ClasificacionPreguntaDAO();
 
     public static void mostrarMenu() {
         int opcion;
@@ -28,14 +28,14 @@ public class UIGestionBancoPreguntas {
                     + "0. Volver al Menú Principal";
             String input = JOptionPane.showInputDialog(null, menu, "Menú Banco de Preguntas", JOptionPane.PLAIN_MESSAGE);
 
-            if (input == null) { // Si el usuario cierra el diálogo
+            if (input == null) { 
                 opcion = 0;
             } else {
                 try {
                     opcion = Integer.parseInt(input);
                 } catch (NumberFormatException e) {
                     JOptionPane.showMessageDialog(null, "Opción inválida. Por favor, ingrese un número.", "Error", JOptionPane.ERROR_MESSAGE);
-                    opcion = -1; // Para que el bucle continúe
+                    opcion = -1; 
                 }
             }
 
@@ -56,7 +56,7 @@ public class UIGestionBancoPreguntas {
                     JOptionPane.showMessageDialog(null, "Volviendo al Menú Principal del Administrador.", "Volver", JOptionPane.INFORMATION_MESSAGE);
                     break;
                 default:
-                    if (opcion != -1) { // Evitar doble mensaje de error si ya se mostró en el parseo
+                    if (opcion != -1) { 
                         JOptionPane.showMessageDialog(null, "Opción no reconocida. Intente de nuevo.", "Error", JOptionPane.ERROR_MESSAGE);
                     }
                     break;
@@ -80,18 +80,18 @@ public class UIGestionBancoPreguntas {
         String tipoSeleccionado = (String) JOptionPane.showInputDialog(null,
                 "Seleccione el tipo de pregunta:", "Tipo de Pregunta",
                 JOptionPane.QUESTION_MESSAGE, null, nombresTipos, nombresTipos[0]);
-        if (tipoSeleccionado == null) return; // Usuario canceló
+        if (tipoSeleccionado == null) return; 
 
         List<ClasificacionPregunta> clasificaciones = clasificacionPreguntaDAO.obtenerTodasLasClasificaciones();
         String[] nombresClasificaciones = new String[clasificaciones.size() + 1];
-        nombresClasificaciones[0] = "Ninguna"; // Opción para no clasificar
+        nombresClasificaciones[0] = "Ninguna"; 
         for (int i = 0; i < clasificaciones.size(); i++) {
             nombresClasificaciones[i+1] = clasificaciones.get(i).getNombreClasificacion();
         }
         String clasificacionSeleccionada = (String) JOptionPane.showInputDialog(null,
                 "Seleccione la clasificación (opcional):", "Clasificación de Pregunta",
                 JOptionPane.QUESTION_MESSAGE, null, nombresClasificaciones, nombresClasificaciones[0]);
-        if (clasificacionSeleccionada == null) return; // Usuario canceló
+        if (clasificacionSeleccionada == null) return; 
 
         boolean registrado = servicioPreguntas.registrarPreguntaEnBanco(
                 textoPregunta, tipoSeleccionado, 
@@ -140,7 +140,7 @@ public class UIGestionBancoPreguntas {
         }
 
         String nuevoTexto = JOptionPane.showInputDialog("Nuevo texto para la pregunta (actual: " + preguntaExistente.getTextoPregunta() + "):", preguntaExistente.getTextoPregunta());
-        if (nuevoTexto == null) return; // Usuario canceló
+        if (nuevoTexto == null) return; 
 
         List<TipoPregunta> tipos = tipoPreguntaDAO.obtenerTodosLosTipos();
         String[] nombresTipos = tipos.stream().map(TipoPregunta::getNombreTipo).toArray(String[]::new);
@@ -148,11 +148,11 @@ public class UIGestionBancoPreguntas {
         String tipoSeleccionado = (String) JOptionPane.showInputDialog(null,
                 "Seleccione el nuevo tipo de pregunta (actual: " + tipoActual + "):", "Modificar Tipo",
                 JOptionPane.QUESTION_MESSAGE, null, nombresTipos, tipoActual);
-        if (tipoSeleccionado == null) return; // Usuario canceló
+        if (tipoSeleccionado == null) return; 
 
         List<ClasificacionPregunta> clasificaciones = clasificacionPreguntaDAO.obtenerTodasLasClasificaciones();
         String[] nombresClasificaciones = new String[clasificaciones.size() + 1];
-        nombresClasificaciones[0] = "Ninguna"; // Opción para no clasificar
+        nombresClasificaciones[0] = "Ninguna"; 
         for (int i = 0; i < clasificaciones.size(); i++) {
             nombresClasificaciones[i+1] = clasificaciones.get(i).getNombreClasificacion();
         }
@@ -160,7 +160,7 @@ public class UIGestionBancoPreguntas {
         String clasificacionSeleccionada = (String) JOptionPane.showInputDialog(null,
                 "Seleccione la nueva clasificación (actual: " + clasificacionActual + "):", "Modificar Clasificación",
                 JOptionPane.QUESTION_MESSAGE, null, nombresClasificaciones, clasificacionActual);
-        if (clasificacionSeleccionada == null) return; // Usuario canceló
+        if (clasificacionSeleccionada == null) return;
 
         boolean actualizado = servicioPreguntas.modificarPreguntaBanco(
                 idPregunta, nuevoTexto, tipoSeleccionado, 

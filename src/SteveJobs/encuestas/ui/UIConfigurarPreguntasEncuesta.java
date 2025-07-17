@@ -1,22 +1,13 @@
-/*
- * Autores del Módulo:
- * - Alfredo Swidin
- * - Asistente de AED (Actualización para búsqueda secuencial y selección de tipo/clasificación)
- *
- * Responsabilidad Principal:
- * - UI para configuración de preguntas de encuesta
- */
 package SteveJobs.encuestas.ui;
 
 import SteveJobs.encuestas.modelo.Encuesta;
 import SteveJobs.encuestas.modelo.EncuestaDetallePregunta;
 import SteveJobs.encuestas.util.PilaNavegacion;
 import SteveJobs.encuestas.modelo.PreguntaBanco;
-import SteveJobs.encuestas.modelo.ClasificacionPregunta; // Importar ClasificacionPregunta
-import SteveJobs.encuestas.modelo.TipoPregunta; // Importar TipoPregunta
+import SteveJobs.encuestas.modelo.ClasificacionPregunta; 
+import SteveJobs.encuestas.modelo.TipoPregunta; 
 import SteveJobs.encuestas.servicio.ServicioEncuestas;
 import SteveJobs.encuestas.servicio.ServicioPreguntas;
-// Importar los nuevos DAOs para obtener opciones desplegables
 import SteveJobs.encuestas.dao.TipoPreguntaDAO;
 import SteveJobs.encuestas.dao.ClasificacionPreguntaDAO;
 
@@ -25,14 +16,14 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.stream.Collectors; // Para usar streams en la preparación de opciones
+import java.util.stream.Collectors; 
 
 public class UIConfigurarPreguntasEncuesta {
 
     private static ServicioEncuestas servicioEncuestas = new ServicioEncuestas();
     private static ServicioPreguntas servicioPreguntas = new ServicioPreguntas();
-    private static TipoPreguntaDAO tipoPreguntaDAO = new TipoPreguntaDAO(); // Instanciar DAO
-    private static ClasificacionPreguntaDAO clasificacionPreguntaDAO = new ClasificacionPreguntaDAO(); // Instanciar DAO
+    private static TipoPreguntaDAO tipoPreguntaDAO = new TipoPreguntaDAO();
+    private static ClasificacionPreguntaDAO clasificacionPreguntaDAO = new ClasificacionPreguntaDAO();
     private static int idEncuestaActual;
 
     public static void mostrarMenuConfiguracion(int idEncuesta) {
@@ -56,7 +47,7 @@ public class UIConfigurarPreguntasEncuesta {
                     "Ver Preguntas Asociadas",
                     "Marcar/Desmarcar Pregunta como Descarte",
                     "Eliminar Pregunta de la Encuesta",
-                    "Buscar Pregunta por Orden", // Opción para la búsqueda secuencial
+                    "Buscar Pregunta por Orden", 
                     "Volver a Gestión de Encuestas"
             };
             String seleccion = (String) JOptionPane.showInputDialog(
@@ -134,7 +125,7 @@ public class UIConfigurarPreguntasEncuesta {
         int orden = 0;
         try {
             orden = Integer.parseInt(ordenStr.trim());
-            if (orden < 1 || orden > 12) { // Validar rango 1-12
+            if (orden < 1 || orden > 12) { 
                 JOptionPane.showMessageDialog(null, "El orden debe ser un número entre 1 y 12.", "Error de Orden", JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -148,7 +139,7 @@ public class UIConfigurarPreguntasEncuesta {
         String criterioDescarte = "";
         if (esDescarte) {
             criterioDescarte = JOptionPane.showInputDialog(null, "Ingrese el criterio de descarte (valor de respuesta que descarta):", "Criterio de Descarte", JOptionPane.PLAIN_MESSAGE);
-            if (criterioDescarte == null || criterioDescarte.trim().isEmpty()) { // Validar si es descarte y el criterio es vacío
+            if (criterioDescarte == null || criterioDescarte.trim().isEmpty()) { 
                 JOptionPane.showMessageDialog(null, "El criterio de descarte no puede estar vacío si se marca como descarte.", "Error", JOptionPane.WARNING_MESSAGE);
                 return;
             }
@@ -168,7 +159,6 @@ public class UIConfigurarPreguntasEncuesta {
             return;
         }
 
-        // --- CAMBIO AQUÍ: Selección de Tipo de Pregunta desde BD ---
         List<TipoPregunta> tiposDB = tipoPreguntaDAO.obtenerTodosLosTipos();
         if (tiposDB.isEmpty()) {
             JOptionPane.showMessageDialog(null, "No hay tipos de pregunta definidos en la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -179,36 +169,30 @@ public class UIConfigurarPreguntasEncuesta {
         String nombreTipo = (String) JOptionPane.showInputDialog(null, "Seleccione el Tipo de Pregunta:", "Tipo de Pregunta",
                 JOptionPane.QUESTION_MESSAGE, null, nombresTipos, nombresTipos[0]);
         if (nombreTipo == null || nombreTipo.trim().isEmpty()) return;
-        // --- FIN CAMBIO ---
 
         String opcionesPosibles = null;
-        // Usar los nombres de tipo de tu BD para la lógica de opciones posibles.
-        // Asumiendo que "Simple" o "Múltiple" necesitan opciones.
         if (nombreTipo.equalsIgnoreCase("Simple") || nombreTipo.equalsIgnoreCase("Múltiple")) { 
             opcionesPosibles = JOptionPane.showInputDialog(null, "Opciones posibles (separadas por ';'):", "Opciones de Selección", JOptionPane.PLAIN_MESSAGE);
             if (opcionesPosibles == null) opcionesPosibles = "";
         }
 
-        // --- CAMBIO AQUÍ: Selección de Clasificación desde BD (Opcional) ---
         List<ClasificacionPregunta> clasificacionesDB = clasificacionPreguntaDAO.obtenerTodasLasClasificaciones();
         String[] nombresClasificaciones;
         if (!clasificacionesDB.isEmpty()) {
-            // Creamos un array con las clasificaciones existentes más una opción "NINGUNA (Opcional)"
             nombresClasificaciones = new String[clasificacionesDB.size() + 1];
             for (int i = 0; i < clasificacionesDB.size(); i++) {
                 nombresClasificaciones[i] = clasificacionesDB.get(i).getNombreClasificacion();
             }
             nombresClasificaciones[clasificacionesDB.size()] = "NINGUNA (Opcional)";
         } else {
-            nombresClasificaciones = new String[]{"NINGUNA (Opcional)"}; // Si no hay clasificaciones, solo la opción de Ninguna
+            nombresClasificaciones = new String[]{"NINGUNA (Opcional)"}; 
         }
 
         String nombreClasif = (String) JOptionPane.showInputDialog(null, "Seleccione la Clasificación (opcional):", "Clasificación",
                 JOptionPane.QUESTION_MESSAGE, null, nombresClasificaciones, nombresClasificaciones[0]);
         if (nombreClasif != null && nombreClasif.equals("NINGUNA (Opcional)")) {
-            nombreClasif = null; // Si selecciona "NINGUNA", lo tratamos como null para el servicio
+            nombreClasif = null; 
         }
-        // --- FIN CAMBIO ---
 
         String ordenStr = JOptionPane.showInputDialog(null, "Orden de la pregunta en la encuesta (1-12):", "Orden de Pregunta", JOptionPane.PLAIN_MESSAGE);
         if (ordenStr == null || ordenStr.trim().isEmpty()) return;
@@ -363,14 +347,10 @@ public class UIConfigurarPreguntasEncuesta {
         }
     }
 
-    /**
-     * Permite al administrador buscar una pregunta en la encuesta actual por su número de orden.
-     * Demuestra el algoritmo de Búsqueda Secuencial sobre lista ordenada.
-     */
     private static void buscarPreguntaPorOrdenUI() {
         String ordenStr = JOptionPane.showInputDialog(null, "Ingrese el número de orden de la pregunta a buscar:", "Buscar Pregunta por Orden", JOptionPane.PLAIN_MESSAGE);
         if (ordenStr == null || ordenStr.trim().isEmpty()) {
-            return; // Usuario canceló o no ingresó nada
+            return; 
         }
 
         try {

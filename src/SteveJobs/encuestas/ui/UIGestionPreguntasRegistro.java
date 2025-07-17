@@ -1,22 +1,8 @@
-/*
- * Responsable: José Flores
- * Relación con otras partes del código:
- * - Es la interfaz de usuario para la gestión de preguntas de registro por parte del administrador.
- * - Se comunica con ServicioConfiguracionAdmin para realizar las operaciones.
- * - Utiliza la PilaNavegacion para permitir volver al menú principal del administrador.
- * Funcionalidad:
- * - Permite al administrador agregar, listar, modificar y eliminar las preguntas
- * que se utilizan para perfilar a los usuarios durante el registro.
- * Modelos de Ordenamiento/Estructura de la Información:
- * - Utiliza List para mostrar colecciones de preguntas de registro.
- * - Emplea la Pila (Stack) a través de PilaNavegacion para gestionar el flujo de regreso al menú principal.
- */
-
 package SteveJobs.encuestas.ui;
 
 import SteveJobs.encuestas.modelo.PreguntaRegistro;
 import SteveJobs.encuestas.servicio.ServicioConfiguracionAdmin;
-import SteveJobs.encuestas.util.PilaNavegacion; // Importar PilaNavegacion
+import SteveJobs.encuestas.util.PilaNavegacion; 
 import javax.swing.JOptionPane;
 import java.util.List;
 import java.util.Scanner;
@@ -24,7 +10,7 @@ import java.util.Scanner;
 public class UIGestionPreguntasRegistro {
 
     private static ServicioConfiguracionAdmin servicioConfig = new ServicioConfiguracionAdmin();
-    private static Scanner lectorConsola = new Scanner(System.in); // Para pausas
+    private static Scanner lectorConsola = new Scanner(System.in); 
 
     public static void mostrarMenu() {
         boolean salir = false;
@@ -66,7 +52,7 @@ public class UIGestionPreguntasRegistro {
                     break;
                 case "Volver al Menú Administrador":
                     if (!PilaNavegacion.instance.isEmpty()) {
-                        PilaNavegacion.instance.pop(); // Pop al volver
+                        PilaNavegacion.instance.pop(); 
                     }
                     salir = true;
                     break;
