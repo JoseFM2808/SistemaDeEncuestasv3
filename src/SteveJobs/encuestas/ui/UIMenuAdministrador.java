@@ -18,92 +18,137 @@ import SteveJobs.encuestas.modelo.Usuario;
 import SteveJobs.encuestas.util.PilaNavegacion;
 import javax.swing.JOptionPane;
 
+/**
+ * @author José Flores
+ */
 public class UIMenuAdministrador {
 
-    public static void mostrarMenu(Usuario admin) {
-        boolean salirMenuAdmin = false;
-        while (!salirMenuAdmin) {
-            String[] opcionesAdmin = {
-                "Gestionar Preguntas de Registro",
-                "Gestionar Encuestas",
-                "Gestionar Banco de Preguntas",
-                "Ver Resultados de Encuestas", // Opción de reportes actualizada
-                "Gestionar Usuarios", // Funcionalidad pendiente
-                "Gestionar Tipos de Pregunta", // Funcionalidad pendiente
-                "Gestionar Clasificaciones de Pregunta", // Funcionalidad pendiente
-                "Salir (Cerrar Sesión)"
-            };
+    private final PilaNavegacion<Runnable> historialMenu;
+    private final Usuario administradorActual;
 
-            String seleccion = (String) JOptionPane.showInputDialog(
-                    null,
-                    "Menú Administrador - Bienvenido " + admin.getNombres(),
-                    "Panel de Administración",
-                    JOptionPane.PLAIN_MESSAGE,
-                    null,
-                    opcionesAdmin,
-                    opcionesAdmin[0]
-            );
+    public UIMenuAdministrador(Usuario administradorActual) {
+        this.historialMenu = new PilaNavegacion<>();
+        this.administradorActual = administradorActual;
+    }
 
-            if (seleccion == null || seleccion.equals(opcionesAdmin[7])) { // Opción "Salir" o cerrar ventana
-                salirMenuAdmin = true;
-                continue;
-            }
-
-            // Usamos la Pila de Navegación antes de entrar a un submenú
-            // Para la opción "Salir", no empujamos a la pila.
-            // Para las opciones pendientes, tampoco empujamos si no hay un submenú real.
-            if (!seleccion.equals(opcionesAdmin[7])) {
-                if (PilaNavegacion.instance != null) {
-                    PilaNavegacion.instance.push("MenuAdmin");
+    public void mostrarMenuAdministrador() {
+        historialMenu.push(this::mostrarOpcionesPrincipales); // Establecer la función principal del menú
+        
+        while (!historialMenu.isEmpty()) {
+            try {
+                historialMenu.peek().run(); // Ejecutar el menú actual
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "Ha ocurrido un error inesperado: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                System.err.println("Error en UIMenuAdministrador: " + e.getMessage());
+                e.printStackTrace(); // Para depuración
+                if (historialMenu.size() > 1) { // Si no es el menú principal, se puede volver
+                    historialMenu.pop();
+                } else { // Si es el menú principal, salir de la aplicación o reintentar
+                    JOptionPane.showMessageDialog(null, "Volviendo al menú principal de la aplicación...", "Error", JOptionPane.INFORMATION_MESSAGE);
+                    historialMenu.clear(); // Limpiar pila para forzar salida o re-inicio
                 }
             }
+        }
+    }
 
+    private void mostrarOpcionesPrincipales() {
+        String menu = """
+                      --- Menú de Administrador ---
+                      Bienvenido/a, %s %s (ID: %d)
+                      1. Gestionar Encuestas
+                      2. Gestionar Banco de Preguntas
+                      3. Gestionar Preguntas de Registro (Perfil de Encuestado)
+                      4. Gestionar Tipos de Pregunta
+                      5. Gestionar Clasificaciones de Pregunta
+                      6. Gestionar Usuarios
+                      7. Ver Resultados de Encuestas
+                      8. Cerrar Sesión
+                      """.formatted(administradorActual.getNombres(), administradorActual.getApellidos(), administradorActual.getIdUsuario());
 
-            switch (seleccion) {
-                case "Gestionar Preguntas de Registro":
-                    UIGestionPreguntasRegistro.mostrarMenu();
+        String opcionStr = JOptionPane.showInputDialog(null, menu, "Menú Administrador", JOptionPane.PLAIN_MESSAGE);
+
+        if (opcionStr == null) { // Cancelar o cerrar ventana
+            historialMenu.pop(); // Volver al menú anterior (ej. login)
+            return;
+        }
+
+        try {
+            int opcion = Integer.parseInt(opcionStr);
+            switch (opcion) {
+                case 1:
+                    historialMenu.push(this::gestionarEncuestas);
                     break;
-                case "Gestionar Encuestas":
-                    UIGestionEncuestas.mostrarMenu(admin);
+                case 2:
+                    historialMenu.push(this::gestionarBancoPreguntas);
                     break;
-                case "Gestionar Banco de Preguntas":
-                    // Asume que existe UIGestionBancoPreguntas con este método
-                    // UIGestionBancoPreguntas.mostrarMenu(); // Descomentar cuando la clase exista y esté lista
-                    JOptionPane.showMessageDialog(null, "Funcionalidad 'Gestionar Banco de Preguntas' pendiente.");
-                    // Si se muestra un mensaje de pendiente y no se entra a un submenú, revertimos el push
-                    if (PilaNavegacion.instance != null && !PilaNavegacion.instance.isEmpty()) {
-                        PilaNavegacion.instance.pop();
-                    }
+                case 3:
+                    historialMenu.push(this::gestionarPreguntasRegistro);
                     break;
-                case "Ver Resultados de Encuestas":
-                    UIReportesEncuesta.mostrarMenu(); // Llama al nuevo menú de reportes
+                case 4:
+                    historialMenu.push(this::gestionarTiposPregunta);
                     break;
-                case "Gestionar Usuarios":
-                    JOptionPane.showMessageDialog(null, "Funcionalidad 'Gestionar Usuarios' pendiente.");
-                     if (PilaNavegacion.instance != null && !PilaNavegacion.instance.isEmpty()) {
-                        PilaNavegacion.instance.pop();
-                    }
+                case 5:
+                    historialMenu.push(this::gestionarClasificacionesPregunta);
                     break;
-                case "Gestionar Tipos de Pregunta":
-                    JOptionPane.showMessageDialog(null, "Funcionalidad 'Gestionar Tipos de Pregunta' pendiente.");
-                     if (PilaNavegacion.instance != null && !PilaNavegacion.instance.isEmpty()) {
-                        PilaNavegacion.instance.pop();
-                    }
+                case 6:
+                    historialMenu.push(this::gestionarUsuarios);
                     break;
-                case "Gestionar Clasificaciones de Pregunta":
-                    JOptionPane.showMessageDialog(null, "Funcionalidad 'Gestionar Clasificaciones de Pregunta' pendiente.");
-                     if (PilaNavegacion.instance != null && !PilaNavegacion.instance.isEmpty()) {
-                        PilaNavegacion.instance.pop();
-                    }
+                case 7:
+                    historialMenu.push(this::verResultadosEncuestas);
+                    break;
+                case 8:
+                    historialMenu.pop(); // Cerrar sesión y volver al menú principal de la aplicación
+                    JOptionPane.showMessageDialog(null, "Sesión cerrada correctamente.", "Info", JOptionPane.INFORMATION_MESSAGE);
                     break;
                 default:
-                    // Si la opción no es válida, no debería haber un push en la pila, así que lo sacamos.
-                     if (PilaNavegacion.instance != null && !PilaNavegacion.instance.isEmpty()) {
-                        PilaNavegacion.instance.pop();
-                    }
-                    JOptionPane.showMessageDialog(null, "Opción no válida.", "Error", JOptionPane.ERROR_MESSAGE);
-                    break;
+                    JOptionPane.showMessageDialog(null, "Opción no válida. Intente de nuevo.", "Error", JOptionPane.ERROR_MESSAGE);
             }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(null, "Entrada inválida. Por favor, ingrese un número.", "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    // --- Métodos para cada sub-menú, que llaman a sus respectivas UI ---
+
+    private void gestionarEncuestas() {
+        UIGestionEncuestas uiGestionEncuestas = new UIGestionEncuestas();
+        uiGestionEncuestas.mostrarMenuGestionEncuestas(); // Ejecuta el flujo de gestión de encuestas
+        historialMenu.pop(); // Una vez que termina el flujo, vuelve al menú de administrador
+    }
+
+    private void gestionarBancoPreguntas() {
+        UIGestionBancoPreguntas uiGestionBanco = new UIGestionBancoPreguntas();
+        uiGestionBanco.mostrarMenuGestionBancoPreguntas(); // Ejecuta el flujo de gestión del banco
+        historialMenu.pop();
+    }
+
+    private void gestionarPreguntasRegistro() {
+        UIGestionPreguntasRegistro uiGestionPreguntasRegistro = new UIGestionPreguntasRegistro();
+        uiGestionPreguntasRegistro.mostrarMenuGestionPreguntasRegistro(); // Ejecuta el flujo
+        historialMenu.pop();
+    }
+    
+    private void gestionarTiposPregunta() {
+        UIGestionTiposPregunta uiGestionTiposPregunta = new UIGestionTiposPregunta();
+        uiGestionTiposPregunta.mostrarMenuGestionTiposPregunta(); // Ejecuta el flujo
+        historialMenu.pop();
+    }
+    
+    private void gestionarClasificacionesPregunta() {
+        UIGestionClasificacionesPregunta uiGestionClasificacionesPregunta = new UIGestionClasificacionesPregunta();
+        uiGestionClasificacionesPregunta.mostrarMenuGestionClasificacionesPregunta(); // Ejecuta el flujo
+        historialMenu.pop();
+    }
+
+    private void gestionarUsuarios() {
+        UIGestionUsuarios uiGestionUsuarios = new UIGestionUsuarios();
+        uiGestionUsuarios.mostrarMenuGestionUsuarios(); // Ejecuta el flujo
+        historialMenu.pop();
+    }
+
+    private void verResultadosEncuestas() {
+        UIReportesEncuesta uiReportesEncuesta = new UIReportesEncuesta();
+        uiReportesEncuesta.mostrarMenuReportes(); // Ejecuta el flujo
+        historialMenu.pop();
     }
 }
