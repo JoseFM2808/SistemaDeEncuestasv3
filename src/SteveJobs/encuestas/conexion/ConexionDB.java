@@ -1,15 +1,3 @@
-/*
- * Responsable: Equipo de Desarrollo (Revisado y Unificado, liderado por José Flores)
- * Relación con otras partes del código:
- * - Es una dependencia fundamental para todas las clases DAO, proporcionando los medios
- * para establecer y cerrar conexiones con la base de datos.
- * Funcionalidad:
- * - Gestiona la conexión con la base de datos MySQL, cargando el driver JDBC y
- * ofreciendo métodos estáticos para abrir y cerrar recursos (Connection, Statement, ResultSet)
- * de forma segura.
- * Modelos de Ordenamiento/Estructura de la Información:
- * - N/A (Clase de utilidad para la gestión de recursos de base de datos, no maneja datos en sí).
- */
 package SteveJobs.encuestas.conexion;
 
 import java.sql.Connection;
