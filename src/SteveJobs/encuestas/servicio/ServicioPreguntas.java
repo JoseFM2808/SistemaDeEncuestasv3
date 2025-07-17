@@ -1,5 +1,5 @@
 /*
- * Responsable: Pablo Alegre (Corregido por Asistente de AED para alineación con modelo y DAO finales)
+ * Responsable: Pablo Alegre (Refactorizado y completado por Asistente de AED)
  * Relación con otras partes del código:
  * - Implementa la lógica de negocio para la gestión del banco de preguntas.
  * - Se comunica con PreguntaBancoDAO para la persistencia.
@@ -65,7 +65,9 @@ public class ServicioPreguntas {
         nuevaPregunta.setIdTipoPregunta(tipo.getIdTipoPregunta());
         nuevaPregunta.setIdClasificacion(idClasificacion);
 
-        return preguntaBancoDAO.crearPreguntaBanco(nuevaPregunta);
+        // CORRECTO: El DAO devuelve int (el ID generado)
+        int idGenerado = preguntaBancoDAO.crearPreguntaBanco(nuevaPregunta); 
+        return idGenerado > 0; // Se convierte a boolean para el servicio
     }
 
     public List<PreguntaBanco> obtenerTodasLasPreguntasDelBanco() {
@@ -119,7 +121,7 @@ public class ServicioPreguntas {
             return false;
         }
         
-        // Si no está en encuestas activas, se procede a la eliminación
-        return preguntaBancoDAO.eliminarPreguntaBanco(idPreguntaBanco);
+        // CORRECTO: El DAO devuelve boolean
+        return preguntaBancoDAO.eliminarPreguntaBanco(idPreguntaBanco); 
     }
 }
