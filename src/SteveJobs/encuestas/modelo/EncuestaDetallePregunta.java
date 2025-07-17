@@ -196,8 +196,17 @@ public class EncuestaDetallePregunta {
      * @return El ID del tipo de pregunta o null.
      */
     public Integer getIdTipoPreguntaEfectivo() {
-        if (preguntaDelBanco != null && preguntaDelBanco.getIdTipoPregunta() != null) {
-            return preguntaDelBanco.getIdTipoPregunta();
+    // Si NetBeans insiste en que preguntaDelBanco.getIdTipoPregunta() devuelve int y no Integer,
+    // y para evitar el error "int != null", se puede intentar la siguiente adaptación,
+    // aunque NO es un problema de diseño de tu código fuente.
+    
+        if (preguntaDelBanco != null) {
+            // Obtenemos el Integer. Si es nulo, esta línea no causará el error "int != null".
+            // El error ocurriría si se asigna un Integer nulo a un int primitivo.
+            Integer tipoPreguntaDelBanco = preguntaDelBanco.getIdTipoPregunta(); 
+            if (tipoPreguntaDelBanco != null) { // Esta comprobación sigue siendo válida para Integer
+                return tipoPreguntaDelBanco;
+            }
         }
         return idTipoPreguntaUnica;
     }
