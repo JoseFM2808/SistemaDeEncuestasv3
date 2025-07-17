@@ -17,7 +17,7 @@ public class UIGestionUsuarios {
             String menu = "--- Gestión de Usuarios ---\n"
                     + "1. Listar Todos los Usuarios\n"
                     + "2. Modificar Perfil de Usuario\n"
-                    + "3. Cambiar Rol de Usuario\n" // Opcional, si se permite cambiar roles
+                    + "3. Cambiar Rol de Usuario\n" 
                     + "4. Eliminar Usuario\n"
                     + "0. Volver al Menú Principal";
             String input = JOptionPane.showInputDialog(null, menu, "Menú Gestión Usuarios", JOptionPane.PLAIN_MESSAGE);
@@ -103,7 +103,7 @@ public class UIGestionUsuarios {
         String nuevoEmail = JOptionPane.showInputDialog("Nuevo Email (actual: " + usuario.getEmail() + "):", usuario.getEmail());
         if (nuevoEmail == null) return;
         
-        // Asumiendo que el modelo Usuario tiene LocalDate para fecha_nacimiento
+        
         String fechaNacStr = JOptionPane.showInputDialog("Nueva Fecha Nacimiento (YYYY-MM-DD, actual: " + usuario.getFecha_nacimiento() + "):", usuario.getFecha_nacimiento().toString());
         if (fechaNacStr == null) return;
         LocalDate nuevaFechaNacimiento;
@@ -123,7 +123,7 @@ public class UIGestionUsuarios {
         String nuevoDistrito = JOptionPane.showInputDialog("Nuevo Distrito (actual: " + usuario.getDistrito_residencia() + "):", usuario.getDistrito_residencia());
         if (nuevoDistrito == null) return;
 
-        // Crear un objeto Usuario temporal con los nuevos datos
+       
         Usuario usuarioActualizado = new Usuario();
         usuarioActualizado.setId_usuario(idUsuario);
         usuarioActualizado.setDni(nuevoDni);
@@ -133,7 +133,7 @@ public class UIGestionUsuarios {
         usuarioActualizado.setFecha_nacimiento(nuevaFechaNacimiento);
         usuarioActualizado.setGenero(nuevoGenero);
         usuarioActualizado.setDistrito_residencia(nuevoDistrito);
-        usuarioActualizado.setRol(usuario.getRol()); // El rol se cambia en otro método
+        usuarioActualizado.setRol(usuario.getRol()); 
 
         boolean actualizado = servicioUsuarios.actualizarPerfilUsuario(usuarioActualizado);
         if (actualizado) {
@@ -166,7 +166,7 @@ public class UIGestionUsuarios {
                 JOptionPane.QUESTION_MESSAGE, null, roles, usuario.getRol());
         if (nuevoRol == null) return;
 
-        boolean actualizado = servicioUsuarios.actualizarRolUsuario(idUsuario, nuevoRol); // Asume este método en ServicioUsuarios
+        boolean actualizado = servicioUsuarios.actualizarRolUsuario(idUsuario, nuevoRol); 
         if (actualizado) {
             JOptionPane.showMessageDialog(null, "Rol de usuario actualizado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
         } else {
