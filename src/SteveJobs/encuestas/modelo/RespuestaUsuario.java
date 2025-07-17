@@ -10,6 +10,18 @@
  * - N/A (Clase de modelo, no implementa algoritmos de ordenamiento o estructuras complejas).
  */
 
+/*
+ * Responsable: José Flores
+ * Relación con otras partes del código:
+ * - Es una entidad clave para almacenar las respuestas dadas por los encuestados.
+ * - Gestionada por RespuestaUsuarioDAO y ServicioParticipacion.
+ * Funcionalidad:
+ * - Representa el modelo de datos (POJO) para una respuesta específica de un usuario
+ * a una pregunta de encuesta.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - N/A (Clase de modelo, no implementa algoritmos de ordenamiento o estructuras complejas).
+ */
+
 package SteveJobs.encuestas.modelo;
 
 import java.sql.Timestamp;
@@ -24,6 +36,9 @@ public class RespuestaUsuario {
     private Timestamp tsInicioParticipacion;
     private Timestamp tsFinParticipacion;
     private String retroalimentacionUsuario;
+    
+    // NUEVO ATRIBUTO PARA ENRIQUECER EL MODELO DE DATOS
+    private EncuestaDetallePregunta encuestaDetallePregunta; //
 
 
     public RespuestaUsuario() {
@@ -97,6 +112,15 @@ public class RespuestaUsuario {
 
     public void setRetroalimentacionUsuario(String retroalimentacionUsuario) {
         this.retroalimentacionUsuario = retroalimentacionUsuario;
+    }
+
+    // NUEVOS GETTER Y SETTER
+    public EncuestaDetallePregunta getEncuestaDetallePregunta() { //
+        return encuestaDetallePregunta; //
+    }
+
+    public void setEncuestaDetallePregunta(EncuestaDetallePregunta encuestaDetallePregunta) { //
+        this.encuestaDetallePregunta = encuestaDetallePregunta; //
     }
 
     @Override
