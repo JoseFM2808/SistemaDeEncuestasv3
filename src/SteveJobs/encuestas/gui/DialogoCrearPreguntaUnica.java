@@ -1,118 +1,98 @@
 package SteveJobs.encuestas.gui;
 
-import SteveJobs.encuestas.modelo.ClasificacionPregunta;
 import SteveJobs.encuestas.modelo.TipoPregunta;
-import SteveJobs.encuestas.servicio.ServicioPreguntas; // Para obtener tipos y clasificaciones
+import SteveJobs.encuestas.modelo.ClasificacionPregunta;
+import SteveJobs.encuestas.servicio.ServicioPreguntas; // Mantener si se usa para otras cosas, pero no para obtener tipos/clasificaciones
+import SteveJobs.encuestas.dao.TipoPreguntaDAO; // Importar
+import SteveJobs.encuestas.dao.ClasificacionPreguntaDAO; // Importar
+
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.List;
+import java.util.stream.Collectors;
 
-/**
- * Diálogo modal para crear una nueva pregunta única para una encuesta.
- * Permite definir el texto, tipo y clasificación de la pregunta.
- *
- * @author José Flores
- */
 public class DialogoCrearPreguntaUnica extends JDialog {
 
-    private JTextArea txtTextoPregunta;
+    private final TipoPreguntaDAO tipoPreguntaDAO; // Instancia de TipoPreguntaDAO
+    private final ClasificacionPreguntaDAO clasificacionPreguntaDAO; // Instancia de ClasificacionPreguntaDAO
+    // private ServicioPreguntas servicioPreguntas; // No se usa directamente para obtener tipos/clasificaciones aquí
+
+    private JTextField txtTextoPregunta;
     private JComboBox<String> cmbTipoPregunta;
-    private JComboBox<String> cmbClasificacionPregunta;
-    private JLabel lblMensaje;
+    private JComboBox<String> cmbClasificacion;
+    private JButton btnAceptar, btnCancelar;
 
-    private boolean preguntaCreadaExitosa = false;
-    private String textoPregunta;
-    private int tipoPreguntaId;
-    private Integer clasificacionPreguntaId; // Puede ser null
+    private String textoPreguntaUnica;
+    private Integer idTipoPreguntaUnica;
+    private Integer idClasificacionUnica;
+    private boolean creacionExitosa = false;
 
-    private final ServicioPreguntas servicioPreguntas;
+    public DialogoCrearPreguntaUnica(Frame owner) {
+        super(owner, "Crear Pregunta Única para Encuesta", true);
+        this.tipoPreguntaDAO = new TipoPreguntaDAO(); // Inicializar
+        this.clasificacionPreguntaDAO = new ClasificacionPreguntaDAO(); // Inicializar
+        // this.servicioPreguntas = new ServicioPreguntas(); // Si no se usa, se puede eliminar
 
-    public DialogoCrearPreguntaUnica(JFrame parent) {
-        super(parent, "Crear Pregunta Única", true); // true para modal
-        servicioPreguntas = new ServicioPreguntas();
         initComponents();
         setupDialog();
-        cargarCombos();
+        cargarTiposYClasificaciones();
     }
 
     private void initComponents() {
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-
-        JLabel lblTitulo = new JLabel("Nueva Pregunta Única", SwingConstants.CENTER);
-        lblTitulo.setFont(new Font("Arial", Font.BOLD, 18));
-        mainPanel.add(lblTitulo, BorderLayout.NORTH);
-
-        JPanel formPanel = new JPanel(new GridBagLayout());
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Texto de la Pregunta
+        // Texto de la pregunta
         gbc.gridx = 0;
         gbc.gridy = 0;
-        formPanel.add(new JLabel("Texto de la Pregunta:"), gbc);
+        panel.add(new JLabel("Texto de la Pregunta:"), gbc);
         gbc.gridx = 1;
+        gbc.gridy = 0;
         gbc.gridwidth = 2;
-        txtTextoPregunta = new JTextArea(4, 30);
-        txtTextoPregunta.setLineWrap(true);
-        txtTextoPregunta.setWrapStyleWord(true);
-        JScrollPane scrollTextoPregunta = new JScrollPane(txtTextoPregunta);
-        formPanel.add(scrollTextoPregunta, gbc);
+        txtTextoPregunta = new JTextField(30);
+        panel.add(txtTextoPregunta, gbc);
 
         // Tipo de Pregunta
-        gbc.gridy++;
         gbc.gridx = 0;
+        gbc.gridy = 1;
         gbc.gridwidth = 1;
-        formPanel.add(new JLabel("Tipo de Pregunta:"), gbc);
+        panel.add(new JLabel("Tipo de Pregunta:"), gbc);
         gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
         cmbTipoPregunta = new JComboBox<>();
-        formPanel.add(cmbTipoPregunta, gbc);
+        panel.add(cmbTipoPregunta, gbc);
 
-        // Clasificación de Pregunta
-        gbc.gridy++;
+        // Clasificación
         gbc.gridx = 0;
-        formPanel.add(new JLabel("Clasificación:"), gbc);
+        gbc.gridy = 2;
+        gbc.gridwidth = 1;
+        panel.add(new JLabel("Clasificación (Opcional):"), gbc);
         gbc.gridx = 1;
-        cmbClasificacionPregunta = new JComboBox<>();
-        formPanel.add(cmbClasificacionPregunta, gbc);
-        
-        gbc.gridy++;
-        gbc.gridx = 0;
-        gbc.gridwidth = 3;
-        lblMensaje = new JLabel("", SwingConstants.CENTER);
-        lblMensaje.setForeground(Color.RED);
-        formPanel.add(lblMensaje, gbc);
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        cmbClasificacion = new JComboBox<>();
+        panel.add(cmbClasificacion, gbc);
 
-        mainPanel.add(formPanel, BorderLayout.CENTER);
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton btnCrear = new JButton("Crear Pregunta");
-        JButton btnCancelar = new JButton("Cancelar");
-
-        buttonPanel.add(btnCrear);
+        // Botones
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        btnAceptar = new JButton("Aceptar");
+        btnCancelar = new JButton("Cancelar");
+        buttonPanel.add(btnAceptar);
         buttonPanel.add(btnCancelar);
-        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 
-        add(mainPanel);
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 3;
+        panel.add(buttonPanel, gbc);
 
-        // --- Eventos ---
-        btnCrear.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                crearPregunta();
-            }
-        });
+        add(panel);
 
-        btnCancelar.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                preguntaCreadaExitosa = false;
-                dispose();
-            }
-        });
+        btnAceptar.addActionListener(e -> onAceptar());
+        btnCancelar.addActionListener(e -> onCancelar());
     }
 
     private void setupDialog() {
@@ -121,72 +101,71 @@ public class DialogoCrearPreguntaUnica extends JDialog {
         setResizable(false);
     }
 
-    private void cargarCombos() {
-        // Cargar Tipos de Pregunta
-        try {
-            List<TipoPregunta> tipos = servicioPreguntas.obtenerTodosLosTiposPregunta();
-            cmbTipoPregunta.addItem(""); // Opción vacía
-            for (TipoPregunta tipo : tipos) {
-                cmbTipoPregunta.addItem(tipo.getNombreTipo());
-            }
-        } catch (Exception ex) {
-            lblMensaje.setText("Error al cargar tipos de pregunta: " + ex.getMessage());
-            System.err.println("Error en DialogoCrearPreguntaUnica al cargar tipos: " + ex.getMessage());
+    private void cargarTiposYClasificaciones() {
+        // Cargar tipos de pregunta
+        List<TipoPregunta> tipos = tipoPreguntaDAO.obtenerTodosLosTipos(); // CORRECCIÓN
+        for (TipoPregunta tp : tipos) {
+            cmbTipoPregunta.addItem(tp.getNombreTipo());
         }
 
-        // Cargar Clasificaciones de Pregunta
-        try {
-            List<ClasificacionPregunta> clasificaciones = servicioPreguntas.obtenerTodasLasClasificacionesPregunta();
-            cmbClasificacionPregunta.addItem(""); // Opción vacía
-            for (ClasificacionPregunta clasificacion : clasificaciones) {
-                cmbClasificacionPregunta.addItem(clasificacion.getNombreClasificacion());
-            }
-        } catch (Exception ex) {
-            lblMensaje.setText("Error al cargar clasificaciones: " + ex.getMessage());
-            System.err.println("Error en DialogoCrearPreguntaUnica al cargar clasificaciones: " + ex.getMessage());
+        // Cargar clasificaciones, incluyendo la opción "Ninguna"
+        List<ClasificacionPregunta> clasificaciones = clasificacionPreguntaDAO.obtenerTodasLasClasificaciones(); // CORRECCIÓN
+        cmbClasificacion.addItem("Ninguna"); // Opción por defecto para no asignar clasificación
+        for (ClasificacionPregunta cp : clasificaciones) {
+            cmbClasificacion.addItem(cp.getNombreClasificacion());
         }
     }
 
-    private void crearPregunta() {
-        textoPregunta = txtTextoPregunta.getText().trim();
-        String tipoSeleccionado = (String) cmbTipoPregunta.getSelectedItem();
-        String clasificacionSeleccionada = (String) cmbClasificacionPregunta.getSelectedItem();
-
-        if (textoPregunta.isEmpty() || tipoSeleccionado == null || tipoSeleccionado.isEmpty()) {
-            lblMensaje.setText("Texto y Tipo de Pregunta son obligatorios.");
+    private void onAceptar() {
+        String texto = txtTextoPregunta.getText().trim();
+        if (texto.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "El texto de la pregunta no puede estar vacío.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        try {
-            TipoPregunta tipo = servicioPreguntas.obtenerTipoPreguntaPorNombre(tipoSeleccionado);
-            if (tipo == null) {
-                lblMensaje.setText("Tipo de pregunta no encontrado.");
+        String tipoNombre = (String) cmbTipoPregunta.getSelectedItem();
+        TipoPregunta tipoSeleccionado = tipoPreguntaDAO.obtenerTipoPreguntaPorNombre(tipoNombre); // CORRECCIÓN
+        if (tipoSeleccionado == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione un tipo de pregunta válido.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        idTipoPreguntaUnica = tipoSeleccionado.getIdTipoPregunta();
+
+        String clasificacionNombre = (String) cmbClasificacion.getSelectedItem();
+        if ("Ninguna".equals(clasificacionNombre)) {
+            idClasificacionUnica = null; // No asignar clasificación
+        } else {
+            ClasificacionPregunta clasificacionSeleccionada = clasificacionPreguntaDAO.obtenerClasificacionPorNombre(clasificacionNombre); // CORRECCIÓN
+            if (clasificacionSeleccionada == null) {
+                JOptionPane.showMessageDialog(this, "Seleccione una clasificación válida o 'Ninguna'.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            tipoPreguntaId = tipo.getIdTipoPregunta();
-
-            if (clasificacionSeleccionada != null && !clasificacionSeleccionada.isEmpty()) {
-                ClasificacionPregunta clasificacion = servicioPreguntas.obtenerClasificacionPreguntaPorNombre(clasificacionSeleccionada);
-                if (clasificacion == null) {
-                    lblMensaje.setText("Clasificación no encontrada.");
-                    return;
-                }
-                clasificacionPreguntaId = clasificacion.getIdClasificacionPregunta();
-            } else {
-                clasificacionPreguntaId = null; // No hay clasificación seleccionada
-            }
-
-            preguntaCreadaExitosa = true;
-            dispose(); // Cierra el diálogo
-        } catch (Exception ex) {
-            lblMensaje.setText("Error al procesar la pregunta: " + ex.getMessage());
-            System.err.println("Error en DialogoCrearPreguntaUnica al procesar: " + ex.getMessage());
-            ex.printStackTrace();
+            idClasificacionUnica = clasificacionSeleccionada.getIdClasificacion(); // CORRECCIÓN: getIdClasificacion()
         }
+
+        textoPreguntaUnica = texto;
+        creacionExitosa = true;
+        dispose();
     }
 
-    public boolean isPreguntaCreadaExitosa() { return preguntaCreadaExitosa; }
-    public String getTextoPregunta() { return textoPregunta; }
-    public int getTipoPreguntaId() { return tipoPreguntaId; }
-    public Integer getClasificacionPreguntaId() { return clasificacionPreguntaId; } // Puede devolver null
+    private void onCancelar() {
+        creacionExitosa = false;
+        dispose();
+    }
+
+    public boolean isCreacionExitosa() {
+        return creacionExitosa;
+    }
+
+    public String getTextoPreguntaUnica() {
+        return textoPreguntaUnica;
+    }
+
+    public Integer getIdTipoPreguntaUnica() {
+        return idTipoPreguntaUnica;
+    }
+
+    public Integer getIdClasificacionUnica() {
+        return idClasificacionUnica;
+    }
 }

@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Date;
 import com.toedter.calendar.JDateChooser; // Importar JDateChooser
+import java.time.LocalDate;
 
 /**
  * Pantalla de Registro de Usuario con interfaz gráfica JFrame.
@@ -146,7 +147,7 @@ public class RegistroUsuarioGUI extends JFrame {
         try {
             // Llama al servicio de usuarios para registrar
             // NOTA: El rol "Encuestado" se asigna por defecto desde ServicioUsuarios
-            servicioUsuarios.registrarNuevoUsuario(dni, nombres, apellidos, email, password, fechaNacimiento, genero, distrito);
+            servicioUsuarios.registrarNuevoUsuario(dni, nombres, apellidos, email, email, LocalDate.MIN, genero, distrito, dni);
             lblMensaje.setForeground(new Color(0, 128, 0)); // Verde para éxito
             lblMensaje.setText("¡Usuario registrado con éxito! Ahora puedes iniciar sesión.");
             

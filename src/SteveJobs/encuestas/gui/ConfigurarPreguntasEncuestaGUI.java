@@ -3,42 +3,48 @@ package SteveJobs.encuestas.gui;
 import SteveJobs.encuestas.modelo.Encuesta;
 import SteveJobs.encuestas.modelo.EncuestaDetallePregunta;
 import SteveJobs.encuestas.modelo.PreguntaBanco;
+import SteveJobs.encuestas.modelo.TipoPregunta; // Importar
+import SteveJobs.encuestas.modelo.ClasificacionPregunta; // Importar
 import SteveJobs.encuestas.modelo.Usuario;
 import SteveJobs.encuestas.servicio.ServicioEncuestas;
+import SteveJobs.encuestas.servicio.ServicioPreguntas; // Necesario para obtener PreguntasBanco
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.List;
+import java.util.Objects; // Para Objects.requireNonNullElse
 
 /**
- * Pantalla de Configuración de Preguntas de una Encuesta específica para el Administrador (JFrame).
- * Permite asociar preguntas del banco, agregar preguntas únicas,
- * marcar/desmarcar como descarte, eliminar y buscar preguntas.
+ * Pantalla para configurar las preguntas de una encuesta específica.
+ * Permite añadir preguntas del banco o preguntas únicas, modificar su orden,
+ * y marcarlas como preguntas de descarte.
  *
  * @author José Flores
  */
 public class ConfigurarPreguntasEncuestaGUI extends JFrame {
 
-    private Encuesta encuestaActual;
-    private Usuario administradorActual;
-    private final GestionEncuestasGUI parentGestionEncuestas; // Referencia a la ventana padre
+    private final Encuesta encuestaActual;
+    private final Usuario administradorActual;
+    private final GestionEncuestasGUI parentGestionEncuestas;
     private final ServicioEncuestas servicioEncuestas;
+    private final ServicioPreguntas servicioPreguntas; // Instancia de servicio de preguntas
 
     private JTable tblPreguntasEncuesta;
     private DefaultTableModel tableModel;
-    private JTextField txtBuscarOrden;
 
-    private JButton btnAsociarBanco, btnAgregarUnica, btnMarcarDescarte, btnDesmarcarDescarte;
-    private JButton btnEliminarPregunta, btnBuscarPregunta, btnVolver;
+    private JButton btnAddBanco, btnAddUnica, btnModificar, btnEliminar;
+    private JButton btnMoverArriba, btnMoverAbajo, btnMarcarDescarte, btnVolver;
 
     public ConfigurarPreguntasEncuestaGUI(Encuesta encuesta, Usuario admin, GestionEncuestasGUI parent) {
-        super("Configurar Preguntas para: " + encuesta.getNombre());
+        super("Configurar Preguntas para Encuesta: " + encuesta.getNombre());
         this.encuestaActual = encuesta;
         this.administradorActual = admin;
         this.parentGestionEncuestas = parent;
         this.servicioEncuestas = new ServicioEncuestas();
+        this.servicioPreguntas = new ServicioPreguntas(); // Inicializar
         initComponents();
         setupFrame();
         cargarPreguntasEncuesta();
@@ -48,120 +54,103 @@ public class ConfigurarPreguntasEncuestaGUI extends JFrame {
         JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
 
-        JLabel lblTitulo = new JLabel("Configurar Preguntas: " + encuestaActual.getNombre(), SwingConstants.CENTER);
+        JLabel lblTitulo = new JLabel("Configurar Preguntas - " + encuestaActual.getNombre(), SwingConstants.CENTER);
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 22));
         mainPanel.add(lblTitulo, BorderLayout.NORTH);
 
         // --- Panel de la tabla de preguntas ---
-        String[] columnNames = {"Orden", "Texto Pregunta", "Tipo", "Clasificación", "Es Descarte", "Criterio Descarte"};
+        String[] columnNames = {"Orden", "ID Detalle", "Texto Pregunta", "Tipo", "Clasificación", "Descarte?", "Criterio"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // Las celdas no son editables
-            }
-            @Override
-            public Class<?> getColumnClass(int column) {
-                if (column == 4) return Boolean.class; // Columna "Es Descarte" es booleana
-                return Object.class;
+                return false;
             }
         };
         tblPreguntasEncuesta = new JTable(tableModel);
         tblPreguntasEncuesta.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        tblPreguntasEncuesta.getTableHeader().setReorderingAllowed(false);
         JScrollPane scrollPane = new JScrollPane(tblPreguntasEncuesta);
         mainPanel.add(scrollPane, BorderLayout.CENTER);
 
-        // --- Panel de botones de acción y búsqueda ---
-        JPanel controlPanel = new JPanel(new BorderLayout(10, 10));
+        // --- Panel de botones de acción ---
+        JPanel buttonPanel = new JPanel(new GridLayout(3, 3, 10, 10)); // Más filas para botones
+        btnAddBanco = new JButton("Añadir del Banco");
+        btnAddUnica = new JButton("Añadir Pregunta Única");
+        btnModificar = new JButton("Modificar Orden/Descarte");
+        btnEliminar = new JButton("Eliminar Pregunta");
+        btnMoverArriba = new JButton("Mover Arriba");
+        btnMoverAbajo = new JButton("Mover Abajo");
+        btnMarcarDescarte = new JButton("Marcar/Desmarcar Descarte");
+        btnVolver = new JButton("Volver a Gestión de Encuestas");
         
-        // Botones de acción
-        JPanel actionButtonPanel = new JPanel(new GridLayout(2, 4, 10, 10)); // 2 filas, 4 columnas
-        btnAsociarBanco = new JButton("Asociar del Banco");
-        btnAgregarUnica = new JButton("Agregar Pregunta Única");
-        btnMarcarDescarte = new JButton("Marcar Descarte");
-        btnDesmarcarDescarte = new JButton("Desmarcar Descarte");
-        btnEliminarPregunta = new JButton("Eliminar Pregunta");
-        btnVolver = new JButton("Volver");
+        buttonPanel.add(btnAddBanco);
+        buttonPanel.add(btnAddUnica);
+        buttonPanel.add(btnModificar);
+        buttonPanel.add(btnEliminar);
+        buttonPanel.add(btnMoverArriba);
+        buttonPanel.add(btnMoverAbajo);
+        buttonPanel.add(btnMarcarDescarte);
+        buttonPanel.add(btnVolver); // Siempre al final
 
-        actionButtonPanel.add(btnAsociarBanco);
-        actionButtonPanel.add(btnAgregarUnica);
-        actionButtonPanel.add(btnMarcarDescarte);
-        actionButtonPanel.add(btnDesmarcarDescarte);
-        actionButtonPanel.add(btnEliminarPregunta);
-        actionButtonPanel.add(btnVolver);
-        
-        controlPanel.add(actionButtonPanel, BorderLayout.CENTER);
-
-        // Panel de búsqueda
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        txtBuscarOrden = new JTextField(10);
-        btnBuscarPregunta = new JButton("Buscar por Orden");
-        searchPanel.add(new JLabel("Orden:"));
-        searchPanel.add(txtBuscarOrden);
-        searchPanel.add(btnBuscarPregunta);
-        
-        controlPanel.add(searchPanel, BorderLayout.NORTH); // Poner búsqueda arriba de los botones de acción
-
-        mainPanel.add(controlPanel, BorderLayout.SOUTH);
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         add(mainPanel);
 
         // --- Eventos de los botones ---
-        btnAsociarBanco.addActionListener(e -> asociarPreguntaDelBanco());
-        btnAgregarUnica.addActionListener(e -> agregarPreguntaUnica());
-        btnMarcarDescarte.addActionListener(e -> marcarDescarte());
-        btnDesmarcarDescarte.addActionListener(e -> desmarcarDescarte());
-        btnEliminarPregunta.addActionListener(e -> eliminarPreguntaDeEncuesta());
+        btnAddBanco.addActionListener(e -> agregarPreguntaDelBanco());
+        btnAddUnica.addActionListener(e -> agregarPreguntaUnica());
+        btnModificar.addActionListener(e -> modificarPreguntaEncuesta());
+        btnEliminar.addActionListener(e -> eliminarPreguntaEncuesta());
+        btnMoverArriba.addActionListener(e -> moverPregunta(true));
+        btnMoverAbajo.addActionListener(e -> moverPregunta(false));
+        btnMarcarDescarte.addActionListener(e -> marcarDesmarcarDescarte());
         btnVolver.addActionListener(e -> volverAGestionEncuestas());
-        btnBuscarPregunta.addActionListener(e -> buscarPreguntaPorOrden());
     }
 
     private void setupFrame() {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(900, 600); // Tamaño adecuado para la gestión de preguntas
+        setSize(900, 600);
         setLocationRelativeTo(null);
         
-        // Listener para cuando se cierra la ventana, para mostrar el padre
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
-                parentGestionEncuestas.mostrarGestionEncuestasGUI();
+                parentGestionEncuestas.setVisible(true); // CORRECCIÓN: Mostrar la ventana padre
+                parentGestionEncuestas.cargarEncuestas(); // Recargar la tabla de encuestas padre
             }
         });
     }
 
-    public void cargarPreguntasEncuesta() {
+    private void cargarPreguntasEncuesta() {
         tableModel.setRowCount(0); // Limpiar tabla
         try {
-            List<EncuestaDetallePregunta> preguntas = servicioEncuestas.obtenerPreguntasDeEncuesta(encuestaActual.getIdEncuesta());
+            // Se asume que encuestaActual.getPreguntasAsociadas() ya trae los detalles completos
+            // Si no, necesitaríamos llamar a servicioEncuestas.obtenerDetallesCompletosEncuesta(idEncuestaActual);
+            List<EncuestaDetallePregunta> preguntas = servicioEncuestas.obtenerDetallesCompletosEncuesta(encuestaActual.getIdEncuesta()).getPreguntasAsociadas();
 
             if (preguntas.isEmpty()) {
-                tableModel.addRow(new Object[]{"", "No hay preguntas configuradas para esta encuesta.", "", "", false, ""});
+                tableModel.addRow(new Object[]{"", "", "No hay preguntas configuradas para esta encuesta.", "", "", "", ""});
                 tblPreguntasEncuesta.setEnabled(false);
                 return;
             }
 
             for (EncuestaDetallePregunta detalle : preguntas) {
-                String textoPregunta = (detalle.getPreguntaBanco() != null) ? 
-                                       detalle.getPreguntaBanco().getTextoPregunta() : 
-                                       detalle.getTextoPreguntaUnica();
-                String tipoPregunta = (detalle.getTipoPregunta() != null) ? 
-                                      detalle.getTipoPregunta().getNombreTipo() : "N/A";
-                String clasificacionPregunta = (detalle.getClasificacionPregunta() != null) ? 
-                                               detalle.getClasificacionPregunta().getNombreClasificacion() : "N/A";
+                String textoPregunta = detalle.getTextoPreguntaMostrable(); // CORRECCIÓN: Usar el método de conveniencia
+                String tipoPregunta = detalle.getNombreTipoPregunta(); // CORRECCIÓN: Usar el método de conveniencia
+                String clasificacionPregunta = Objects.requireNonNullElse(detalle.getNombreClasificacionPregunta(), "N/A"); // CORRECCIÓN: Usar método de conveniencia
                 
                 tableModel.addRow(new Object[]{
                     detalle.getOrdenEnEncuesta(),
+                    detalle.getIdEncuestaDetalle(),
                     textoPregunta,
                     tipoPregunta,
                     clasificacionPregunta,
-                    detalle.isEsPreguntaDescarte(),
-                    detalle.getCriterioDescarte() != null ? detalle.getCriterioDescarte() : ""
+                    detalle.isEsPreguntaDescarte() ? "Sí" : "No",
+                    Objects.requireNonNullElse(detalle.getCriterioDescarteValor(), "N/A") // CORRECCIÓN: Usar el getter correcto
                 });
             }
             tblPreguntasEncuesta.setEnabled(true);
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error al cargar las preguntas de la encuesta: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error al cargar las preguntas: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             System.err.println("Error en ConfigurarPreguntasEncuestaGUI al cargar preguntas: " + ex.getMessage());
             ex.printStackTrace();
         }
@@ -173,57 +162,41 @@ public class ConfigurarPreguntasEncuestaGUI extends JFrame {
             JOptionPane.showMessageDialog(this, "Por favor, selecciona una pregunta de la tabla.", "Advertencia", JOptionPane.WARNING_MESSAGE);
             return null;
         }
-        if (tableModel.getValueAt(selectedRow, 0) == null || tableModel.getValueAt(selectedRow, 0).toString().isEmpty()) {
-             JOptionPane.showMessageDialog(this, "No hay una pregunta válida seleccionada.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-             return null;
-        }
-        
-        int ordenEnEncuesta = (int) tableModel.getValueAt(selectedRow, 0);
-        try {
-            // Esto es un poco ineficiente, lo ideal sería mantener una lista de objetos
-            // EncuestaDetallePregunta en memoria y buscar por orden.
-            // Por ahora, obtenemos toda la lista y buscamos.
-            List<EncuestaDetallePregunta> preguntas = servicioEncuestas.obtenerPreguntasDeEncuesta(encuestaActual.getIdEncuesta());
-            for (EncuestaDetallePregunta detalle : preguntas) {
-                if (detalle.getOrdenEnEncuesta() == ordenEnEncuesta) {
-                    return detalle;
-                }
-            }
-            return null; // No debería llegar aquí si la fila fue seleccionada correctamente
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error al obtener detalle de pregunta: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            System.err.println("Error en ConfigurarPreguntasEncuestaGUI al obtener detalle: " + ex.getMessage());
-            ex.printStackTrace();
-            return null;
-        }
+        // Asumiendo que la columna 1 contiene el idEncuestaDetalle
+        int idEncuestaDetalle = (int) tableModel.getValueAt(selectedRow, 1);
+        return servicioEncuestas.obtenerDetallePreguntaPorId(idEncuestaDetalle);
     }
-
-    private void asociarPreguntaDelBanco() {
+    
+    private void agregarPreguntaDelBanco() {
+        // Asumiendo que tienes un DialogoSeleccionarPreguntaBanco para esto
         DialogoSeleccionarPreguntaBanco dialogo = new DialogoSeleccionarPreguntaBanco(this);
         dialogo.setVisible(true);
 
-        if (dialogo.getPreguntaSeleccionada() != null) {
+        if (dialogo.isSeleccionExitosa()) {
             PreguntaBanco preguntaSeleccionada = dialogo.getPreguntaSeleccionada();
-            // Pedir el orden para la pregunta
-            String ordenStr = JOptionPane.showInputDialog(this, "Ingrese el orden para esta pregunta en la encuesta:", "Orden de Pregunta", JOptionPane.QUESTION_MESSAGE);
-            if (ordenStr == null || ordenStr.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Orden no especificado. Operación cancelada.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
+            String ordenStr = JOptionPane.showInputDialog(this, "Ingrese el orden de la pregunta:", "Orden de Pregunta", JOptionPane.PLAIN_MESSAGE);
+            if (ordenStr == null || ordenStr.trim().isEmpty()) return;
             try {
-                int orden = Integer.parseInt(ordenStr.trim());
-                // Por defecto, una pregunta asociada del banco no es de descarte inicialmente
-                servicioEncuestas.asociarPreguntaDelBancoAEncuesta(encuestaActual.getIdEncuesta(), preguntaSeleccionada.getIdPreguntaBanco(), orden);
-                JOptionPane.showMessageDialog(this, "Pregunta del banco asociada exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                cargarPreguntasEncuesta();
+                int orden = Integer.parseInt(ordenStr);
+                boolean esDescarte = JOptionPane.showConfirmDialog(this, "¿Es pregunta de descarte?", "Descarte", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+                String criterio = esDescarte ? JOptionPane.showInputDialog(this, "Ingrese el criterio de descarte:", "Criterio", JOptionPane.PLAIN_MESSAGE) : null;
+
+                // CORRECCIÓN: Pasar todos los argumentos requeridos por el servicio
+                boolean agregado = servicioEncuestas.asociarPreguntaDelBancoAEncuesta(
+                    encuestaActual.getIdEncuesta(),
+                    preguntaSeleccionada.getIdPreguntaBanco(),
+                    orden,
+                    esDescarte,
+                    criterio
+                );
+                if (agregado) {
+                    JOptionPane.showMessageDialog(this, "Pregunta del banco añadida exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                    cargarPreguntasEncuesta();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Error al añadir pregunta del banco.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
             } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "El orden debe ser un número válido.", "Error", JOptionPane.ERROR_MESSAGE);
-            } catch (IllegalArgumentException e) {
-                 JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Error al asociar pregunta del banco: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                System.err.println("Error en ConfigurarPreguntasEncuestaGUI al asociar: " + ex.getMessage());
-                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Orden inválido.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -232,139 +205,172 @@ public class ConfigurarPreguntasEncuestaGUI extends JFrame {
         DialogoCrearPreguntaUnica dialogo = new DialogoCrearPreguntaUnica(this);
         dialogo.setVisible(true);
 
-        if (dialogo.isPreguntaCreadaExitosa()) {
-            String textoUnico = dialogo.getTextoPregunta();
-            int tipoId = dialogo.getTipoPreguntaId();
-            Integer clasificacionId = dialogo.getClasificacionPreguntaId(); // Puede ser null
-             // Pedir el orden para la pregunta única
-            String ordenStr = JOptionPane.showInputDialog(this, "Ingrese el orden para esta pregunta única en la encuesta:", "Orden de Pregunta", JOptionPane.QUESTION_MESSAGE);
-            if (ordenStr == null || ordenStr.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Orden no especificado. Operación cancelada.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+        if (dialogo.isCreacionExitosa()) {
+            String textoUnico = dialogo.getTextoPreguntaUnica();
+            Integer idTipoUnico = dialogo.getIdTipoPreguntaUnica();
+            Integer idClasificacionUnica = dialogo.getIdClasificacionUnica(); // Obtener el ID de clasificación
+            String ordenStr = JOptionPane.showInputDialog(this, "Ingrese el orden de la pregunta:", "Orden de Pregunta", JOptionPane.PLAIN_MESSAGE);
+            if (ordenStr == null || ordenStr.trim().isEmpty()) return;
+            try {
+                int orden = Integer.parseInt(ordenStr);
+                boolean esDescarte = JOptionPane.showConfirmDialog(this, "¿Es pregunta de descarte?", "Descarte", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+                String criterio = esDescarte ? JOptionPane.showInputDialog(this, "Ingrese el criterio de descarte:", "Criterio", JOptionPane.PLAIN_MESSAGE) : null;
+
+                // CORRECCIÓN: Pasar todos los argumentos requeridos por el servicio
+                boolean agregado = servicioEncuestas.agregarPreguntaNuevaAEncuesta(
+                    encuestaActual.getIdEncuesta(),
+                    textoUnico,
+                    idTipoUnico,
+                    idClasificacionUnica, // Pasar el Integer
+                    orden,
+                    esDescarte,
+                    criterio
+                );
+                if (agregado) {
+                    JOptionPane.showMessageDialog(this, "Pregunta única añadida exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                    cargarPreguntasEncuesta();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Error al añadir pregunta única.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Orden inválido.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void modificarPreguntaEncuesta() {
+        EncuestaDetallePregunta detalle = getSelectedPreguntaDetalle();
+        if (detalle == null) return;
+
+        // Preguntar si desea cambiar el orden
+        String nuevoOrdenStr = JOptionPane.showInputDialog(this, "Nuevo orden (actual: " + detalle.getOrdenEnEncuesta() + "):", "Modificar Orden", JOptionPane.PLAIN_MESSAGE);
+        int nuevoOrden = detalle.getOrdenEnEncuesta(); // Mantener el actual por defecto
+        if (nuevoOrdenStr != null && !nuevoOrdenStr.trim().isEmpty()) {
+            try {
+                nuevoOrden = Integer.parseInt(nuevoOrdenStr);
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Orden inválido.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            try {
-                int orden = Integer.parseInt(ordenStr.trim());
-                // Por defecto, una pregunta única no es de descarte inicialmente
-                servicioEncuestas.agregarPreguntaNuevaAEncuesta(encuestaActual.getIdEncuesta(), textoUnico, tipoId, clasificacionId, orden);
-                JOptionPane.showMessageDialog(this, "Pregunta única agregada exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                cargarPreguntasEncuesta();
-            } catch (NumberFormatException e) {
-                 JOptionPane.showMessageDialog(this, "El orden debe ser un número válido.", "Error", JOptionPane.ERROR_MESSAGE);
-            } catch (IllegalArgumentException e) {
-                 JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Error al agregar pregunta única: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                System.err.println("Error en ConfigurarPreguntasEncuestaGUI al agregar única: " + ex.getMessage());
-                ex.printStackTrace();
+        }
+        
+        // Preguntar si desea cambiar el criterio de descarte
+        boolean esDescarteActual = detalle.isEsPreguntaDescarte();
+        String criterioActual = Objects.requireNonNullElse(detalle.getCriterioDescarteValor(), "");
+        int opcionDescarte = JOptionPane.showConfirmDialog(this, 
+                "¿Es pregunta de descarte? (actual: " + (esDescarteActual ? "Sí" : "No") + ")", 
+                "Modificar Descarte", JOptionPane.YES_NO_CANCEL_OPTION);
+
+        boolean nuevoEsDescarte;
+        String nuevoCriterio = null;
+
+        if (opcionDescarte == JOptionPane.YES_OPTION) {
+            nuevoEsDescarte = true;
+            nuevoCriterio = JOptionPane.showInputDialog(this, "Ingrese el nuevo criterio de descarte (actual: " + criterioActual + "):", "Criterio de Descarte", JOptionPane.PLAIN_MESSAGE);
+            if (nuevoCriterio == null || nuevoCriterio.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "El criterio de descarte no puede estar vacío si es de descarte.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
             }
-        }
-    }
-
-    private void marcarDescarte() {
-        EncuestaDetallePregunta detalle = getSelectedPreguntaDetalle();
-        if (detalle == null) return;
-        
-        if (detalle.isEsPreguntaDescarte()) {
-            JOptionPane.showMessageDialog(this, "La pregunta ya está marcada como descarte.", "Info", JOptionPane.INFORMATION_MESSAGE);
+        } else if (opcionDescarte == JOptionPane.NO_OPTION) {
+            nuevoEsDescarte = false;
+            nuevoCriterio = null; // No hay criterio si no es de descarte
+        } else { // Cancelar
             return;
         }
 
-        String criterio = JOptionPane.showInputDialog(this, "Ingrese el criterio de descarte para la pregunta:\n" + detalle.getTextoPreguntaMostrable(), "Criterio de Descarte", JOptionPane.QUESTION_MESSAGE);
-        if (criterio == null || criterio.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Criterio no especificado. Operación cancelada.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        try {
-            servicioEncuestas.marcarPreguntaComoDescarte(encuestaActual.getIdEncuesta(), detalle.getOrdenEnEncuesta(), criterio);
-            JOptionPane.showMessageDialog(this, "Pregunta marcada como descarte.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+        // Llamar al servicio para actualizar el detalle
+        boolean actualizado = servicioEncuestas.actualizarDetallePregunta(
+            detalle.getIdEncuestaDetalle(),
+            nuevoOrden,
+            nuevoEsDescarte,
+            nuevoCriterio
+        );
+
+        if (actualizado) {
+            JOptionPane.showMessageDialog(this, "Detalle de pregunta actualizado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
             cargarPreguntasEncuesta();
-        } catch (IllegalArgumentException e) {
-             JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error al marcar como descarte: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            System.err.println("Error en ConfigurarPreguntasEncuestaGUI al marcar descarte: " + ex.getMessage());
-            ex.printStackTrace();
+        } else {
+            JOptionPane.showMessageDialog(this, "Error al actualizar el detalle de pregunta.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private void desmarcarDescarte() {
-        EncuestaDetallePregunta detalle = getSelectedPreguntaDetalle();
-        if (detalle == null) return;
 
-        if (!detalle.isEsPreguntaDescarte()) {
-            JOptionPane.showMessageDialog(this, "La pregunta no está marcada como descarte.", "Info", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-        
-        try {
-            servicioEncuestas.desmarcarPreguntaComoDescarte(encuestaActual.getIdEncuesta(), detalle.getOrdenEnEncuesta());
-            JOptionPane.showMessageDialog(this, "Pregunta desmarcada como descarte.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-            cargarPreguntasEncuesta();
-        } catch (IllegalArgumentException e) {
-             JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error al desmarcar como descarte: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            System.err.println("Error en ConfigurarPreguntasEncuestaGUI al desmarcar descarte: " + ex.getMessage());
-            ex.printStackTrace();
-        }
-    }
-
-    private void eliminarPreguntaDeEncuesta() {
+    private void eliminarPreguntaEncuesta() {
         EncuestaDetallePregunta detalle = getSelectedPreguntaDetalle();
         if (detalle == null) return;
 
         int confirm = JOptionPane.showConfirmDialog(this,
-                "¿Estás seguro de que quieres eliminar la pregunta '" + detalle.getTextoPreguntaMostrable() + "' de esta encuesta?",
-                "Confirmar Eliminación",
-                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                "¿Estás seguro de que quieres eliminar la pregunta '" + detalle.getTextoPreguntaMostrable() + "'?",
+                "Confirmar Eliminación", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            try {
-                servicioEncuestas.eliminarPreguntaDeEncuestaServicio(encuestaActual.getIdEncuesta(), detalle.getOrdenEnEncuesta());
+            // CORRECCIÓN: Pasar solo el ID del detalle de pregunta
+            boolean eliminado = servicioEncuestas.eliminarPreguntaDeEncuestaServicio(detalle.getIdEncuestaDetalle()); 
+            if (eliminado) {
                 JOptionPane.showMessageDialog(this, "Pregunta eliminada exitosamente de la encuesta.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
                 cargarPreguntasEncuesta();
-            } catch (IllegalArgumentException e) {
-                 JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Error al eliminar pregunta de encuesta: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                System.err.println("Error en ConfigurarPreguntasEncuestaGUI al eliminar: " + ex.getMessage());
-                ex.printStackTrace();
+            } else {
+                JOptionPane.showMessageDialog(this, "Error al eliminar la pregunta.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
 
-    private void buscarPreguntaPorOrden() {
-        String ordenStr = txtBuscarOrden.getText().trim();
-        if (ordenStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Ingrese un número de orden para buscar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-            cargarPreguntasEncuesta(); // Recarga todas si el campo está vacío
-            return;
+    private void moverPregunta(boolean arriba) {
+        EncuestaDetallePregunta detalle = getSelectedPreguntaDetalle();
+        if (detalle == null) return;
+
+        boolean movido = servicioEncuestas.moverPreguntaEnEncuesta(encuestaActual.getIdEncuesta(), detalle.getIdEncuestaDetalle(), arriba);
+        if (movido) {
+            JOptionPane.showMessageDialog(this, "Pregunta movida exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            cargarPreguntasEncuesta();
+        } else {
+            JOptionPane.showMessageDialog(this, "No se pudo mover la pregunta (ya está en el límite o error).", "Error", JOptionPane.ERROR_MESSAGE);
         }
-        try {
-            int ordenBuscado = Integer.parseInt(ordenStr);
-            // Implementación de búsqueda secuencial/lineal para destacar el elemento
-            // Se asume que la tabla no es excesivamente grande
-            boolean found = false;
-            for (int i = 0; i < tableModel.getRowCount(); i++) {
-                if (tableModel.getValueAt(i, 0) instanceof Integer && (Integer) tableModel.getValueAt(i, 0) == ordenBuscado) {
-                    tblPreguntasEncuesta.setRowSelectionInterval(i, i);
-                    tblPreguntasEncuesta.scrollRectToVisible(tblPreguntasEncuesta.getCellRect(i, 0, true));
-                    found = true;
-                    JOptionPane.showMessageDialog(this, "Pregunta encontrada en orden " + ordenBuscado + ".", "Búsqueda Exitosa", JOptionPane.INFORMATION_MESSAGE);
-                    break;
+    }
+    
+    private void marcarDesmarcarDescarte() {
+        EncuestaDetallePregunta detalle = getSelectedPreguntaDetalle();
+        if (detalle == null) return;
+
+        boolean actualmenteEsDescarte = detalle.isEsPreguntaDescarte();
+        String criterioActual = Objects.requireNonNullElse(detalle.getCriterioDescarteValor(), "");
+
+        if (actualmenteEsDescarte) {
+            // Si actualmente es de descarte, ofrecer desmarcarla
+            int confirm = JOptionPane.showConfirmDialog(this, 
+                    "Esta pregunta es de descarte con criterio '" + criterioActual + "'. ¿Desea desmarcarla como descarte?", 
+                    "Desmarcar Descarte", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                // CORRECCIÓN: Pasar solo el ID del detalle de pregunta
+                boolean desmarcado = servicioEncuestas.desmarcarPreguntaComoDescarte(detalle.getIdEncuestaDetalle()); 
+                if (desmarcado) {
+                    JOptionPane.showMessageDialog(this, "Pregunta desmarcada como descarte.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                    cargarPreguntasEncuesta();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Error al desmarcar como descarte.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
-            if (!found) {
-                JOptionPane.showMessageDialog(this, "No se encontró ninguna pregunta con el orden " + ordenBuscado + ".", "No Encontrado", JOptionPane.INFORMATION_MESSAGE);
-                tblPreguntasEncuesta.clearSelection(); // Limpiar selección si no se encontró
+        } else {
+            // Si no es de descarte, ofrecer marcarla
+            String criterio = JOptionPane.showInputDialog(this, 
+                    "Ingrese el criterio de descarte para '" + detalle.getTextoPreguntaMostrable() + "':", 
+                    "Marcar como Descarte", JOptionPane.PLAIN_MESSAGE);
+            if (criterio == null || criterio.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "El criterio de descarte no puede estar vacío.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+                return;
             }
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "El orden debe ser un número válido.", "Error", JOptionPane.ERROR_MESSAGE);
+            // CORRECCIÓN: Pasar solo el ID del detalle de pregunta y el criterio
+            boolean marcado = servicioEncuestas.marcarPreguntaComoDescarte(detalle.getIdEncuestaDetalle(), criterio.trim()); 
+            if (marcado) {
+                JOptionPane.showMessageDialog(this, "Pregunta marcada como descarte.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                cargarPreguntasEncuesta();
+            } else {
+                JOptionPane.showMessageDialog(this, "Error al marcar como descarte.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
     private void volverAGestionEncuestas() {
-        this.dispose(); // Cierra esta ventana. El listener se encargará de mostrar el padre.
+        this.dispose(); // Cierra esta ventana, el WindowListener se encarga de mostrar la padre
     }
 }
