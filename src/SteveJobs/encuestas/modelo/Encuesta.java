@@ -1,17 +1,3 @@
-/*
- * Responsable: Alfredo Swidin (Refactorizado con Asistente de AED)
- * Relación con otras partes del código:
- * - Es una entidad central del sistema, gestionada por EncuestaDAO y ServicioEncuestas.
- * - Contiene una lista de EncuestaDetallePregunta para representar las preguntas asociadas.
- * Funcionalidad:
- * - Representa el modelo de datos (POJO) para una encuesta, incluyendo sus metadatos
- * y una colección de preguntas asociadas.
- * Modelos de Ordenamiento/Estructura de la Información:
- * - Contiene una List<EncuestaDetallePregunta> para modelar la relación de preguntas.
- * - N/A (Clase de modelo, no implementa algoritmos de ordenamiento o estructuras complejas,
- * el ordenamiento de preguntas se maneja en ServicioEncuestas).
- */
-
 package SteveJobs.encuestas.modelo;
 
 import java.sql.Timestamp;
@@ -36,7 +22,6 @@ public class Encuesta {
         this.preguntasAsociadas = new ArrayList<>();
     }
     
-    // Getters y Setters corregidos
     public int getIdEncuesta() {
         return idEncuesta;
     }

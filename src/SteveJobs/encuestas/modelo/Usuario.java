@@ -1,7 +1,7 @@
 package SteveJobs.encuestas.modelo;
 
 import java.time.LocalDate;
-import java.sql.Timestamp; // Para fecha de registro
+import java.sql.Timestamp; 
 
 public class Usuario {
     private int id_usuario;
@@ -13,9 +13,9 @@ public class Usuario {
     private LocalDate fecha_nacimiento;
     private String genero;
     private String distrito_residencia;
-    private Timestamp fecha_registro; // Fecha y hora de registro
-    private String rol; // "Administrador" o "Encuestado"
-    private String estado; // Nuevo campo: "ACTIVO", "INACTIVO", etc.
+    private Timestamp fecha_registro; 
+    private String rol; 
+    private String estado; 
 
     public Usuario() {
     }
@@ -30,11 +30,9 @@ public class Usuario {
         this.genero = genero;
         this.distrito_residencia = distrito_residencia;
         this.rol = rol;
-        this.fecha_registro = new Timestamp(System.currentTimeMillis()); // Se inicializa al crear
-        this.estado = "ACTIVO"; // Estado inicial por defecto
+        this.fecha_registro = new Timestamp(System.currentTimeMillis());
+        this.estado = "ACTIVO"; 
     }
-
-    // Getters y Setters existentes
 
     public int getId_usuario() {
         return id_usuario;
@@ -124,7 +122,6 @@ public class Usuario {
         this.rol = rol;
     }
     
-    // Nuevo Getter y Setter para 'estado'
     public String getEstado() {
         return estado;
     }
@@ -142,7 +139,7 @@ public class Usuario {
                ", apellidos='" + apellidos + '\'' +
                ", email='" + email + '\'' +
                ", rol='" + rol + '\'' +
-               ", estado='" + estado + '\'' + // Incluir estado en toString
+               ", estado='" + estado + '\'' +
                '}';
     }
 }

@@ -1,17 +1,3 @@
-/*
- * Responsable: José Flores
- * Relación con otras partes del código:
- * - Es una entidad utilizada para definir los campos del perfil del usuario
- * durante el registro.
- * - Gestionada por PreguntaRegistroDAO y ServicioConfiguracionAdmin.
- * Funcionalidad:
- * - Representa el modelo de datos (POJO) para una pregunta utilizada en el
- * proceso de registro de usuarios.
- * Modelos de Ordenamiento/Estructura de la Información:
- * - N/A (Clase de modelo, no implementa algoritmos de ordenamiento o estructuras complejas,
- * el orden se define por un atributo y se maneja en el DAO).
- */
-
 package SteveJobs.encuestas.modelo;
 
 public class PreguntaRegistro {
