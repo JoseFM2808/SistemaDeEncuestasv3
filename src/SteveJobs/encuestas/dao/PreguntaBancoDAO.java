@@ -1,17 +1,3 @@
-/*
- * Responsable: Pablo Alegre (Refactorizado y completado por Asistente de AED)
- * Relación con otras partes del código:
- * - Utilizado por ServicioPreguntas para gestionar el banco general de preguntas.
- * - También utilizado por ServicioEncuestas para asociar preguntas existentes
- * del banco a encuestas específicas.
- * Funcionalidad:
- * - Gestiona la persistencia (CRUD) de las preguntas que forman parte del
- * banco general de preguntas del sistema.
- * Modelos de Ordenamiento/Estructura de la Información:
- * - Las consultas SQL pueden ordenar las preguntas (e.g., por id_pregunta_banco).
- * - Retorna colecciones de tipo List<PreguntaBanco>.
- */
-
 package SteveJobs.encuestas.dao;
 
 import SteveJobs.encuestas.modelo.PreguntaBanco;
@@ -27,11 +13,6 @@ import java.util.List;
 
 public class PreguntaBancoDAO {
 
-    /**
-     * Crea una nueva pregunta en el banco de preguntas.
-     * @param pregunta El objeto PreguntaBanco con la información a guardar.
-     * @return el ID de la pregunta generada, o -1 si falla.
-     */
     public int crearPreguntaBanco(PreguntaBanco pregunta) {
         String sql = "INSERT INTO banco_preguntas (texto_pregunta, id_tipo_pregunta, id_clasificacion) VALUES (?, ?, ?)";
         Connection con = null;
@@ -65,13 +46,7 @@ public class PreguntaBancoDAO {
         return idGenerado;
     }
 
-    /**
-     * Obtiene una pregunta específica del banco por su ID.
-     * @param idPreguntaBanco El ID de la pregunta a buscar.
-     * @return Un objeto PreguntaBanco, o null si no se encuentra.
-     */
     public PreguntaBanco obtenerPreguntaPorId(int idPreguntaBanco) {
-        // La consulta SQL ahora usa JOIN para traer los nombres de las tablas relacionadas
         String sql = "SELECT pb.*, tp.nombre_tipo, cp.nombre_clasificacion " +
                      "FROM banco_preguntas pb " +
                      "JOIN tipos_pregunta tp ON pb.id_tipo_pregunta = tp.id_tipo_pregunta " +
@@ -93,9 +68,8 @@ public class PreguntaBancoDAO {
                 pregunta.setIdPreguntaBanco(rs.getInt("id_pregunta_banco"));
                 pregunta.setTextoPregunta(rs.getString("texto_pregunta"));
                 pregunta.setIdTipoPregunta(rs.getInt("id_tipo_pregunta"));
-                pregunta.setIdClasificacion((Integer) rs.getObject("id_clasificacion")); // Permite nulos
+                pregunta.setIdClasificacion((Integer) rs.getObject("id_clasificacion")); 
                 
-                // Atributos extra para visualización
                 pregunta.setNombreTipoPregunta(rs.getString("nombre_tipo"));
                 pregunta.setNombreClasificacion(rs.getString("nombre_clasificacion"));
             }
@@ -107,13 +81,8 @@ public class PreguntaBancoDAO {
         return pregunta;
     }
 
-    /**
-     * Obtiene todas las preguntas del banco.
-     * @return Una lista de objetos PreguntaBanco.
-     */
     public List<PreguntaBanco> obtenerTodasLasPreguntas() {
         List<PreguntaBanco> preguntas = new ArrayList<>();
-        // La consulta SQL ahora usa JOIN para traer los nombres, como lo requiere el modelo
         String sql = "SELECT pb.*, tp.nombre_tipo, cp.nombre_clasificacion " +
                      "FROM banco_preguntas pb " +
                      "JOIN tipos_pregunta tp ON pb.id_tipo_pregunta = tp.id_tipo_pregunta " +
@@ -149,11 +118,6 @@ public class PreguntaBancoDAO {
         return preguntas;
     }
 
-    /**
-     * Actualiza una pregunta existente en el banco.
-     * @param pregunta El objeto PreguntaBanco con la información actualizada.
-     * @return true si la actualización fue exitosa, false en caso contrario.
-     */
     public boolean actualizarPreguntaBanco(PreguntaBanco pregunta) {
         String sql = "UPDATE banco_preguntas SET texto_pregunta = ?, id_tipo_pregunta = ?, id_clasificacion = ? WHERE id_pregunta_bancoo = ?";
         Connection con = null;
@@ -180,11 +144,6 @@ public class PreguntaBancoDAO {
         return exito;
     }
 
-    /**
-     * Elimina una pregunta del banco por su ID.
-     * @param idPreguntaBanco El ID de la pregunta a eliminar.
-     * @return true si la eliminación fue exitosa, false en caso contrario.
-     */
     public boolean eliminarPreguntaBanco(int idPreguntaBanco) {
         String sql = "DELETE FROM banco_preguntas WHERE id_pregunta_banco = ?";
         Connection con = null;

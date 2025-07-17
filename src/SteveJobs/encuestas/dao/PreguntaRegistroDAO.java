@@ -1,15 +1,3 @@
-/*
- * Responsable: José Flores
- * Relación con otras partes del código:
- * - Utilizado por ServicioConfiguracionAdmin para gestionar las preguntas
- * que se usan en el registro de usuarios para definir su perfil.
- * Funcionalidad:
- * - Gestiona la persistencia (CRUD) de las preguntas de registro del sistema.
- * Modelos de Ordenamiento/Estructura de la Información:
- * - Las consultas SQL ordenan las preguntas por 'orden_visualizacion' y 'id_pregunta_registro'.
- * - Retorna colecciones de tipo List<PreguntaRegistro>.
- */
-
 package SteveJobs.encuestas.dao;
 
 import SteveJobs.encuestas.modelo.PreguntaRegistro;

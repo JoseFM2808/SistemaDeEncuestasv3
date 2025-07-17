@@ -1,16 +1,3 @@
-/*
- * Responsable: Pablo Alegre
- * Relación con otras partes del código:
- * - Es la persistencia principal para la entidad Usuario, utilizada por
- * ServicioAutenticacion y ServicioUsuarios para la gestión de usuarios.
- * Funcionalidad:
- * - Proporciona métodos para crear, obtener, actualizar y eliminar objetos Usuario
- * en la base de datos. Incluye la validación de credenciales para la autenticación.
- * Modelos de Ordenamiento/Estructura de la Información:
- * - Retorna colecciones de tipo List<Usuario>.
- * - No emplea ordenamiento interno explícito para sus operaciones CRUD, más allá del orden de la BD.
- */
-
 package SteveJobs.encuestas.dao;
 
 import SteveJobs.encuestas.modelo.Usuario;
@@ -47,9 +34,9 @@ public class UsuarioDAO {
             ps.setDate(6, usuario.getFecha_nacimiento() != null ? java.sql.Date.valueOf(usuario.getFecha_nacimiento()) : null);
             ps.setString(7, usuario.getGenero());
             ps.setString(8, usuario.getDistrito_residencia());
-            ps.setTimestamp(9, new Timestamp(System.currentTimeMillis())); // Fecha de registro actual
+            ps.setTimestamp(9, new Timestamp(System.currentTimeMillis())); 
             ps.setString(10, usuario.getRol());
-            ps.setString(11, usuario.getEstado()); // Guardar el estado inicial
+            ps.setString(11, usuario.getEstado()); 
 
             if (ps.executeUpdate() > 0) {
                 generatedKeys = ps.getGeneratedKeys();
@@ -163,7 +150,7 @@ public class UsuarioDAO {
             ps.setString(6, usuario.getGenero());
             ps.setString(7, usuario.getDistrito_residencia());
             ps.setString(8, usuario.getRol());
-            ps.setString(9, usuario.getEstado()); // Actualizar estado
+            ps.setString(9, usuario.getEstado()); 
             ps.setInt(10, usuario.getId_usuario());
 
             actualizado = ps.executeUpdate() > 0;
@@ -197,13 +184,7 @@ public class UsuarioDAO {
         }
         return actualizado;
     }
-    
-    /**
-     * Nuevo método: Actualiza el estado de un usuario específico.
-     * @param idUsuario El ID del usuario cuyo estado se actualizará.
-     * @param nuevoEstado El nuevo estado (ej. "ACTIVO", "INACTIVO").
-     * @return true si la actualización fue exitosa, false en caso contrario.
-     */
+
     public boolean actualizarEstadoUsuario(int idUsuario, String nuevoEstado) {
         String sql = "UPDATE usuarios SET estado = ? WHERE id_usuario = ?";
         Connection con = null;
@@ -306,7 +287,7 @@ public class UsuarioDAO {
         usuario.setNombres(rs.getString("nombres"));
         usuario.setApellidos(rs.getString("apellidos"));
         usuario.setEmail(rs.getString("email"));
-        usuario.setClave(rs.getString("clave")); // Solo para propósitos internos, no exponer en otras capas
+        usuario.setClave(rs.getString("clave"));
         
         java.sql.Date sqlDate = rs.getDate("fecha_nacimiento");
         usuario.setFecha_nacimiento(sqlDate != null ? sqlDate.toLocalDate() : null);
@@ -315,7 +296,7 @@ public class UsuarioDAO {
         usuario.setDistrito_residencia(rs.getString("distrito_residencia"));
         usuario.setFecha_registro(rs.getTimestamp("fecha_registro"));
         usuario.setRol(rs.getString("rol"));
-        usuario.setEstado(rs.getString("estado")); // Mapear el nuevo campo estado
+        usuario.setEstado(rs.getString("estado"));
         return usuario;
     }
 }

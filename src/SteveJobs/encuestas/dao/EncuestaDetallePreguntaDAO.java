@@ -1,15 +1,3 @@
-/*
- * Responsable: Alfredo Swidin
- * Relación con otras partes del código:
- * - Utilizado por ServicioEncuestas para gestionar la relación "muchos a muchos" entre
- * Encuestas y Preguntas (del banco o únicas).
- * Funcionalidad:
- * - Maneja la persistencia de los detalles de preguntas asociadas a una encuesta,
- * incluyendo su orden, si es de descarte y el criterio de descarte.
- * Modelos de Ordenamiento/Estructura de la Información:
- * - Las consultas SQL pueden ordenar las preguntas por 'orden_en_encuesta'.
- * - Retorna colecciones de tipo List<EncuestaDetallePregunta>.
- */
 package SteveJobs.encuestas.dao;
 
 import SteveJobs.encuestas.modelo.EncuestaDetallePregunta;
@@ -26,7 +14,6 @@ import java.util.List;
 public class EncuestaDetallePreguntaDAO {
 
     public boolean agregarPreguntaAEncuesta(EncuestaDetallePregunta detalle) {
-        // Corregido el nombre de la tabla a 'encuesta_preguntas'
         String sql = "INSERT INTO encuesta_preguntas (id_encuesta, id_pregunta_banco, texto_pregunta_unica, id_tipo_pregunta_unica, id_clasificacion_unica, orden_en_encuesta, es_pregunta_descarte, criterio_descarte_valor) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         Connection con = null;
         PreparedStatement ps = null;
@@ -74,7 +61,6 @@ public class EncuestaDetallePreguntaDAO {
 
     public List<EncuestaDetallePregunta> obtenerPreguntasPorEncuesta(int idEncuesta) {
         List<EncuestaDetallePregunta> detalles = new ArrayList<>();
-        // Corregido el nombre de la tabla a 'encuesta_preguntas'
         String sql = "SELECT edp.*, " +
                      "pb.texto_pregunta AS texto_banco, pb.id_tipo_pregunta AS id_tipo_banco, pb.id_clasificacion AS id_clasif_banco, " +
                      "tpu.nombre_tipo AS nombre_tipo_unica, cpu.nombre_clasificacion AS nombre_clasif_unica " +
@@ -127,7 +113,6 @@ public class EncuestaDetallePreguntaDAO {
     }
 
     public EncuestaDetallePregunta obtenerPreguntaDetallePorId(int idEncuestaDetalle) {
-        // Corregido el nombre de la tabla a 'encuesta_preguntas'
         String sql = "SELECT edp.*, pb.texto_pregunta AS texto_banco FROM encuesta_preguntas edp " + // Nombre de tabla corregido aquí
                      "LEFT JOIN banco_preguntas pb ON edp.id_pregunta_banco = pb.id_pregunta_banco " +
                      "WHERE edp.id_encuesta_detalle = ?";
@@ -174,7 +159,6 @@ public class EncuestaDetallePreguntaDAO {
     }
 
     public boolean actualizarDetallePregunta(EncuestaDetallePregunta detalle) {
-        // Corregido el nombre de la tabla a 'encuesta_preguntas'
         String sql = "UPDATE encuesta_preguntas SET orden_en_encuesta = ?, es_pregunta_descarte = ?, criterio_descarte_valor = ? WHERE id_encuesta_detalle = ?";
         Connection con = null;
         PreparedStatement ps = null;
@@ -198,7 +182,6 @@ public class EncuestaDetallePreguntaDAO {
     }
 
     public boolean eliminarPreguntaDeEncuesta(int idEncuestaDetalle) {
-        // Corregido el nombre de la tabla a 'encuesta_preguntas'
         String sql = "DELETE FROM encuesta_preguntas WHERE id_encuesta_detalle = ?";
         Connection con = null;
         PreparedStatement ps = null;
@@ -219,7 +202,6 @@ public class EncuestaDetallePreguntaDAO {
     }
 
     public int contarPreguntasEnEncuesta(int idEncuesta) {
-        // Corregido el nombre de la tabla a 'encuesta_preguntas'
         String sql = "SELECT COUNT(*) FROM encuesta_preguntas WHERE id_encuesta = ?";
         Connection con = null;
         PreparedStatement ps = null;
@@ -243,7 +225,6 @@ public class EncuestaDetallePreguntaDAO {
     }
 
     public boolean eliminarTodasPreguntasDeEncuesta(int idEncuesta) {
-        // Corregido el nombre de la tabla a 'encuesta_preguntas'
         String sql = "DELETE FROM encuesta_preguntas WHERE id_encuesta = ?";
         Connection con = null;
         PreparedStatement ps = null;
@@ -290,7 +271,7 @@ public class EncuestaDetallePreguntaDAO {
         } finally {
             ConexionDB.cerrar(rs, ps, con);
         }
-        return count > 0; // Retorna true si la pregunta está siendo usada en al menos una encuesta activa
+        return count > 0;
     }
 
 }

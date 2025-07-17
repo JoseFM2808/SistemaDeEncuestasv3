@@ -1,18 +1,10 @@
-/*
- * Autores del Módulo:
- * - José Flores
- *
- * Responsabilidad Principal:
- * - Acceso a datos de respuestas de usuarios
- */
-
 package SteveJobs.encuestas.dao;
 
 import SteveJobs.encuestas.modelo.RespuestaUsuario;
-import SteveJobs.encuestas.modelo.EncuestaDetallePregunta; // Importar
-import SteveJobs.encuestas.modelo.PreguntaBanco; // Importar
-import SteveJobs.encuestas.modelo.TipoPregunta; // Importar
-import SteveJobs.encuestas.modelo.ClasificacionPregunta; // Importar
+import SteveJobs.encuestas.modelo.EncuestaDetallePregunta; 
+import SteveJobs.encuestas.modelo.PreguntaBanco; 
+import SteveJobs.encuestas.modelo.TipoPregunta; 
+import SteveJobs.encuestas.modelo.ClasificacionPregunta; 
 import SteveJobs.encuestas.conexion.ConexionDB;
 
 import java.sql.Connection;
@@ -25,11 +17,6 @@ import java.util.List;
 
 public class RespuestaUsuarioDAO {
 
-    /**
-     * Guarda una lista de respuestas de usuario en una sola transacción.
-     * @param listaRespuestas La lista de objetos RespuestaUsuario a guardar.
-     * @return true si todas las respuestas fueron guardadas exitosamente, false en caso de error.
-     */
     public boolean guardarListaRespuestas(List<RespuestaUsuario> listaRespuestas) {
         String sql = "INSERT INTO respuestas_usuario (id_encuesta_detalle_pregunta, id_usuario, valor_respuesta, fecha_hora_respuesta, ts_inicio_participacion, ts_fin_participacion, retroalimentacion_usuario) VALUES (?, ?, ?, ?, ?, ?, ?)";
         Connection con = null;
@@ -39,7 +26,7 @@ public class RespuestaUsuarioDAO {
         try {
             con = ConexionDB.conectar();
             if (con == null) return false;
-            con.setAutoCommit(false); // Iniciar transacción
+            con.setAutoCommit(false); 
 
             ps = con.prepareStatement(sql);
 
@@ -51,10 +38,10 @@ public class RespuestaUsuarioDAO {
                 ps.setTimestamp(5, respuesta.getTsInicioParticipacion());
                 ps.setTimestamp(6, respuesta.getTsFinParticipacion());
                 ps.setString(7, respuesta.getRetroalimentacionUsuario());
-                ps.addBatch(); // Añadir al batch
+                ps.addBatch(); 
             }
 
-            int[] resultados = ps.executeBatch(); // Ejecutar batch
+            int[] resultados = ps.executeBatch();
             for (int res : resultados) {
                 if (res == PreparedStatement.EXECUTE_FAILED) {
                     exito = false;
@@ -63,9 +50,9 @@ public class RespuestaUsuarioDAO {
             }
 
             if (exito) {
-                con.commit(); // Confirmar transacción
+                con.commit();
             } else {
-                con.rollback(); // Deshacer si hay fallos
+                con.rollback(); 
             }
 
         } catch (SQLException e) {
@@ -79,7 +66,7 @@ public class RespuestaUsuarioDAO {
             }
         } finally {
             try {
-                if (con != null) con.setAutoCommit(true); // Restaurar auto-commit
+                if (con != null) con.setAutoCommit(true); 
             } catch (SQLException sac) {
                 System.err.println("RespuestaUsuarioDAO: Error al restaurar auto-commit: " + sac.getMessage());
             }
@@ -88,12 +75,6 @@ public class RespuestaUsuarioDAO {
         return exito;
     }
 
-    /**
-     * Verifica si un usuario ya ha respondido a una encuesta específica.
-     * @param idUsuario El ID del usuario.
-     * @param idEncuesta El ID de la encuesta.
-     * @return true si el usuario ya respondió, false en caso contrario.
-     */
     public boolean haRespondidoEncuesta(int idUsuario, int idEncuesta) {
         String sql = "SELECT COUNT(DISTINCT ru.id_usuario) FROM respuestas_usuario ru " +
                      "JOIN encuesta_detalle_preguntas edp ON ru.id_encuesta_detalle_pregunta = edp.id_encuesta_detalle_pregunta " +
@@ -105,7 +86,7 @@ public class RespuestaUsuarioDAO {
 
         try {
             con = ConexionDB.conectar();
-            if (con == null) return true; // Asumir respondida si no hay conexión para evitar re-envío
+            if (con == null) return true; 
             ps = con.prepareStatement(sql);
             ps.setInt(1, idUsuario);
             ps.setInt(2, idEncuesta);
@@ -122,11 +103,6 @@ public class RespuestaUsuarioDAO {
         return count > 0;
     }
 
-    /**
-     * Obtiene todas las respuestas para un detalle de pregunta específico.
-     * @param idEncuestaDetallePregunta El ID del detalle de pregunta.
-     * @return Una lista de objetos RespuestaUsuario.
-     */
     public List<RespuestaUsuario> obtenerRespuestasPorDetallePregunta(int idEncuestaDetallePregunta) {
         List<RespuestaUsuario> respuestas = new ArrayList<>();
         String sql = "SELECT id_respuesta_usuario, id_encuesta_detalle_pregunta, id_usuario, valor_respuesta, fecha_hora_respuesta, ts_inicio_participacion, ts_fin_participacion, retroalimentacion_usuario FROM respuestas_usuario WHERE id_encuesta_detalle_pregunta = ?";
@@ -153,15 +129,6 @@ public class RespuestaUsuarioDAO {
         return respuestas;
     }
 
-    /**
-     * Nuevo método: Obtiene todas las respuestas para una encuesta específica,
-     * incluyendo la información detallada de la pregunta (tipo, clasificación).
-     * Esto es crucial para el filtrado de reportes.
-     *
-     * @param idEncuesta El ID de la encuesta.
-     * @return Una lista de objetos RespuestaUsuario, con los objetos EncuestaDetallePregunta
-     * y PreguntaBanco anidados y mapeados.
-     */
     public List<RespuestaUsuario> obtenerRespuestasPorEncuesta(int idEncuesta) {
         List<RespuestaUsuario> respuestas = new ArrayList<>();
         String sql = "SELECT ru.id_respuesta_usuario, ru.id_encuesta_detalle_pregunta, ru.id_usuario, ru.valor_respuesta, " +
@@ -192,7 +159,6 @@ public class RespuestaUsuarioDAO {
             while (rs.next()) {
                 RespuestaUsuario respuesta = mapearResultSetARespuesta(rs);
                 
-                // Mapear EncuestaDetallePregunta
                 EncuestaDetallePregunta edp = new EncuestaDetallePregunta();
                 edp.setIdEncuestaDetalle(rs.getInt("id_encuesta_detalle_pregunta"));
                 edp.setIdEncuesta(rs.getInt("id_encuesta"));
@@ -204,19 +170,17 @@ public class RespuestaUsuarioDAO {
                 edp.setEsPreguntaDescarte(rs.getBoolean("es_pregunta_descarte"));
                 edp.setCriterioDescarteValor(rs.getString("criterio_descarte_valor"));
 
-                // Mapear PreguntaBanco (si existe)
                 if (edp.getIdPreguntaBanco() != null) {
                     PreguntaBanco pb = new PreguntaBanco();
                     pb.setIdPreguntaBanco(edp.getIdPreguntaBanco());
                     pb.setTextoPregunta(rs.getString("pb_texto_pregunta"));
                     pb.setIdTipoPregunta(rs.getObject("pb_id_tipo_pregunta", Integer.class));
                     pb.setIdClasificacion(rs.getObject("pb_id_clasificacion", Integer.class));
-                    pb.setNombreTipoPregunta(rs.getString("tp_nombre_tipo")); // Nombre del tipo de pregunta
-                    pb.setNombreClasificacion(rs.getString("cp_nombre_clasificacion")); // Nombre de la clasificación
+                    pb.setNombreTipoPregunta(rs.getString("tp_nombre_tipo")); 
+                    pb.setNombreClasificacion(rs.getString("cp_nombre_clasificacion"));
                     edp.setPreguntaDelBanco(pb);
                 } else {
-                     // Si es pregunta única, asignar nombre de tipo y clasificación directamente si se obtiene
-                     // (COALESCE en el SQL ya nos da el nombre del tipo/clasificación correcto)
+
                      TipoPregunta tpUnica = new TipoPregunta();
                      tpUnica.setIdTipoPregunta(edp.getIdTipoPreguntaUnica() != null ? edp.getIdTipoPreguntaUnica() : 0);
                      tpUnica.setNombreTipo(rs.getString("tp_nombre_tipo"));
@@ -228,7 +192,7 @@ public class RespuestaUsuarioDAO {
                      edp.setClasificacionPreguntaObj(cpUnica);
                 }
                 
-                respuesta.setEncuestaDetallePregunta(edp); // Asignar el detalle de pregunta a la respuesta
+                respuesta.setEncuestaDetallePregunta(edp); 
                 respuestas.add(respuesta);
             }
         } catch (SQLException e) {
