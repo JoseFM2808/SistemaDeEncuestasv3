@@ -7,6 +7,10 @@ public class TipoPregunta {
     public TipoPregunta() {
     }
 
+    public TipoPregunta(String nombreTipo) {
+        this.nombreTipo = nombreTipo;
+    }
+
     public int getIdTipoPregunta() {
         return idTipoPregunta;
     }

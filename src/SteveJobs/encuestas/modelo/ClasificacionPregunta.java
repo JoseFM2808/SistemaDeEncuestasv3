@@ -10,6 +10,12 @@ public class ClasificacionPregunta {
     public ClasificacionPregunta() {
     }
 
+    public ClasificacionPregunta(String nombreClasificacion, String descripcion, String estado) {
+        this.nombreClasificacion = nombreClasificacion;
+        this.descripcion = descripcion;
+        this.estado = estado;
+    }
+
     public int getIdClasificacion() {
         return idClasificacion;
     }
