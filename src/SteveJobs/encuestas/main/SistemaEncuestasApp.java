@@ -12,70 +12,77 @@
  */
 package SteveJobs.encuestas.main;
 
-import SteveJobs.encuestas.modelo.Usuario;
-import SteveJobs.encuestas.ui.UIAutenticacion;
-import SteveJobs.encuestas.ui.UIMenuAdministrador;
-import SteveJobs.encuestas.ui.UIMenuEncuestado;
-import SteveJobs.encuestas.ui.UIRegistroUsuario;
+import SteveJobs.encuestas.gui.LoginGUI; // Importar la nueva GUI de Login
+import SteveJobs.encuestas.ui.UIAutenticacion; // La UI de consola/JOptionPane existente
 import javax.swing.JOptionPane;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
+/**
+ * Clase principal que inicia la aplicación del Sistema de Encuestas.
+ * Permite seleccionar entre la interfaz de usuario basada en consola/JOptionPane
+ * o la nueva interfaz gráfica (GUI) basada en JFrame.
+ * @author José Flores
+ */
 public class SistemaEncuestasApp {
 
     public static void main(String[] args) {
+        // Configurar el Look and Feel (opcional, mejora la apariencia de Swing)
         try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (Exception ex) {
-            java.util.logging.Logger.getLogger(SistemaEncuestasApp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+            System.err.println("No se pudo establecer el Look and Feel Nimbus: " + e.getMessage());
+            // Continúa con el Look and Feel por defecto si falla
         }
-        
-        mostrarMenuPrincipal();
+
+        mostrarMenuInicio();
     }
 
-    public static void mostrarMenuPrincipal() {
-        boolean salir = false;
-        while (!salir) {
-            String[] opciones = {"Iniciar Sesión", "Registrarse", "Salir"};
-            int seleccion = JOptionPane.showOptionDialog(
-                    null,
-                    "Bienvenido al Sistema de Encuestas",
-                    "Menú Principal",
-                    JOptionPane.DEFAULT_OPTION,
-                    JOptionPane.INFORMATION_MESSAGE,
-                    null,
-                    opciones,
-                    opciones[0]
-            );
+    private static void mostrarMenuInicio() {
+        String[] opciones = {"Iniciar con UI (Consola/JOptionPane)", "Iniciar con GUI (JFrame)", "Salir"};
+        int seleccion = JOptionPane.showOptionDialog(
+                null,
+                "Bienvenido al Sistema de Encuestas. Seleccione el tipo de interfaz:",
+                "Selección de Interfaz",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.INFORMATION_MESSAGE,
+                null,
+                opciones,
+                opciones[0]
+        );
 
-            switch (seleccion) {
-                case 0:
-                    Usuario usuarioAutenticado = UIAutenticacion.mostrarLogin();
-                    if (usuarioAutenticado != null) {
-                        if ("Administrador".equalsIgnoreCase(usuarioAutenticado.getRol())) {
-                            UIMenuAdministrador.mostrarMenu(usuarioAutenticado);
-                        } else if ("Encuestado".equalsIgnoreCase(usuarioAutenticado.getRol())) { 
-                            UIMenuEncuestado.mostrarMenu(usuarioAutenticado);
-                        } else {
-                             JOptionPane.showMessageDialog(null, "Rol de usuario desconocido: " + usuarioAutenticado.getRol());
-                        }
-                    }
-                    break;
-                case 1: // Registrarse
-                    UIRegistroUsuario.mostrarFormularioRegistro();
-                    break;
-                case 2: // Salir
-                case JOptionPane.CLOSED_OPTION:
-                    salir = true;
-                    JOptionPane.showMessageDialog(null, "Gracias por usar el sistema. ¡Hasta pronto!");
-                    break;
-                default:
-                    // No es necesario hacer nada aquí, el bucle continuará o saldrá si se cierra la ventana.
-                    break;
-            }
+        switch (seleccion) {
+            case 0: // Iniciar con UI (Consola/JOptionPane)
+                iniciarUI();
+                break;
+            case 1: // Iniciar con GUI (JFrame)
+                iniciarGUI();
+                break;
+            case 2: // Salir
+            case JOptionPane.CLOSED_OPTION: // Si el usuario cierra la ventana
+                JOptionPane.showMessageDialog(null, "Gracias por usar el Sistema de Encuestas. ¡Hasta luego!");
+                System.exit(0);
+                break;
+            default:
+                // Esto no debería ocurrir si se usan las opciones, pero por seguridad
+                JOptionPane.showMessageDialog(null, "Opción no reconocida. Saliendo del sistema.", "Error", JOptionPane.ERROR_MESSAGE);
+                System.exit(0);
+                break;
         }
+    }
+
+    private static void iniciarUI() {
+        UIAutenticacion uiAutenticacion = new UIAutenticacion();
+        // El bucle de autenticación se gestiona dentro de UIAutenticacion
+        // hasta que el usuario se loguea, se registra o cierra la aplicación.
+        uiAutenticacion.mostrarLogin();
+    }
+
+    private static void iniciarGUI() {
+        // Aquí se inicializará la primera ventana de tu GUI de JFrame
+        // Por ahora, será la Pantalla de Inicio/Login en JFrame
+        LoginGUI loginGUI = new LoginGUI();
+        loginGUI.setVisible(true);
+        // El resto del flujo de la GUI se gestionará desde esta ventana.
     }
 }
