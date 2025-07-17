@@ -10,6 +10,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 /**
@@ -96,7 +97,7 @@ public class EncuestasDisponiblesGUI extends JFrame {
         });
     }
 
-    private void cargarEncuestasDisponibles() {
+    public void cargarEncuestasDisponibles() { // Made public to be called by child GUIs if needed
         // Limpiar tabla antes de cargar nuevos datos
         tableModel.setRowCount(0);
 
@@ -126,6 +127,8 @@ public class EncuestasDisponiblesGUI extends JFrame {
             if (tableModel.getRowCount() == 0) {
                  tableModel.addRow(new Object[]{"", "", "Has respondido todas las encuestas disponibles para tu perfil.", "", ""});
                  tblEncuestas.setEnabled(false);
+            } else {
+                tblEncuestas.setEnabled(true);
             }
 
         } catch (Exception ex) {
@@ -151,27 +154,35 @@ public class EncuestasDisponiblesGUI extends JFrame {
         int idEncuesta = (int) tableModel.getValueAt(selectedRow, 0);
 
         try {
-            // Lógica para verificar si ya respondió (ServicioEncuestas ya tiene este método)
-            if (servicioEncuestas.haUsuarioRespondidoEncuesta(encuestadoActual.getIdUsuario(), idEncuesta)) {
-                JOptionPane.showMessageDialog(this, "Ya has respondido esta encuesta.", "Información", JOptionPane.INFORMATION_MESSAGE);
-                // Quitar la encuesta de la lista si ya la respondió
-                tableModel.removeRow(selectedRow); 
+            Encuesta encuestaParaResponder = servicioEncuestas.obtenerDetallesCompletosEncuesta(idEncuesta);
+            if (encuestaParaResponder == null) {
+                JOptionPane.showMessageDialog(this, "La encuesta seleccionada no se pudo encontrar.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            // Aquí instanciarías y mostrarías la Pantalla de Respuesta de Encuesta (GUI)
-            JOptionPane.showMessageDialog(this, "Iniciando encuesta ID: " + idEncuesta + " (Pantalla de Respuesta de Encuesta GUI en desarrollo)...", "Info", JOptionPane.INFORMATION_MESSAGE);
-            
-            // Ejemplo de cómo llamarías a la siguiente pantalla:
-            // EncuestaResponderGUI responderGUI = new EncuestaResponderGUI(encuestadoActual, idEncuesta, this);
-            // responderGUI.setVisible(true);
-            // this.setVisible(false); // Ocultar esta ventana mientras se responde
+            // Lógica para verificar si ya respondió (ServicioEncuestas ya tiene este método)
+            if (servicioEncuestas.haUsuarioRespondidoEncuesta(encuestadoActual.getIdUsuario(), encuestaParaResponder.getIdEncuesta())) {
+                JOptionPane.showMessageDialog(this, "Ya has respondido esta encuesta.", "Información", JOptionPane.INFORMATION_MESSAGE);
+                // Si ya la respondió, recargar para que desaparezca de la lista
+                cargarEncuestasDisponibles(); 
+                return;
+            }
+
+            // Abrir la Pantalla de Respuesta de Encuesta (GUI)
+            EncuestaResponderGUI responderGUI = new EncuestaResponderGUI(encuestadoActual, encuestaParaResponder, this);
+            responderGUI.setVisible(true);
+            this.setVisible(false); // Ocultar esta ventana mientras se responde
             
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error al intentar responder encuesta: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             System.err.println("Error en EncuestasDisponiblesGUI al responder encuesta: " + ex.getMessage());
             ex.printStackTrace();
         }
+    }
+
+    public void mostrarEncuestasDisponiblesGUI() { // Made public for child GUIs to call
+        this.setVisible(true);
+        cargarEncuestasDisponibles(); // Recargar la lista al volver
     }
 
     private void volverAlMenu() {

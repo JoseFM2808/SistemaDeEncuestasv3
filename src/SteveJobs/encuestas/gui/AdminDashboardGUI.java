@@ -130,7 +130,9 @@ public class AdminDashboardGUI extends JFrame {
     }
 
     private void mostrarVerResultadosGUI() {
-        JOptionPane.showMessageDialog(this, "Redirigiendo a Ver Resultados de Encuestas (GUI en desarrollo)...", "Info", JOptionPane.INFORMATION_MESSAGE);
+        ReportesEncuestaGUI reportesGUI = new ReportesEncuestaGUI(administradorActual, this);
+        reportesGUI.setVisible(true);
+        this.setVisible(false); // Ocultar el dashboard
     }
     
     // Método para volver a hacer visible esta ventana (cuando un sub-GUI se cierra)
