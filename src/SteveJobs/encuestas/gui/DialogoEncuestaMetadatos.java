@@ -8,6 +8,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Date;
+import java.sql.Timestamp; // Importar java.sql.Timestamp
 
 /**
  * Diálogo modal para la creación o modificación de metadatos de una encuesta.
@@ -75,20 +76,32 @@ public class DialogoEncuestaMetadatos extends JDialog {
     private void guardarEncuesta() {
         String nombre = panelMetadatos.getTxtNombre().getText().trim();
         String descripcion = panelMetadatos.getTxtDescripcion().getText().trim();
-        Date fechaInicio = panelMetadatos.getDateChooserFechaInicio().getDate();
-        Date fechaFin = panelMetadatos.getDateChooserFechaFin().getDate();
-        String publicoObjetivo = panelMetadatos.getTxtPublicoObjetivo().getText().trim();
+        Date utilFechaInicio = panelMetadatos.getDateChooserFechaInicio().getDate();
+        Date utilFechaFin = panelMetadatos.getDateChooserFechaFin().getDate();
+        String publicoObjetivoStr = panelMetadatos.getTxtPublicoObjetivo().getText().trim(); // Obtener como String
         String perfilRequerido = panelMetadatos.getTxtPerfilRequerido().getText().trim();
-        String estado = (String) panelMetadatos.getCmbEstado().getSelectedItem();
+        String estado = (String) panelMetadatos.getCmbEstado().getSelectedItem(); // Se obtiene, pero no se pasa a modificarMetadatosEncuesta
 
-        if (nombre.isEmpty() || descripcion.isEmpty() || fechaInicio == null || fechaFin == null || 
-            publicoObjetivo.isEmpty() || perfilRequerido.isEmpty() || estado == null || estado.isEmpty()) {
+        if (nombre.isEmpty() || descripcion.isEmpty() || utilFechaInicio == null || utilFechaFin == null || 
+            publicoObjetivoStr.isEmpty() || perfilRequerido.isEmpty() || estado == null || estado.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Todos los campos son obligatorios.", "Advertencia", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
-        if (fechaInicio.after(fechaFin)) {
+        if (utilFechaInicio.after(utilFechaFin)) {
             JOptionPane.showMessageDialog(this, "La fecha de inicio no puede ser posterior a la fecha de fin.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Convertir java.util.Date a java.sql.Timestamp
+        Timestamp fechaInicio = new Timestamp(utilFechaInicio.getTime());
+        Timestamp fechaFin = new Timestamp(utilFechaFin.getTime());
+
+        int publicoObjetivo;
+        try {
+            publicoObjetivo = Integer.parseInt(publicoObjetivoStr);
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "El público objetivo debe ser un número entero válido.", "Error de Formato", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -96,12 +109,12 @@ public class DialogoEncuestaMetadatos extends JDialog {
             if (encuestaParaEditar == null) { // Crear nueva encuesta
                 servicioEncuestas.registrarNuevaEncuesta(
                     nombre, descripcion, fechaInicio, fechaFin, publicoObjetivo, 
-                    perfilRequerido, administradorCreador.getIdUsuario() // ID del admin creador
+                    perfilRequerido, administradorCreador.getId_usuario() // Usar getId_usuario() de Usuario
                 );
             } else { // Modificar encuesta existente
                 servicioEncuestas.modificarMetadatosEncuesta(
                     encuestaParaEditar.getIdEncuesta(), nombre, descripcion, fechaInicio, fechaFin,
-                    publicoObjetivo, perfilRequerido, estado // El estado también se puede modificar
+                    publicoObjetivo, perfilRequerido // Se quita el argumento 'estado'
                 );
             }
             guardadoExitoso = true;

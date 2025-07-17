@@ -1,14 +1,30 @@
+/*
+ * Responsable: José Flores (Refactorizado con Asistente de AED)
+ * Relación con otras partes del código:
+ * - Es el menú principal para los usuarios con el rol de Administrador.
+ * - Orquesta la navegación a las interfaces de gestión de Preguntas de Registro,
+ * Encuestas, Banco de Preguntas, etc.
+ * - Utiliza la PilaNavegacion para gestionar el historial de menús.
+ * Funcionalidad:
+ * - Presenta un menú de opciones específicas para el rol de Administrador,
+ * permitiendo acceder a diversas funcionalidades de gestión.
+ * Modelos de Ordenamiento/Estructura de la Información:
+ * - Emplea la Pila (Stack) a través de PilaNavegacion para gestionar el flujo de navegación entre submenús.
+ */
+
 package SteveJobs.encuestas.ui;
 
 import SteveJobs.encuestas.modelo.Usuario;
 import SteveJobs.encuestas.util.PilaNavegacion;
 import javax.swing.JOptionPane;
 
-
+/**
+ * @author José Flores
+ */
 public class UIMenuAdministrador {
 
     private final PilaNavegacion<Runnable> historialMenu;
-    private final Usuario administradorActual; 
+    private final Usuario administradorActual; // Este es el atributo correcto
 
     public UIMenuAdministrador(Usuario administradorActual) {
         this.historialMenu = new PilaNavegacion<>();
@@ -16,23 +32,23 @@ public class UIMenuAdministrador {
     }
 
     public void mostrarMenuAdministrador() {
-        historialMenu.push(this::mostrarOpcionesPrincipales); 
+        historialMenu.push(this::mostrarOpcionesPrincipales); // Establecer la función principal del menú
         
         while (!historialMenu.isEmpty()) {
             try {
-                historialMenu.peek().run(); 
-            } catch (Exception e) { 
+                historialMenu.peek().run(); // Ejecutar el menú actual
+            } catch (Exception e) { // Descomentado/Restaurado el bloque catch
                 JOptionPane.showMessageDialog(null, "Ha ocurrido un error inesperado: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 System.err.println("Error en UIMenuAdministrador: " + e.getMessage());
-                e.printStackTrace(); 
-                if (historialMenu.size() > 1) { 
+                e.printStackTrace(); // Para depuración
+                if (historialMenu.size() > 1) { // Si no es el menú principal, se puede volver
                     historialMenu.pop();
-                } else { 
+                } else { // Si es el menú principal, salir de la aplicación o reintentar
                     JOptionPane.showMessageDialog(null, "Volviendo al menú principal de la aplicación...", "Error", JOptionPane.INFORMATION_MESSAGE);
-                    
-                    while (!historialMenu.isEmpty()) { 
-                        historialMenu.pop(); 
-                    } 
+                    // CORRECCIÓN: Vaciar la pila pop a pop, ya que PilaNavegacion no tiene clear()
+                    while (!historialMenu.isEmpty()) { //
+                        historialMenu.pop(); //
+                    } //
                 }
             }
         }
@@ -50,12 +66,12 @@ public class UIMenuAdministrador {
                       6. Gestionar Usuarios
                       7. Ver Resultados de Encuestas
                       8. Cerrar Sesión
-                      """.formatted(administradorActual.getNombres(), administradorActual.getApellidos(), administradorActual.getId_usuario());
+                      """.formatted(administradorActual.getNombres(), administradorActual.getApellidos(), administradorActual.getId_usuario()); // CORRECCIÓN: getId_usuario()
 
         String opcionStr = JOptionPane.showInputDialog(null, menu, "Menú Administrador", JOptionPane.PLAIN_MESSAGE);
 
-        if (opcionStr == null) { 
-            historialMenu.pop(); 
+        if (opcionStr == null) { // Cancelar o cerrar ventana
+            historialMenu.pop(); // Volver al menú anterior (ej. login)
             return;
         }
 
@@ -84,7 +100,7 @@ public class UIMenuAdministrador {
                     historialMenu.push(this::verResultadosEncuestas);
                     break;
                 case 8:
-                    historialMenu.pop();
+                    historialMenu.pop(); // Cerrar sesión y volver al menú principal de la aplicación
                     JOptionPane.showMessageDialog(null, "Sesión cerrada correctamente.", "Info", JOptionPane.INFORMATION_MESSAGE);
                     break;
                 default:
@@ -95,40 +111,40 @@ public class UIMenuAdministrador {
         }
     }
 
-    
+    // --- Métodos para cada sub-menú, que llaman a sus respectivas UI ---
 
     private void gestionarEncuestas() {
-        UIGestionEncuestas.mostrarMenu(administradorActual); 
-        historialMenu.pop(); 
+        UIGestionEncuestas.mostrarMenu(administradorActual); // CORRECTO: Llamar al método estático y pasar el adminActual
+        historialMenu.pop(); // Una vez que termina el flujo, vuelve al menú de administrador
     }
 
     private void gestionarBancoPreguntas() {
-        UIGestionBancoPreguntas.mostrarMenu(); 
+        UIGestionBancoPreguntas.mostrarMenu(); // CORRECTO: Llamar al método estático de la clase UI
         historialMenu.pop();
     }
 
     private void gestionarPreguntasRegistro() {
-        UIGestionPreguntasRegistro.mostrarMenu(); 
+        UIGestionPreguntasRegistro.mostrarMenu(); // CORRECTO: Llamar al método estático de la clase UI
         historialMenu.pop();
     }
     
     private void gestionarTiposPregunta() {
-        UIGestionTiposPregunta.mostrarMenu(); 
+        UIGestionTiposPregunta.mostrarMenu(); // CORRECTO: Llamar al método estático de la clase UI
         historialMenu.pop();
     }
     
     private void gestionarClasificacionesPregunta() {
-        UIGestionClasificacionesPregunta.mostrarMenu(); 
+        UIGestionClasificacionesPregunta.mostrarMenu(); // CORRECTO: Llamar al método estático de la clase UI
         historialMenu.pop();
     }
 
     private void gestionarUsuarios() {
-        UIGestionUsuarios.mostrarMenu(); 
+        UIGestionUsuarios.mostrarMenu(); // CORRECTO: Llamar al método estático de la clase UI
         historialMenu.pop();
     }
 
     private void verResultadosEncuestas() {
-        UIReportesEncuesta.mostrarMenu(); 
+        UIReportesEncuesta.mostrarMenu(); // CORRECTO: Llamar al método estático de la clase UI
         historialMenu.pop();
     }
 }

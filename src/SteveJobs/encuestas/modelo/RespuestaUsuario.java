@@ -3,40 +3,44 @@ package SteveJobs.encuestas.modelo;
 import java.sql.Timestamp;
 
 public class RespuestaUsuario {
-    private int idRespuestaUsuario;
-    private int idEncuestaDetallePregunta;
-    private int idUsuario;                 
-    private String valorRespuesta;       
+    private int idRespuesta; // Clave primaria
+    private int idUsuario;
+    private int idEncuesta; 
+    private int idEncuestaDetallePregunta; // FK a EncuestaDetallePregunta
+    private String valorRespuesta;
     private Timestamp fechaHoraRespuesta;
-    private Timestamp tsInicioParticipacion;
-    private Timestamp tsFinParticipacion;
-    private String retroalimentacionUsuario;
-    
-    private EncuestaDetallePregunta encuestaDetallePregunta;
+
+    // Nuevo campo para almacenar el objeto de detalle de pregunta asociado
+    private EncuestaDetallePregunta encuestaDetallePregunta; 
 
     public RespuestaUsuario() {
     }
 
-    public RespuestaUsuario(int idEncuestaDetallePregunta, int idUsuario, String valorRespuesta) {
-        this.idEncuestaDetallePregunta = idEncuestaDetallePregunta;
+    // Constructor completo si es necesario para crear respuestas
+    public RespuestaUsuario(int idRespuesta, int idUsuario, int idEncuesta, int idEncuestaDetallePregunta, String valorRespuesta, Timestamp fechaHoraRespuesta) {
+        this.idRespuesta = idRespuesta;
         this.idUsuario = idUsuario;
+        this.idEncuesta = idEncuesta;
+        this.idEncuestaDetallePregunta = idEncuestaDetallePregunta;
+        this.valorRespuesta = valorRespuesta;
+        this.fechaHoraRespuesta = fechaHoraRespuesta;
+    }
+
+    // Constructor simplificado para la recolección inicial
+    public RespuestaUsuario(int idUsuario, int idEncuestaDetallePregunta, String valorRespuesta) {
+        this.idUsuario = idUsuario;
+        this.idEncuestaDetallePregunta = idEncuestaDetallePregunta;
         this.valorRespuesta = valorRespuesta;
     }
 
-    public int getIdRespuestaUsuario() {
-        return idRespuestaUsuario;
+
+    // Getters y Setters
+    public int getIdRespuesta() {
+        return idRespuesta;
     }
 
-    public void setIdRespuestaUsuario(int idRespuestaUsuario) {
-        this.idRespuestaUsuario = idRespuestaUsuario;
-    }
-
-    public int getIdEncuestaDetallePregunta() {
-        return idEncuestaDetallePregunta;
-    }
-
-    public void setIdEncuestaDetallePregunta(int idEncuestaDetallePregunta) {
-        this.idEncuestaDetallePregunta = idEncuestaDetallePregunta;
+    public void setIdRespuesta(int idRespuesta) {
+        this.idRespuesta = idRespuesta;
     }
 
     public int getIdUsuario() {
@@ -45,6 +49,22 @@ public class RespuestaUsuario {
 
     public void setIdUsuario(int idUsuario) {
         this.idUsuario = idUsuario;
+    }
+
+    public int getIdEncuesta() {
+        return idEncuesta;
+    }
+
+    public void setIdEncuesta(int idEncuesta) {
+        this.idEncuesta = idEncuesta;
+    }
+
+    public int getIdEncuestaDetallePregunta() {
+        return idEncuestaDetallePregunta;
+    }
+
+    public void setIdEncuestaDetallePregunta(int idEncuestaDetallePregunta) {
+        this.idEncuestaDetallePregunta = idEncuestaDetallePregunta;
     }
 
     public String getValorRespuesta() {
@@ -63,46 +83,12 @@ public class RespuestaUsuario {
         this.fechaHoraRespuesta = fechaHoraRespuesta;
     }
 
-    public Timestamp getTsInicioParticipacion() {
-        return tsInicioParticipacion;
-    }
-
-    public void setTsInicioParticipacion(Timestamp tsInicioParticipacion) {
-        this.tsInicioParticipacion = tsInicioParticipacion;
-    }
-
-    public Timestamp getTsFinParticipacion() {
-        return tsFinParticipacion;
-    }
-
-    public void setTsFinParticipacion(Timestamp tsFinParticipacion) {
-        this.tsFinParticipacion = tsFinParticipacion;
-    }
-
-    public String getRetroalimentacionUsuario() {
-        return retroalimentacionUsuario;
-    }
-
-    public void setRetroalimentacionUsuario(String retroalimentacionUsuario) {
-        this.retroalimentacionUsuario = retroalimentacionUsuario;
-    }
-
-    public EncuestaDetallePregunta getEncuestaDetallePregunta() { 
-        return encuestaDetallePregunta; 
+    // Nuevo getter y setter para el objeto EncuestaDetallePregunta
+    public EncuestaDetallePregunta getEncuestaDetallePregunta() {
+        return encuestaDetallePregunta;
     }
 
     public void setEncuestaDetallePregunta(EncuestaDetallePregunta encuestaDetallePregunta) {
-        this.encuestaDetallePregunta = encuestaDetallePregunta; 
-    }
-
-    @Override
-    public String toString() {
-        return "RespuestaUsuario{" +
-               "idRespuestaUsuario=" + idRespuestaUsuario +
-               ", idEncuestaDetallePregunta=" + idEncuestaDetallePregunta +
-               ", idUsuario=" + idUsuario +
-               ", valorRespuesta='" + valorRespuesta + '\'' +
-               ", fechaHoraRespuesta=" + fechaHoraRespuesta +
-               '}';
+        this.encuestaDetallePregunta = encuestaDetallePregunta;
     }
 }

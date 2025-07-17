@@ -62,6 +62,10 @@ public class ServicioPreguntas {
         return preguntaBancoDAO.obtenerTodasLasPreguntas();
     }
 
+    // Este método ahora llama al método renombrado en TipoPreguntaDAO
+    public List<TipoPregunta> obtenerTodosLosTiposPregunta() {
+        return tipoPreguntaDAO.obtenerTodosLosTiposPregunta(); //
+    }
    
     public PreguntaBanco obtenerPreguntaPorId(int idPreguntaBanco) {
         return preguntaBancoDAO.obtenerPreguntaPorId(idPreguntaBanco);

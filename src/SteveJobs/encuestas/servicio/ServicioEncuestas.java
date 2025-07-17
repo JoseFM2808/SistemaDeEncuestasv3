@@ -15,11 +15,12 @@ import SteveJobs.encuestas.modelo.Usuario;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate; 
-import java.time.Period; 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
 import java.util.Date;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 
 
@@ -39,7 +40,6 @@ public class ServicioEncuestas {
     }
 
     public int registrarNuevaEncuesta(String nombre, String descripcion, Timestamp fechaInicio, Timestamp fechaFin, int publicoObjetivo, String perfilRequerido, int idAdmin) {
-        
         if (nombre == null || nombre.trim().isEmpty()) {
             System.err.println("Servicio: El nombre de la encuesta es obligatorio.");
             return -1;
@@ -60,7 +60,7 @@ public class ServicioEncuestas {
         nuevaEncuesta.setFechaInicio(fechaInicio);
         nuevaEncuesta.setFechaFin(fechaFin);
         nuevaEncuesta.setPublicoObjetivo(publicoObjetivo);
-        nuevaEncuesta.setPerfilRequerido(perfilRequerido); 
+        nuevaEncuesta.setPerfilRequerido(perfilRequerido);
         nuevaEncuesta.setIdAdminCreador(idAdmin);
         nuevaEncuesta.setEstado("Borrador");
         nuevaEncuesta.setFechaCreacion(new Timestamp(System.currentTimeMillis()));
@@ -74,7 +74,6 @@ public class ServicioEncuestas {
             return encuestas;
         }
 
-       
         for (int i = 1; i < encuestas.size(); i++) {
             Encuesta encuestaActual = encuestas.get(i);
             String nombreActual = encuestaActual.getNombre() != null ? encuestaActual.getNombre() : "";
@@ -91,7 +90,6 @@ public class ServicioEncuestas {
     public Encuesta buscarEncuestaEnListaPorId(List<Encuesta> listaEncuestas, int idBuscado) {
         if (listaEncuestas == null || listaEncuestas.isEmpty()) return null;
         
-        
         List<Encuesta> copiaOrdenadaPorId = new ArrayList<>(listaEncuestas);
         copiaOrdenadaPorId.sort(Comparator.comparingInt(Encuesta::getIdEncuesta));
 
@@ -107,7 +105,7 @@ public class ServicioEncuestas {
                 der = med - 1;
             }
         }
-        return null; 
+        return null;
     }
 
     private Timestamp convertirStringATimestamp(String fechaStr) {
@@ -129,7 +127,6 @@ public class ServicioEncuestas {
         }
     }
     
-    
     public boolean modificarMetadatosEncuesta(int idEncuesta, String nuevoNombre, String nuevaDescripcion, Timestamp nuevaFechaInicio, Timestamp nuevaFechaFin, int nuevoPublicoObj, String nuevoPerfilDef) {
         Encuesta encuesta = encuestaDAO.obtenerEncuestaPorId(idEncuesta);
         if (encuesta == null) {
@@ -150,7 +147,6 @@ public class ServicioEncuestas {
         if (encuesta == null) {
             return false;
         }
-       
         if ("Activa".equalsIgnoreCase(nuevoEstado)) {
             if (encuestaDetalleDAO.contarPreguntasEnEncuesta(idEncuesta) != 12) {
                 System.err.println("Servicio: No se puede activar. La encuesta debe tener exactamente 12 preguntas.");
@@ -176,7 +172,6 @@ public class ServicioEncuestas {
 
         for(Encuesta e : todasActivas){
             if("Activa".equalsIgnoreCase(e.getEstado())){
-                
                 if (cumplePerfil(e.getPerfilRequerido(), usuario)) {
                     activasFiltradas.add(e);
                 } else {
@@ -187,22 +182,20 @@ public class ServicioEncuestas {
         return activasFiltradas;
     }
 
-    
     private boolean cumplePerfil(String perfilRequerido, Usuario usuario) {
         if (perfilRequerido == null || perfilRequerido.trim().isEmpty()) {
-            return true; 
+            return true;
         }
 
-       
         String[] condiciones = perfilRequerido.trim().split(";");
         
         for (String cond : condiciones) {
             if (cond.trim().isEmpty()) continue;
 
-            String[] partes = cond.trim().split(":", 2); 
+            String[] partes = cond.trim().split(":", 2);
             if (partes.length != 2) {
                 System.out.println("Servicio: Condición de perfil '" + cond + "' mal formada. Se asume que se cumple.");
-                continue; 
+                continue;
             }
 
             String clave = partes[0].trim().toUpperCase();
@@ -222,7 +215,7 @@ public class ServicioEncuestas {
                 case "EDAD":
                     if (usuario.getFecha_nacimiento() == null) {
                         System.out.println("Servicio: Condición de EDAD en perfil pero fecha de nacimiento de usuario es nula.");
-                        return false; 
+                        return false;
                     }
                     try {
                         int edadUsuario = Period.between(usuario.getFecha_nacimiento(), LocalDate.now()).getYears();
@@ -243,23 +236,21 @@ public class ServicioEncuestas {
                              int edadExacta = Integer.parseInt(valor.substring(1));
                              if (edadUsuario != edadExacta) return false;
                         } else {
-                            
                             int edadMin = Integer.parseInt(valor);
                             if (edadUsuario < edadMin) return false;
                         }
                     } catch (NumberFormatException e) {
                         System.err.println("Servicio: Formato de EDAD inválido en perfil requerido: " + valor);
-                        return false; 
+                        return false;
                     }
                     break;
                 
                 default:
                     System.out.println("Servicio: Clave de perfil '" + clave + "' no reconocida. Se asume que se cumple.");
-                    
                     break;
             }
         }
-        return true; 
+        return true;
     }
 
 
@@ -289,7 +280,6 @@ public class ServicioEncuestas {
              clasif = clasificacionPreguntaDAO.obtenerClasificacionPorNombre(nombreClasificacion);
         }
 
-
         if (tipo == null) {
             System.err.println("Servicio: Tipo de pregunta '" + nombreTipo + "' no válido.");
             return false;
@@ -315,7 +305,7 @@ public class ServicioEncuestas {
         }
         if (criterioDescarte == null || criterioDescarte.trim().isEmpty()){
             System.err.println("Servicio: El criterio de descarte no puede estar vacío al marcar como descarte.");
-            return false; // Asegurar que no se marque como descarte sin criterio
+            return false;
         }
         detalle.setEsPreguntaDescarte(true);
         detalle.setCriterioDescarteValor(criterioDescarte);
@@ -334,12 +324,11 @@ public class ServicioEncuestas {
     }
 
     public boolean eliminarPreguntaDeEncuesta(int idEncuesta, int idEncuestaDetalle){
-        
         return encuestaDetalleDAO.eliminarPreguntaDeEncuesta(idEncuestaDetalle);
     }
     
     public boolean eliminarPreguntaDeEncuestaServicio(int idEncuestaDetalle) {
-    return encuestaDetalleDAO.eliminarPreguntaDeEncuesta(idEncuestaDetalle);
+        return encuestaDetalleDAO.eliminarPreguntaDeEncuesta(idEncuestaDetalle);
     }
 
     public List<EncuestaDetallePregunta> obtenerPreguntasDeEncuesta(int idEncuesta) {
@@ -351,7 +340,6 @@ public class ServicioEncuestas {
         if (original == null) return null;
 
         Encuesta copia = new Encuesta();
-        
         copia.setNombre("Copia de " + original.getNombre());
         copia.setDescripcion(original.getDescripcion());
         copia.setFechaInicio(original.getFechaInicio());
@@ -365,11 +353,10 @@ public class ServicioEncuestas {
         int idNuevaEncuesta = encuestaDAO.crearEncuesta(copia);
         if (idNuevaEncuesta != -1) {
             copia.setIdEncuesta(idNuevaEncuesta);
-          
             List<EncuestaDetallePregunta> detallesOriginales = encuestaDetalleDAO.obtenerPreguntasPorEncuesta(idEncuestaOriginal);
             for(EncuestaDetallePregunta detalle : detallesOriginales) {
                 detalle.setIdEncuesta(idNuevaEncuesta); 
-                detalle.setIdEncuestaDetalle(0); 
+                detalle.setIdEncuestaDetalle(0);
                 encuestaDetalleDAO.agregarPreguntaAEncuesta(detalle);
             }
             return copia;
@@ -386,37 +373,45 @@ public class ServicioEncuestas {
             ClasificacionPreguntaDAO cpDao = new ClasificacionPreguntaDAO();
 
             for(EncuestaDetallePregunta edp : preguntas) {
-                if (edp.getIdPreguntaBanco() != null && edp.getPreguntaDelBanco() == null) {
+                if (edp.getIdPreguntaBanco() != null) { 
                     PreguntaBanco preguntaBanco = pbDao.obtenerPreguntaPorId(edp.getIdPreguntaBanco());
                     if (preguntaBanco != null) {
                         TipoPregunta tipo = tpDao.obtenerTipoPreguntaPorId(preguntaBanco.getIdTipoPregunta());
-                        if(tipo != null) preguntaBanco.setNombreTipoPregunta(tipo.getNombreTipo());
+                        if(tipo != null) {
+                            preguntaBanco.setNombreTipoPregunta(tipo.getNombreTipo());
+                            edp.setTipoPreguntaObj(tipo);
+                        }
 
                         if(preguntaBanco.getIdClasificacion() != null && preguntaBanco.getIdClasificacion() > 0){
                             ClasificacionPregunta clasif = cpDao.obtenerClasificacionPorId(preguntaBanco.getIdClasificacion());
-                            if(clasif != null) preguntaBanco.setNombreClasificacion(clasif.getNombreClasificacion());
+                            if(clasif != null) {
+                                preguntaBanco.setNombreClasificacion(clasif.getNombreClasificacion());
+                                edp.setClasificacionPreguntaObj(clasif);
+                            }
                         }
                     }
                     edp.setPreguntaDelBanco(preguntaBanco);
                 } else if (edp.getTextoPreguntaUnica() != null) {
                     if (edp.getIdTipoPreguntaUnica() != null) {
-                       
                         TipoPregunta tipoUnica = tpDao.obtenerTipoPreguntaPorId(edp.getIdTipoPreguntaUnica());
-                        
+                        if(tipoUnica != null) {
+                            edp.setTipoPreguntaObj(tipoUnica);
+                        }
                     }
                      if (edp.getIdClasificacionUnica() != null) {
-                        
                         ClasificacionPregunta clasifUnica = cpDao.obtenerClasificacionPorId(edp.getIdClasificacionUnica());
-                        
+                        if(clasifUnica != null) {
+                            edp.setClasificacionPreguntaObj(clasifUnica);
+                        }
                     }
                 }
             }
+            Collections.sort(preguntas, (p1, p2) -> Integer.compare(p1.getOrdenEnEncuesta(), p2.getOrdenEnEncuesta()));
             encuesta.setPreguntasAsociadas(preguntas);
         }
         return encuesta;
     }
 
-   
     public EncuestaDetallePregunta buscarPreguntaPorOrden(int idEncuesta, int ordenBuscado) {
         List<EncuestaDetallePregunta> preguntas = obtenerPreguntasDeEncuesta(idEncuesta);
 
@@ -425,14 +420,76 @@ public class ServicioEncuestas {
             return null;
         }
 
-        
         for (EncuestaDetallePregunta edp : preguntas) {
             if (edp.getOrdenEnEncuesta() == ordenBuscado) {
-                return edp; 
+                return edp;
             }
         }
 
         System.out.println("ServicioEncuestas: No se encontró pregunta con orden " + ordenBuscado + " en la encuesta ID " + idEncuesta + ".");
-        return null; 
+        return null;
+    }
+
+    // NUEVO MÉTODO: Obtener una pregunta detalle por su ID (para la GUI)
+    public EncuestaDetallePregunta obtenerPreguntaDetallePorId(int idEncuestaDetalle) {
+        return encuestaDetalleDAO.obtenerPreguntaDetallePorId(idEncuestaDetalle);
+    }
+
+    // NUEVO MÉTODO: Actualizar un objeto EncuestaDetallePregunta (para la GUI de modificación)
+    public boolean actualizarDetallePregunta(EncuestaDetallePregunta detalle) {
+        return encuestaDetalleDAO.actualizarDetallePregunta(detalle);
+    }
+
+    // NUEVO MÉTODO: Mover preguntas en la encuesta (cambiar su orden)
+    public boolean moverPreguntaEnEncuesta(int idEncuesta, int idEncuestaDetalleAMover, boolean moverArriba) {
+        List<EncuestaDetallePregunta> preguntas = encuestaDetalleDAO.obtenerPreguntasPorEncuesta(idEncuesta);
+        if (preguntas == null || preguntas.isEmpty()) {
+            return false;
+        }
+
+        // Asegurarse de que la lista esté ordenada por ordenEnEncuesta
+        Collections.sort(preguntas, Comparator.comparingInt(EncuestaDetallePregunta::getOrdenEnEncuesta));
+
+        EncuestaDetallePregunta preguntaAMover = null;
+        int indiceAMover = -1;
+
+        for (int i = 0; i < preguntas.size(); i++) {
+            if (preguntas.get(i).getIdEncuestaDetalle() == idEncuestaDetalleAMover) {
+                preguntaAMover = preguntas.get(i);
+                indiceAMover = i;
+                break;
+            }
+        }
+
+        if (preguntaAMover == null) {
+            System.err.println("ServicioEncuestas: Pregunta a mover no encontrada con ID detalle: " + idEncuestaDetalleAMover);
+            return false;
+        }
+
+        int nuevoOrdenParaAMover = -1;
+        EncuestaDetallePregunta preguntaAdyacente = null;
+
+        if (moverArriba) { // Mover hacia una posición de orden menor
+            if (indiceAMover == 0) { // Ya está en la primera posición
+                return false;
+            }
+            preguntaAdyacente = preguntas.get(indiceAMover - 1);
+            nuevoOrdenParaAMover = preguntaAdyacente.getOrdenEnEncuesta(); // El orden del de arriba
+        } else { // Mover hacia una posición de orden mayor
+            if (indiceAMover == preguntas.size() - 1) { // Ya está en la última posición
+                return false;
+            }
+            preguntaAdyacente = preguntas.get(indiceAMover + 1);
+            nuevoOrdenParaAMover = preguntaAdyacente.getOrdenEnEncuesta(); // El orden del de abajo
+        }
+
+        // Intercambiar órdenes
+        int ordenOriginalAMover = preguntaAMover.getOrdenEnEncuesta();
+        int ordenOriginalAdyacente = preguntaAdyacente.getOrdenEnEncuesta();
+
+        boolean exito1 = encuestaDetalleDAO.actualizarOrdenPregunta(preguntaAMover.getIdEncuestaDetalle(), nuevoOrdenParaAMover);
+        boolean exito2 = encuestaDetalleDAO.actualizarOrdenPregunta(preguntaAdyacente.getIdEncuestaDetalle(), ordenOriginalAMover);
+
+        return exito1 && exito2;
     }
 }

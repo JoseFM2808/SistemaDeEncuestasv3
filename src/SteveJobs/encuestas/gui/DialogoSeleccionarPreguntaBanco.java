@@ -1,6 +1,8 @@
 package SteveJobs.encuestas.gui;
 
 import SteveJobs.encuestas.modelo.PreguntaBanco;
+import SteveJobs.encuestas.modelo.TipoPregunta;
+import SteveJobs.encuestas.modelo.ClasificacionPregunta;
 import SteveJobs.encuestas.servicio.ServicioPreguntas;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -8,37 +10,39 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+import java.util.Objects; 
 
 /**
- * Diálogo modal para seleccionar una pregunta del banco de preguntas existente.
+ * Diálogo modal para seleccionar una pregunta del banco de preguntas
+ * y asociarla a una encuesta.
  *
  * @author José Flores
  */
 public class DialogoSeleccionarPreguntaBanco extends JDialog {
 
-    private JTable tblBancoPreguntas;
+    private ServicioPreguntas servicioPreguntas;
+    private JTable tblPreguntas;
     private DefaultTableModel tableModel;
-    private PreguntaBanco preguntaSeleccionada = null; // La pregunta que se devolverá
+    private JButton btnSeleccionar, btnCancelar;
 
-    private final ServicioPreguntas servicioPreguntas;
+    private PreguntaBanco preguntaSeleccionada;
 
     public DialogoSeleccionarPreguntaBanco(JFrame parent) {
         super(parent, "Seleccionar Pregunta del Banco", true); // true para modal
-        servicioPreguntas = new ServicioPreguntas();
+        this.servicioPreguntas = new ServicioPreguntas();
         initComponents();
         setupDialog();
-        cargarBancoPreguntas();
+        cargarPreguntas();
     }
 
     private void initComponents() {
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        JLabel lblTitulo = new JLabel("Seleccione una Pregunta del Banco", SwingConstants.CENTER);
+        JLabel lblTitulo = new JLabel("Seleccione una pregunta del banco", SwingConstants.CENTER);
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 18));
         mainPanel.add(lblTitulo, BorderLayout.NORTH);
 
-        // Tabla para listar preguntas del banco
         String[] columnNames = {"ID", "Texto Pregunta", "Tipo", "Clasificación"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
@@ -46,15 +50,15 @@ public class DialogoSeleccionarPreguntaBanco extends JDialog {
                 return false;
             }
         };
-        tblBancoPreguntas = new JTable(tableModel);
-        tblBancoPreguntas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        tblBancoPreguntas.getTableHeader().setReorderingAllowed(false);
-        JScrollPane scrollPane = new JScrollPane(tblBancoPreguntas);
+        tblPreguntas = new JTable(tableModel);
+        tblPreguntas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tblPreguntas.getTableHeader().setReorderingAllowed(false);
+        JScrollPane scrollPane = new JScrollPane(tblPreguntas);
         mainPanel.add(scrollPane, BorderLayout.CENTER);
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton btnSeleccionar = new JButton("Seleccionar");
-        JButton btnCancelar = new JButton("Cancelar");
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        btnSeleccionar = new JButton("Seleccionar");
+        btnCancelar = new JButton("Cancelar");
 
         buttonPanel.add(btnSeleccionar);
         buttonPanel.add(btnCancelar);
@@ -73,16 +77,16 @@ public class DialogoSeleccionarPreguntaBanco extends JDialog {
         btnCancelar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                preguntaSeleccionada = null; // No seleccionar nada
+                preguntaSeleccionada = null; // No seleccionar nada al cancelar
                 dispose();
             }
         });
-        
-        // Doble click para seleccionar
-        tblBancoPreguntas.addMouseListener(new MouseAdapter() {
+
+        // Doble click en la tabla para seleccionar
+        tblPreguntas.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                if (e.getClickCount() == 2) {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                if (evt.getClickCount() == 2 && evt.getButton() == java.awt.event.MouseEvent.BUTTON1) {
                     seleccionarPregunta();
                 }
             }
@@ -90,53 +94,59 @@ public class DialogoSeleccionarPreguntaBanco extends JDialog {
     }
 
     private void setupDialog() {
-        setSize(700, 450); // Tamaño fijo para el diálogo
+        setSize(700, 500);
         setLocationRelativeTo(getParent());
-        setResizable(false);
+        setResizable(true);
     }
 
-    private void cargarBancoPreguntas() {
-        tableModel.setRowCount(0);
+    private void cargarPreguntas() {
+        tableModel.setRowCount(0); // Limpiar tabla
         try {
             List<PreguntaBanco> preguntas = servicioPreguntas.obtenerTodasLasPreguntasDelBanco();
             if (preguntas.isEmpty()) {
                 tableModel.addRow(new Object[]{"", "No hay preguntas en el banco.", "", ""});
-                tblBancoPreguntas.setEnabled(false);
+                tblPreguntas.setEnabled(false);
                 return;
             }
+
             for (PreguntaBanco pregunta : preguntas) {
                 tableModel.addRow(new Object[]{
-                    pregunta.getIdPreguntaBanco(),
+                    pregunta.getIdPreguntaBanco(), // CORRECCIÓN: Usar getIdPreguntaBanco()
                     pregunta.getTextoPregunta(),
-                    pregunta.getTipoPregunta() != null ? pregunta.getTipoPregunta().getNombreTipo() : "N/A",
-                    pregunta.getClasificacionPregunta() != null ? pregunta.getClasificacionPregunta().getNombreClasificacion() : "N/A"
+                    pregunta.getNombreTipoPregunta() != null ? pregunta.getNombreTipoPregunta() : "N/A",
+                    pregunta.getNombreClasificacion() != null ? pregunta.getNombreClasificacion() : "N/A"
                 });
             }
-            tblBancoPreguntas.setEnabled(true);
+            tblPreguntas.setEnabled(true);
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error al cargar el banco de preguntas: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            System.err.println("Error en DialogoSeleccionarPreguntaBanco al cargar: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Error al cargar las preguntas del banco: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            System.err.println("Error en DialogoSeleccionarPreguntaBanco al cargar preguntas: " + ex.getMessage());
             ex.printStackTrace();
         }
     }
 
     private void seleccionarPregunta() {
-        int selectedRow = tblBancoPreguntas.getSelectedRow();
+        int selectedRow = tblPreguntas.getSelectedRow();
         if (selectedRow == -1) {
             JOptionPane.showMessageDialog(this, "Por favor, selecciona una pregunta de la tabla.", "Advertencia", JOptionPane.WARNING_MESSAGE);
             return;
         }
+
         if (tableModel.getValueAt(selectedRow, 0) == null || tableModel.getValueAt(selectedRow, 0).toString().isEmpty()) {
-             JOptionPane.showMessageDialog(this, "No hay una pregunta válida seleccionada.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-             return;
+            JOptionPane.showMessageDialog(this, "No hay una pregunta válida seleccionada.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
         }
 
         int idPregunta = (int) tableModel.getValueAt(selectedRow, 0);
         try {
             preguntaSeleccionada = servicioPreguntas.obtenerPreguntaPorId(idPregunta);
-            dispose(); // Cierra el diálogo
+            if (preguntaSeleccionada != null) {
+                dispose();
+            } else {
+                JOptionPane.showMessageDialog(this, "No se pudo obtener la pregunta seleccionada.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error al obtener la pregunta seleccionada: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error al seleccionar la pregunta: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             System.err.println("Error en DialogoSeleccionarPreguntaBanco al seleccionar: " + ex.getMessage());
             ex.printStackTrace();
         }

@@ -1,3 +1,11 @@
+/*
+ * Autores del Módulo:
+ * - Pablo Alegre
+ * - Asistente de AED (Actualización para captura de Nombres y Apellidos por separado)
+ *
+ * Responsabilidad Principal:
+ * - UI para registro de usuarios
+ */
 package SteveJobs.encuestas.ui;
 
 import SteveJobs.encuestas.servicio.ServicioUsuarios;
@@ -8,8 +16,8 @@ import javax.swing.JTextField;
 public class UIRegistroUsuario {
 
     public static void mostrarFormularioRegistro() {
-        String docId, nombres, apellidos, email, password, confirmarPassword;
-        String tipoUsuarioSeleccionado;
+        String docId, nombres, apellidos, email, password, confirmarPassword; // Añadido 'apellidos'
+        String tipoUsuarioSeleccionado; // Esta variable no se usa para selección, se asigna por defecto
 
         docId = JOptionPane.showInputDialog(null, "Documento de Identidad:", "Registro de Usuario", JOptionPane.PLAIN_MESSAGE);
         if (docId == null) {
@@ -20,7 +28,7 @@ public class UIRegistroUsuario {
             return;
         }
 
-        
+        // --- CAMBIO AQUÍ: Pedir Nombres y Apellidos por separado ---
         nombres = JOptionPane.showInputDialog(null, "Nombres:", "Registro de Usuario", JOptionPane.PLAIN_MESSAGE);
         if (nombres == null) {
             return;
@@ -38,7 +46,7 @@ public class UIRegistroUsuario {
             JOptionPane.showMessageDialog(null, "Los Apellidos no pueden estar vacíos.", "Error de Entrada", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+        // --- FIN CAMBIO ---
 
         email = JOptionPane.showInputDialog(null, "Email:", "Registro de Usuario", JOptionPane.PLAIN_MESSAGE);
         if (email == null) {
@@ -78,21 +86,21 @@ public class UIRegistroUsuario {
             return;
         }
 
-        String rolPorDefecto = "Encuestado";
+        String rolPorDefecto = "Encuestado"; // Por defecto, el rol para auto-registro es "Encuestado"
 
         ServicioUsuarios servicioUsuarios = new ServicioUsuarios();
 
-        
+        // Adaptar la llamada al nuevo método registrarNuevoUsuario con los campos de nombres y apellidos separados
         boolean registrado = servicioUsuarios.registrarNuevoUsuario(
-                docId.trim(),
-                nombres.trim(),
-                apellidos.trim(),
-                email.trim(),
-                password,
-                null,               
-                null,               
-                null,               
-                rolPorDefecto       
+                docId.trim(),       // dni
+                nombres.trim(),     // nombres
+                apellidos.trim(),   // apellidos (ahora capturado)
+                email.trim(),       // email
+                password,           // clave
+                null,               // fecha_nacimiento
+                null,               // genero
+                null,               // distrito_residencia
+                rolPorDefecto       // rol
         );
 
         if (registrado) {
@@ -122,10 +130,10 @@ public class UIRegistroUsuario {
     }
 
     public UIRegistroUsuario(JTextField txtNombres, JTextField txtApellidos) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     public UIRegistroUsuario() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }

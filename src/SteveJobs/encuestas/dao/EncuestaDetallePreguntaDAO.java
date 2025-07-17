@@ -2,30 +2,46 @@ package SteveJobs.encuestas.dao;
 
 import SteveJobs.encuestas.modelo.EncuestaDetallePregunta;
 import SteveJobs.encuestas.modelo.PreguntaBanco;
+import SteveJobs.encuestas.modelo.TipoPregunta;
+import SteveJobs.encuestas.modelo.ClasificacionPregunta;
 import SteveJobs.encuestas.conexion.ConexionDB;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class EncuestaDetallePreguntaDAO {
 
+    private PreguntaBancoDAO preguntaBancoDAO;
+    private TipoPreguntaDAO tipoPreguntaDAO;
+    private ClasificacionPreguntaDAO clasificacionPreguntaDAO;
+
+    public EncuestaDetallePreguntaDAO() {
+        this.preguntaBancoDAO = new PreguntaBancoDAO();
+        this.tipoPreguntaDAO = new TipoPreguntaDAO();
+        this.clasificacionPreguntaDAO = new ClasificacionPreguntaDAO();
+    }
+
     public boolean agregarPreguntaAEncuesta(EncuestaDetallePregunta detalle) {
-        String sql = "INSERT INTO encuesta_preguntas (id_encuesta, id_pregunta_banco, texto_pregunta_unica, id_tipo_pregunta_unica, id_clasificacion_unica, orden_en_encuesta, es_pregunta_descarte, criterio_descarte_valor) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO encuestas_detalle_pregunta " +
+                     "(id_encuesta, id_pregunta_banco, texto_pregunta_unica, id_tipo_pregunta_unica, id_clasificacion_unica, " +
+                     "orden_en_encuesta, es_pregunta_descarte, criterio_descarte_valor) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         Connection con = null;
         PreparedStatement ps = null;
         boolean exito = false;
-
         try {
             con = ConexionDB.conectar();
             if (con == null) return false;
-            ps = con.prepareStatement(sql);
+            ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setInt(1, detalle.getIdEncuesta());
-
-            if (detalle.getIdPreguntaBanco() != null && detalle.getIdPreguntaBanco() > 0) {
+            
+            if (detalle.getIdPreguntaBanco() != null) {
                 ps.setInt(2, detalle.getIdPreguntaBanco());
                 ps.setNull(3, java.sql.Types.VARCHAR);
                 ps.setNull(4, java.sql.Types.INTEGER);
@@ -33,176 +49,206 @@ public class EncuestaDetallePreguntaDAO {
             } else {
                 ps.setNull(2, java.sql.Types.INTEGER);
                 ps.setString(3, detalle.getTextoPreguntaUnica());
-                if (detalle.getIdTipoPreguntaUnica() != null && detalle.getIdTipoPreguntaUnica() > 0) {
+                if (detalle.getIdTipoPreguntaUnica() != null) {
                     ps.setInt(4, detalle.getIdTipoPreguntaUnica());
                 } else {
                     ps.setNull(4, java.sql.Types.INTEGER);
                 }
-                if (detalle.getIdClasificacionUnica() != null && detalle.getIdClasificacionUnica() > 0) {
+                if (detalle.getIdClasificacionUnica() != null) {
                     ps.setInt(5, detalle.getIdClasificacionUnica());
                 } else {
                     ps.setNull(5, java.sql.Types.INTEGER);
                 }
             }
+
             ps.setInt(6, detalle.getOrdenEnEncuesta());
             ps.setBoolean(7, detalle.isEsPreguntaDescarte());
             ps.setString(8, detalle.getCriterioDescarteValor());
 
-            exito = ps.executeUpdate() > 0;
+            if (ps.executeUpdate() > 0) {
+                ResultSet rs = ps.getGeneratedKeys();
+                if(rs.next()){
+                    detalle.setIdEncuestaDetalle(rs.getInt(1));
+                }
+                exito = true;
+            }
         } catch (SQLException e) {
-            System.err.println("DAO Error al agregar pregunta a encuesta: " + e.getMessage());
+            System.err.println("EncuestaDetallePreguntaDAO: Error SQL al agregar pregunta a encuesta: " + e.getMessage());
             e.printStackTrace();
         } finally {
-            ConexionDB.cerrar(ps);
-            ConexionDB.cerrar(con);
+            ConexionDB.cerrar(null, ps, con);
         }
         return exito;
     }
 
-    public List<EncuestaDetallePregunta> obtenerPreguntasPorEncuesta(int idEncuesta) {
-        List<EncuestaDetallePregunta> detalles = new ArrayList<>();
-        String sql = "SELECT edp.*, " +
-                     "pb.texto_pregunta AS texto_banco, pb.id_tipo_pregunta AS id_tipo_banco, pb.id_clasificacion AS id_clasif_banco, " +
-                     "tpu.nombre_tipo AS nombre_tipo_unica, cpu.nombre_clasificacion AS nombre_clasif_unica " +
-                     "FROM encuesta_preguntas edp " + // Nombre de tabla corregido aquí
-                     "LEFT JOIN banco_preguntas pb ON edp.id_pregunta_banco = pb.id_pregunta_banco " +
-                     "LEFT JOIN tipos_pregunta tpu ON edp.id_tipo_pregunta_unica = tpu.id_tipo_pregunta " +
-                     "LEFT JOIN clasificaciones_pregunta cpu ON edp.id_clasificacion_unica = cpu.id_clasificacion " +
-                     "WHERE edp.id_encuesta = ? ORDER BY edp.orden_en_encuesta ASC";
+    public boolean actualizarDetallePregunta(EncuestaDetallePregunta detalle) {
+        String sql = "UPDATE encuestas_detalle_pregunta SET " +
+                     "id_pregunta_banco = ?, texto_pregunta_unica = ?, id_tipo_pregunta_unica = ?, id_clasificacion_unica = ?, " +
+                     "orden_en_encuesta = ?, es_pregunta_descarte = ?, criterio_descarte_valor = ? " +
+                     "WHERE id_encuesta_detalle = ?";
         Connection con = null;
         PreparedStatement ps = null;
-        ResultSet rs = null;
-
+        boolean exito = false;
         try {
             con = ConexionDB.conectar();
-            if (con == null) return detalles;
+            if (con == null) return false;
             ps = con.prepareStatement(sql);
-            ps.setInt(1, idEncuesta);
-            rs = ps.executeQuery();
-            while (rs.next()) {
-                EncuestaDetallePregunta detalle = new EncuestaDetallePregunta();
-                detalle.setIdEncuestaDetalle(rs.getInt("id_encuesta_detalle"));
-                detalle.setIdEncuesta(rs.getInt("id_encuesta"));
-                detalle.setOrdenEnEncuesta(rs.getInt("orden_en_encuesta"));
-                detalle.setEsPreguntaDescarte(rs.getBoolean("es_pregunta_descarte"));
-                detalle.setCriterioDescarteValor(rs.getString("criterio_descarte_valor"));
 
-                Integer idPreguntaBanco = rs.getInt("id_pregunta_banco");
-                if (!rs.wasNull()) {
-                    detalle.setIdPreguntaBanco(idPreguntaBanco);
-                    PreguntaBanco preguntaDelBanco = new PreguntaBanco();
-                    preguntaDelBanco.setIdPreguntaBanco(idPreguntaBanco);
-                    preguntaDelBanco.setTextoPregunta(rs.getString("texto_banco"));
-                    detalle.setPreguntaDelBanco(preguntaDelBanco);
+            if (detalle.getIdPreguntaBanco() != null) {
+                ps.setInt(1, detalle.getIdPreguntaBanco());
+                ps.setNull(2, java.sql.Types.VARCHAR);
+                ps.setNull(3, java.sql.Types.INTEGER);
+                ps.setNull(4, java.sql.Types.INTEGER);
+            } else {
+                ps.setNull(1, java.sql.Types.INTEGER);
+                ps.setString(2, detalle.getTextoPreguntaUnica());
+                if (detalle.getIdTipoPreguntaUnica() != null) {
+                    ps.setInt(3, detalle.getIdTipoPreguntaUnica());
                 } else {
-                    detalle.setTextoPreguntaUnica(rs.getString("texto_pregunta_unica"));
-                    Integer idTipoUnica = rs.getInt("id_tipo_pregunta_unica");
-                    detalle.setIdTipoPreguntaUnica(rs.wasNull() ? null : idTipoUnica);
-                    Integer idClasifUnica = rs.getInt("id_clasificacion_unica");
-                    detalle.setIdClasificacionUnica(rs.wasNull() ? null : idClasifUnica);
+                    ps.setNull(3, java.sql.Types.INTEGER);
                 }
-                detalles.add(detalle);
+                if (detalle.getIdClasificacionUnica() != null) {
+                    ps.setInt(4, detalle.getIdClasificacionUnica());
+                } else {
+                    ps.setNull(4, java.sql.Types.INTEGER);
+                }
             }
+
+            ps.setInt(5, detalle.getOrdenEnEncuesta());
+            ps.setBoolean(6, detalle.isEsPreguntaDescarte());
+            ps.setString(7, detalle.getCriterioDescarteValor());
+            ps.setInt(8, detalle.getIdEncuestaDetalle());
+
+            exito = ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("DAO Error al obtener preguntas de la encuesta: " + e.getMessage());
+            System.err.println("EncuestaDetallePreguntaDAO: Error SQL al actualizar detalle de pregunta: " + e.getMessage());
             e.printStackTrace();
         } finally {
-            ConexionDB.cerrar(rs, ps, con);
+            ConexionDB.cerrar(null, ps, con);
         }
-        return detalles;
+        return exito;
     }
 
-    public EncuestaDetallePregunta obtenerPreguntaDetallePorId(int idEncuestaDetalle) {
-        String sql = "SELECT edp.*, pb.texto_pregunta AS texto_banco FROM encuesta_preguntas edp " + // Nombre de tabla corregido aquí
-                     "LEFT JOIN banco_preguntas pb ON edp.id_pregunta_banco = pb.id_pregunta_banco " +
-                     "WHERE edp.id_encuesta_detalle = ?";
+    public EncuestaDetallePregunta obtenerPreguntaDetallePorId(int idDetalle) {
+        String sql = "SELECT * FROM encuestas_detalle_pregunta WHERE id_encuesta_detalle = ?";
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
         EncuestaDetallePregunta detalle = null;
+
         try {
             con = ConexionDB.conectar();
-            if (con != null) {
-                ps = con.prepareStatement(sql);
-                ps.setInt(1, idEncuestaDetalle);
-                rs = ps.executeQuery();
-                if (rs.next()) {
-                    detalle = new EncuestaDetallePregunta();
-                    detalle.setIdEncuestaDetalle(rs.getInt("id_encuesta_detalle"));
-                    detalle.setIdEncuesta(rs.getInt("id_encuesta"));
-                    detalle.setOrdenEnEncuesta(rs.getInt("orden_en_encuesta"));
-                    detalle.setEsPreguntaDescarte(rs.getBoolean("es_pregunta_descarte"));
-                    detalle.setCriterioDescarteValor(rs.getString("criterio_descarte_valor"));
+            if (con == null) return null;
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, idDetalle);
+            rs = ps.executeQuery();
 
-                    Integer idPreguntaBanco = rs.getInt("id_pregunta_banco");
-                    if (!rs.wasNull()) {
-                        detalle.setIdPreguntaBanco(idPreguntaBanco);
-                        PreguntaBanco pb = new PreguntaBanco();
-                        pb.setIdPreguntaBanco(idPreguntaBanco);
-                        pb.setTextoPregunta(rs.getString("texto_banco"));
+            if (rs.next()) {
+                detalle = new EncuestaDetallePregunta();
+                detalle.setIdEncuestaDetalle(rs.getInt("id_encuesta_detalle"));
+                detalle.setIdEncuesta(rs.getInt("id_encuesta"));
+                detalle.setIdPreguntaBanco(rs.getObject("id_pregunta_banco", Integer.class));
+                detalle.setTextoPreguntaUnica(rs.getString("texto_pregunta_unica"));
+                detalle.setIdTipoPreguntaUnica(rs.getObject("id_tipo_pregunta_unica", Integer.class));
+                detalle.setIdClasificacionUnica(rs.getObject("id_clasificacion_unica", Integer.class));
+                detalle.setOrdenEnEncuesta(rs.getInt("orden_en_encuesta"));
+                detalle.setEsPreguntaDescarte(rs.getBoolean("es_pregunta_descarte"));
+                detalle.setCriterioDescarteValor(rs.getString("criterio_descarte_valor"));
+
+                // --- Cargar objetos asociados (para pregunta de banco o única) ---
+                if (detalle.getIdPreguntaBanco() != null) { // Es una pregunta del banco
+                    PreguntaBanco pb = preguntaBancoDAO.obtenerPreguntaPorId(detalle.getIdPreguntaBanco());
+                    if (pb != null) {
                         detalle.setPreguntaDelBanco(pb);
-                    } else {
-                        detalle.setTextoPreguntaUnica(rs.getString("texto_pregunta_unica"));
-                        Integer idTipoUnica = rs.getInt("id_tipo_pregunta_unica");
-                        detalle.setIdTipoPreguntaUnica(rs.wasNull() ? null : idTipoUnica);
-                        Integer idClasifUnica = rs.getInt("id_clasificacion_unica");
-                        detalle.setIdClasificacionUnica(rs.wasNull() ? null : idClasifUnica);
+                        // Cargar y setear TipoPregunta y ClasificacionPregunta del banco
+                        TipoPregunta tp = tipoPreguntaDAO.obtenerTipoPreguntaPorId(pb.getIdTipoPregunta());
+                        if(tp != null) detalle.setTipoPreguntaObj(tp);
+                        if(pb.getIdClasificacion() != null) {
+                            ClasificacionPregunta cp = clasificacionPreguntaDAO.obtenerClasificacionPorId(pb.getIdClasificacion());
+                            if(cp != null) detalle.setClasificacionPreguntaObj(cp);
+                        }
+                    }
+                } else { // Es una pregunta única
+                    if (detalle.getIdTipoPreguntaUnica() != null) {
+                        TipoPregunta tp = tipoPreguntaDAO.obtenerTipoPreguntaPorId(detalle.getIdTipoPreguntaUnica());
+                        if(tp != null) detalle.setTipoPreguntaObj(tp);
+                    }
+                    if (detalle.getIdClasificacionUnica() != null) {
+                        ClasificacionPregunta cp = clasificacionPreguntaDAO.obtenerClasificacionPorId(detalle.getIdClasificacionUnica());
+                        if(cp != null) detalle.setClasificacionPreguntaObj(cp);
                     }
                 }
             }
         } catch (SQLException e) {
-            System.err.println("DAO Error al obtener detalle de pregunta por ID: " + e.getMessage());
+            System.err.println("EncuestaDetallePreguntaDAO: Error SQL al obtener detalle de pregunta por ID: " + e.getMessage());
+            e.printStackTrace();
         } finally {
             ConexionDB.cerrar(rs, ps, con);
         }
         return detalle;
     }
 
-    public boolean actualizarDetallePregunta(EncuestaDetallePregunta detalle) {
-        String sql = "UPDATE encuesta_preguntas SET orden_en_encuesta = ?, es_pregunta_descarte = ?, criterio_descarte_valor = ? WHERE id_encuesta_detalle = ?";
+    public List<EncuestaDetallePregunta> obtenerPreguntasPorEncuesta(int idEncuesta) {
+        List<EncuestaDetallePregunta> preguntas = new ArrayList<>();
+        String sql = "SELECT * FROM encuestas_detalle_pregunta WHERE id_encuesta = ? ORDER BY orden_en_encuesta ASC";
         Connection con = null;
         PreparedStatement ps = null;
-        boolean exito = false;
-        try {
-            con = ConexionDB.conectar();
-            if (con == null) return false;
-            ps = con.prepareStatement(sql);
-            ps.setInt(1, detalle.getOrdenEnEncuesta());
-            ps.setBoolean(2, detalle.isEsPreguntaDescarte());
-            ps.setString(3, detalle.getCriterioDescarteValor());
-            ps.setInt(4, detalle.getIdEncuestaDetalle());
-            exito = ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            System.err.println("DAO Error al actualizar detalle de pregunta: " + e.getMessage());
-        } finally {
-            ConexionDB.cerrar(ps);
-            ConexionDB.cerrar(con);
-        }
-        return exito;
-    }
+        ResultSet rs = null;
 
-    public boolean eliminarPreguntaDeEncuesta(int idEncuestaDetalle) {
-        String sql = "DELETE FROM encuesta_preguntas WHERE id_encuesta_detalle = ?";
-        Connection con = null;
-        PreparedStatement ps = null;
-        boolean exito = false;
         try {
             con = ConexionDB.conectar();
-            if (con == null) return false;
+            if (con == null) return preguntas;
             ps = con.prepareStatement(sql);
-            ps.setInt(1, idEncuestaDetalle);
-            exito = ps.executeUpdate() > 0;
+            ps.setInt(1, idEncuesta);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                EncuestaDetallePregunta detalle = new EncuestaDetallePregunta();
+                detalle.setIdEncuestaDetalle(rs.getInt("id_encuesta_detalle"));
+                detalle.setIdEncuesta(rs.getInt("id_encuesta"));
+                detalle.setIdPreguntaBanco(rs.getObject("id_pregunta_banco", Integer.class));
+                detalle.setTextoPreguntaUnica(rs.getString("texto_pregunta_unica"));
+                detalle.setIdTipoPreguntaUnica(rs.getObject("id_tipo_pregunta_unica", Integer.class));
+                detalle.setIdClasificacionUnica(rs.getObject("id_clasificacion_unica", Integer.class));
+                detalle.setOrdenEnEncuesta(rs.getInt("orden_en_encuesta"));
+                detalle.setEsPreguntaDescarte(rs.getBoolean("es_pregunta_descarte"));
+                detalle.setCriterioDescarteValor(rs.getString("criterio_descarte_valor"));
+
+                // Cargar objetos asociados (similar a obtenerPreguntaDetallePorId)
+                if (detalle.getIdPreguntaBanco() != null) {
+                    PreguntaBanco pb = preguntaBancoDAO.obtenerPreguntaPorId(detalle.getIdPreguntaBanco());
+                    if (pb != null) {
+                        detalle.setPreguntaDelBanco(pb);
+                        TipoPregunta tp = tipoPreguntaDAO.obtenerTipoPreguntaPorId(pb.getIdTipoPregunta());
+                        if(tp != null) detalle.setTipoPreguntaObj(tp);
+                        if(pb.getIdClasificacion() != null) {
+                            ClasificacionPregunta cp = clasificacionPreguntaDAO.obtenerClasificacionPorId(pb.getIdClasificacion());
+                            if(cp != null) detalle.setClasificacionPreguntaObj(cp);
+                        }
+                    }
+                } else {
+                    if (detalle.getIdTipoPreguntaUnica() != null) {
+                        TipoPregunta tp = tipoPreguntaDAO.obtenerTipoPreguntaPorId(detalle.getIdTipoPreguntaUnica());
+                        if(tp != null) detalle.setTipoPreguntaObj(tp);
+                    }
+                    if (detalle.getIdClasificacionUnica() != null) {
+                        ClasificacionPregunta cp = clasificacionPreguntaDAO.obtenerClasificacionPorId(detalle.getIdClasificacionUnica());
+                        if(cp != null) detalle.setClasificacionPreguntaObj(cp);
+                    }
+                }
+                preguntas.add(detalle);
+            }
         } catch (SQLException e) {
-            System.err.println("DAO Error al eliminar pregunta de encuesta: " + e.getMessage());
+            System.err.println("EncuestaDetallePreguntaDAO: Error SQL al obtener preguntas por encuesta: " + e.getMessage());
+            e.printStackTrace();
         } finally {
-            ConexionDB.cerrar(ps);
-            ConexionDB.cerrar(con);
+            ConexionDB.cerrar(rs, ps, con);
         }
-        return exito;
+        return preguntas;
     }
 
     public int contarPreguntasEnEncuesta(int idEncuesta) {
-        String sql = "SELECT COUNT(*) FROM encuesta_preguntas WHERE id_encuesta = ?";
+        String sql = "SELECT COUNT(*) FROM encuestas_detalle_pregunta WHERE id_encuesta = ?";
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -217,44 +263,64 @@ public class EncuestaDetallePreguntaDAO {
                 count = rs.getInt(1);
             }
         } catch (SQLException e) {
-            System.err.println("DAO Error al contar preguntas en encuesta: " + e.getMessage());
+            System.err.println("EncuestaDetallePreguntaDAO: Error SQL al contar preguntas en encuesta: " + e.getMessage());
+            e.printStackTrace();
         } finally {
             ConexionDB.cerrar(rs, ps, con);
         }
         return count;
     }
 
-    public boolean eliminarTodasPreguntasDeEncuesta(int idEncuesta) {
-        String sql = "DELETE FROM encuesta_preguntas WHERE id_encuesta = ?";
+    public boolean eliminarPreguntaDeEncuesta(int idEncuestaDetalle) {
+        String sql = "DELETE FROM encuestas_detalle_pregunta WHERE id_encuesta_detalle = ?";
         Connection con = null;
         PreparedStatement ps = null;
         boolean exito = false;
         try {
             con = ConexionDB.conectar();
-            if (con != null) {
-                ps = con.prepareStatement(sql);
-                ps.setInt(1, idEncuesta);
-                ps.executeUpdate();
-                exito = true;
-            }
+            if (con == null) return false;
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, idEncuestaDetalle);
+            exito = ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("DAO Error al eliminar todas las preguntas de la encuesta ID " + idEncuesta + ": " + e.getMessage());
+            System.err.println("EncuestaDetallePreguntaDAO: Error SQL al eliminar pregunta de encuesta: " + e.getMessage());
             e.printStackTrace();
         } finally {
-            ConexionDB.cerrar(ps, con);
+            ConexionDB.cerrar(null, ps, con);
         }
         return exito;
     }
-
+    
+    public boolean eliminarTodasPreguntasDeEncuesta(int idEncuesta) {
+        String sql = "DELETE FROM encuestas_detalle_pregunta WHERE id_encuesta = ?";
+        Connection con = null;
+        PreparedStatement ps = null;
+        boolean exito = false;
+        try {
+            con = ConexionDB.conectar();
+            if (con == null) return false;
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, idEncuesta);
+            ps.executeUpdate();
+            exito = true;
+        } catch (SQLException e) {
+            System.err.println("EncuestaDetallePreguntaDAO: Error SQL al eliminar todas las preguntas de una encuesta: " + e.getMessage());
+            e.printStackTrace();
+            exito = false;
+        } finally {
+            ConexionDB.cerrar(null, ps, con);
+        }
+        return exito;
+    }
+    
     public boolean isPreguntaBancoUsedInActiveEncuestas(int idPreguntaBanco) {
-        String sql = "SELECT COUNT(edp.id_encuesta_detalle_pregunta) " +
-                    "FROM encuesta_detalle_preguntas edp " +
-                    "JOIN encuestas e ON edp.id_encuesta = e.id_encuesta " +
-                    "WHERE edp.id_pregunta_banco = ? AND e.estado = 'Activa'";
+        String sql = "SELECT COUNT(edp.id_encuesta_detalle) FROM encuestas_detalle_pregunta edp " +
+                     "JOIN encuestas e ON edp.id_encuesta = e.id_encuesta " +
+                     "WHERE edp.id_pregunta_banco = ? AND e.estado = 'Activa'";
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
-        int count = 0;
+        boolean inUse = false;
 
         try {
             con = ConexionDB.conectar();
@@ -262,16 +328,37 @@ public class EncuestaDetallePreguntaDAO {
             ps = con.prepareStatement(sql);
             ps.setInt(1, idPreguntaBanco);
             rs = ps.executeQuery();
-            if (rs.next()) {
-                count = rs.getInt(1);
+            if (rs.next() && rs.getInt(1) > 0) {
+                inUse = true;
             }
         } catch (SQLException e) {
-            System.err.println("EncuestaDetallePreguntaDAO: Error SQL al verificar uso de pregunta en encuestas activas: " + e.getMessage());
+            System.err.println("EncuestaDetallePreguntaDAO: Error SQL al verificar uso de pregunta de banco: " + e.getMessage());
             e.printStackTrace();
         } finally {
             ConexionDB.cerrar(rs, ps, con);
         }
-        return count > 0;
+        return inUse;
     }
 
+    // Nuevo método para actualizar solo el orden de una pregunta
+    public boolean actualizarOrdenPregunta(int idEncuestaDetalle, int nuevoOrden) {
+        String sql = "UPDATE encuestas_detalle_pregunta SET orden_en_encuesta = ? WHERE id_encuesta_detalle = ?";
+        Connection con = null;
+        PreparedStatement ps = null;
+        boolean exito = false;
+        try {
+            con = ConexionDB.conectar();
+            if (con == null) return false;
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, nuevoOrden);
+            ps.setInt(2, idEncuestaDetalle);
+            exito = ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("EncuestaDetallePreguntaDAO: Error SQL al actualizar orden de pregunta: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            ConexionDB.cerrar(null, ps, con);
+        }
+        return exito;
+    }
 }

@@ -214,15 +214,7 @@ public class GestionEncuestasGUI extends JFrame {
 
         if (nuevoEstado != null && !nuevoEstado.equalsIgnoreCase(estadoActual)) {
             try {
-                // Validación para activar: debe tener 12 preguntas
-                if ("ACTIVA".equalsIgnoreCase(nuevoEstado)) {
-                    int numPreguntas = servicioEncuestas.contarPreguntasEnEncuesta(encuestaSeleccionada.getIdEncuesta());
-                    if (numPreguntas < 12) {
-                        JOptionPane.showMessageDialog(this, "No se puede activar la encuesta. Requiere al menos 12 preguntas (tiene " + numPreguntas + ").", "Error de Activación", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-                }
-                
+                // La validación de 12 preguntas se realiza dentro de ServicioEncuestas.cambiarEstadoEncuesta
                 servicioEncuestas.cambiarEstadoEncuesta(encuestaSeleccionada.getIdEncuesta(), nuevoEstado);
                 JOptionPane.showMessageDialog(this, "Estado de la encuesta cambiado a: " + nuevoEstado, "Éxito", JOptionPane.INFORMATION_MESSAGE);
                 cargarEncuestas(); // Recargar la tabla
@@ -269,7 +261,8 @@ public class GestionEncuestasGUI extends JFrame {
 
         if (confirm == JOptionPane.YES_OPTION) {
             try {
-                Encuesta nuevaEncuesta = servicioEncuestas.copiarEncuesta(encuestaSeleccionada.getIdEncuesta());
+                // Pasa el id del administrador actual al método copiarEncuesta
+                Encuesta nuevaEncuesta = servicioEncuestas.copiarEncuesta(encuestaSeleccionada.getIdEncuesta(), administradorActual.getId_usuario());
                 JOptionPane.showMessageDialog(this, "Encuesta copiada exitosamente como: '" + nuevaEncuesta.getNombre() + "' (ID: " + nuevaEncuesta.getIdEncuesta() + ").", "Éxito", JOptionPane.INFORMATION_MESSAGE);
                 cargarEncuestas(); // Recargar la tabla
             } catch (Exception ex) {

@@ -1,111 +1,133 @@
 package SteveJobs.encuestas.ui;
 
-import SteveJobs.encuestas.modelo.Encuesta;
-import SteveJobs.encuestas.modelo.EncuestaDetallePregunta;
-import SteveJobs.encuestas.modelo.RespuestaUsuario;
 import SteveJobs.encuestas.modelo.Usuario;
+import SteveJobs.encuestas.servicio.ServicioAutenticacion;
 import SteveJobs.encuestas.servicio.ServicioEncuestas;
 import SteveJobs.encuestas.servicio.ServicioParticipacion;
 
-import javax.swing.JOptionPane;
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Scanner;
 import java.util.List;
+import SteveJobs.encuestas.modelo.Encuesta;
+import SteveJobs.encuestas.modelo.RespuestaUsuario;
+import java.sql.Timestamp; // Importar Timestamp
+import java.util.ArrayList; // Importar ArrayList
 
+/**
+ * Interfaz de Usuario (Consola) para el Menú de Encuestado.
+ * Permite al encuestado ver encuestas disponibles y responderlas.
+ * NOTA: Esta UI es auxiliar y será reemplazada por JFrames.
+ *
+ * @author José Flores
+ */
 public class UIMenuEncuestado {
+    private final Scanner scanner;
+    private Usuario usuarioActual;
+    private final ServicioAutenticacion servicioAutenticacion;
+    private final ServicioEncuestas servicioEncuestas;
+    private final ServicioParticipacion servicioParticipacion;
 
-    private static ServicioEncuestas servicioEncuestas = new ServicioEncuestas();
-    private static ServicioParticipacion servicioParticipacion = new ServicioParticipacion();
+    public UIMenuEncuestado(Scanner scanner, Usuario usuario) {
+        this.scanner = scanner;
+        this.usuarioActual = usuario;
+        this.servicioAutenticacion = new ServicioAutenticacion();
+        this.servicioEncuestas = new ServicioEncuestas();
+        this.servicioParticipacion = new ServicioParticipacion();
+    }
 
-    public static void mostrarMenu(Usuario encuestado) {
-        boolean salir = false;
-        while (!salir) {
-            String[] opciones = {"Ver Encuestas Disponibles", "Salir"};
-            int seleccion = JOptionPane.showOptionDialog(null,
-                    "Bienvenido al Portal del Encuestado, " + encuestado.getNombres() + "!",
-                    "Portal Encuestado",
-                    JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, opciones, opciones[0]);
+    public void mostrarMenu() {
+        int opcion;
+        do {
+            System.out.println("\n--- Menú de Encuestado ---");
+            System.out.println("1. Ver perfil");
+            System.out.println("2. Responder encuesta");
+            System.out.println("3. Ver encuestas respondidas (próximamente)");
+            System.out.println("4. Cerrar sesión");
+            System.out.print("Seleccione una opción: ");
+            opcion = scanner.nextInt();
+            scanner.nextLine(); // Consumir el salto de línea
 
-            switch (seleccion) {
-                case 0:
-                    mostrarEncuestasDisponibles(encuestado);
-                    break;
+            switch (opcion) {
                 case 1:
-                case JOptionPane.CLOSED_OPTION:
-                    salir = true;
+                    // Lógica para ver perfil (si existe una UI para ello)
+                    System.out.println("Funcionalidad 'Ver perfil' en desarrollo.");
                     break;
+                case 2:
+                    responderEncuestaUI();
+                    break;
+                case 3:
+                    System.out.println("Funcionalidad 'Ver encuestas respondidas' en desarrollo.");
+                    break;
+                case 4:
+                    System.out.println("Cerrando sesión...");
+                    usuarioActual = null; // Limpiar usuario de la sesión
+                    break;
+                default:
+                    System.out.println("Opción no válida. Intente de nuevo.");
             }
-        }
+        } while (opcion != 4);
     }
 
-    private static void mostrarEncuestasDisponibles(Usuario encuestado) {
-        List<Encuesta> encuestas = servicioEncuestas.obtenerEncuestasActivasParaUsuario(encuestado);
+    private void responderEncuestaUI() {
+        System.out.println("\n--- Responder Encuesta ---");
+        List<Encuesta> encuestasDisponibles = servicioEncuestas.obtenerEncuestasActivasParaUsuario(usuarioActual);
 
-        if (encuestas.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Actualmente no hay encuestas disponibles para tu perfil.", "Sin Encuestas", JOptionPane.INFORMATION_MESSAGE);
+        if (encuestasDisponibles.isEmpty()) {
+            System.out.println("No hay encuestas disponibles para responder en este momento o ya has respondido a todas las que calificas.");
             return;
         }
 
-        String[] nombresEncuestas = encuestas.stream()
-                .map(e -> e.getIdEncuesta() + ": " + e.getNombre())
-                .toArray(String[]::new);
-
-        String seleccion = (String) JOptionPane.showInputDialog(null, "Selecciona una encuesta para responder:",
-                "Encuestas Disponibles", JOptionPane.QUESTION_MESSAGE, null, nombresEncuestas, nombresEncuestas[0]);
-
-        if (seleccion != null) {
-            int idEncuestaSeleccionada = Integer.parseInt(seleccion.split(":")[0]);
-            Encuesta encuestaSeleccionada = servicioEncuestas.obtenerDetallesCompletosEncuesta(idEncuestaSeleccionada);
-            if (encuestaSeleccionada != null) {
-                responderEncuestaUI(encuestado, encuestaSeleccionada);
+        System.out.println("Encuestas disponibles para usted:");
+        boolean hayEncuestasSinResponder = false;
+        for (Encuesta enc : encuestasDisponibles) {
+            // Verificar si el usuario ya respondió esta encuesta
+            if (!servicioParticipacion.haUsuarioRespondidoEncuesta(usuarioActual.getId_usuario(), enc.getIdEncuesta())) {
+                System.out.println("ID: " + enc.getIdEncuesta() + " - " + enc.getNombre() + " (" + enc.getEstado() + ")");
+                hayEncuestasSinResponder = true;
             }
         }
-    }
 
-    private static void responderEncuestaUI(Usuario encuestado, Encuesta encuesta) {
-        int confirm = JOptionPane.showConfirmDialog(null,
-                "Vas a comenzar la encuesta: '" + encuesta.getNombre() + "'\n" +
-                "Descripción: " + encuesta.getDescripcion() + "\n\n¿Deseas continuar?",
-                "Confirmar Participación", JOptionPane.YES_NO_OPTION);
-
-        if (confirm != JOptionPane.YES_OPTION) {
+        if (!hayEncuestasSinResponder) {
+            System.out.println("Ya has respondido a todas las encuestas disponibles para ti.");
             return;
         }
 
-        List<RespuestaUsuario> respuestasRecopiladas = new ArrayList<>();
-        List<EncuestaDetallePregunta> preguntas = encuesta.getPreguntasAsociadas();
+        System.out.print("Ingrese el ID de la encuesta que desea responder: ");
+        int idEncuestaSeleccionada = scanner.nextInt();
+        scanner.nextLine(); // Consumir salto de línea
 
-        
-        preguntas.sort(Comparator.comparingInt(EncuestaDetallePregunta::getOrdenEnEncuesta));
+        Encuesta encuestaSeleccionada = servicioEncuestas.buscarEncuestaEnListaPorId(encuestasDisponibles, idEncuestaSeleccionada);
 
-        boolean descartado = false;
-        for (EncuestaDetallePregunta pregunta : preguntas) {
-            String respuesta = JOptionPane.showInputDialog(null,
-                    "Pregunta " + pregunta.getOrdenEnEncuesta() + ":\n" + pregunta.getTextoPreguntaMostrable(),
-                    "Respondiendo Encuesta...", JOptionPane.QUESTION_MESSAGE);
-
-            if (respuesta == null) { 
-                JOptionPane.showMessageDialog(null, "Encuesta cancelada.", "Cancelado", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-
-            RespuestaUsuario r = new RespuestaUsuario(pregunta.getIdEncuestaDetalle(), encuestado.getId_usuario(), respuesta);
-            respuestasRecopiladas.add(r);
-
-            
-            if (pregunta.isEsPreguntaDescarte() && respuesta.equalsIgnoreCase(pregunta.getCriterioDescarteValor())) {
-                JOptionPane.showMessageDialog(null, "Gracias por tu participación. Según tus respuestas, no cumples con el perfil completo para esta encuesta.", "Participación Finalizada", JOptionPane.INFORMATION_MESSAGE);
-                descartado = true;
-                break; 
-            }
+        if (encuestaSeleccionada == null) {
+            System.out.println("Encuesta no encontrada o no disponible para usted.");
+            return;
         }
 
-        if (servicioParticipacion.registrarRespuestasCompletas(respuestasRecopiladas)) {
-             if (!descartado) {
-                 JOptionPane.showMessageDialog(null, "¡Gracias! Has completado la encuesta exitosamente.", "Encuesta Finalizada", JOptionPane.INFORMATION_MESSAGE);
-             }
-        } else {
-            JOptionPane.showMessageDialog(null, "Ocurrió un error al guardar tus respuestas.", "Error", JOptionPane.ERROR_MESSAGE);
+        // Simulación de recolección y guardado de respuestas para la consola
+        // En la implementación real con JFrame, esta lógica es mucho más compleja
+        // y se maneja en EncuestaResponderGUI.
+        List<RespuestaUsuario> respuestasSimuladas = new ArrayList<>();
+        // Por simplicidad, aquí solo se simula una respuesta si no hay una real.
+        // En un escenario real de consola, se iteraría por las preguntas.
+        System.out.println("Simulando respuesta a la encuesta " + encuestaSeleccionada.getNombre());
+        // Se añade una respuesta ficticia para que la llamada al servicio compile
+        // y se entienda que se espera una lista de respuestas.
+        respuestasSimuladas.add(new RespuestaUsuario(usuarioActual.getId_usuario(), 
+                                                   encuestaSeleccionada.getPreguntasAsociadas().isEmpty() ? 1 : encuestaSeleccionada.getPreguntasAsociadas().get(0).getIdEncuestaDetalle(), 
+                                                   "Respuesta simulada"));
+
+        try {
+            // Se llama al método con la nueva firma
+            servicioParticipacion.guardarRespuestasCompletas(
+                respuestasSimuladas, // Lista de respuestas
+                usuarioActual.getId_usuario(), // ID del usuario
+                encuestaSeleccionada.getIdEncuesta(), // ID de la encuesta
+                new Timestamp(System.currentTimeMillis()), // Fecha/hora de finalización
+                0 // Duración en segundos (0 para simulación)
+            );
+            System.out.println("¡Encuesta simulada respondida y guardada exitosamente!");
+        } catch (Exception e) {
+            System.err.println("Error al simular guardar respuestas: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }

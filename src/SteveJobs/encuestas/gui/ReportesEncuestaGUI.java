@@ -1,58 +1,56 @@
 package SteveJobs.encuestas.gui;
 
 import SteveJobs.encuestas.modelo.Encuesta;
+import SteveJobs.encuestas.modelo.RespuestaUsuario;
 import SteveJobs.encuestas.modelo.TipoPregunta;
-import SteveJobs.encuestas.modelo.Usuario;
 import SteveJobs.encuestas.servicio.ServicioEncuestas;
-import SteveJobs.encuestas.servicio.ServicioPreguntas; // Para Tipos de Pregunta
 import SteveJobs.encuestas.servicio.ServicioResultados;
+import SteveJobs.encuestas.servicio.ServicioPreguntas;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.io.File;
-import java.util.HashMap;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Vector;
+import java.util.HashMap; // Importar HashMap
 
 /**
- * Pantalla de Reporte de Resultados para el Administrador (JFrame).
- * Permite seleccionar una encuesta y un filtro por tipo de pregunta para
- * visualizar reportes de frecuencia y promedios, con opciones de exportación.
+ * Pantalla de Reportes de Encuesta para el Administrador (JFrame).
+ * Permite al administrador visualizar y exportar reportes de frecuencia
+ * y promedios de respuestas para encuestas seleccionadas, con filtros.
  *
  * @author José Flores
  */
 public class ReportesEncuestaGUI extends JFrame {
 
-    private Usuario administradorActual;
+    private Encuesta encuestaSeleccionada;
     private final AdminDashboardGUI parentDashboard;
-    private final ServicioEncuestas servicioEncuestas;
     private final ServicioResultados servicioResultados;
-    private final ServicioPreguntas servicioPreguntas; // Para obtener tipos de pregunta
+    private final ServicioEncuestas servicioEncuestas;
+    private final ServicioPreguntas servicioPreguntas;
 
-    private JComboBox<String> cmbEncuesta;
+    private JComboBox<String> cmbEncuestas;
     private JComboBox<String> cmbTipoFiltro;
-    private JTable tblResultados;
+    private JRadioButton rbFrecuencia, rbPromedios;
+    private ButtonGroup bgTipoReporte;
+    private JTable tblReporte;
     private DefaultTableModel tableModel;
-    private JButton btnGenerarReporte, btnExportarTexto, btnExportarCSV, btnVolver;
+    private JLabel lblTituloReporte;
+    private JTextArea txtResumen;
+    private JButton btnGenerar, btnExportar, btnVolver;
 
-    private Map<String, Encuesta> mapaNombresEncuestas; // Para mapear nombre a objeto Encuesta
-    private Map<String, TipoPregunta> mapaNombresTipos; // Para mapear nombre a objeto TipoPregunta
+    private Map<String, Map<String, Integer>> reporteFrecuenciaActual;
+    private Map<String, Double> reportePromediosActual;
 
-    public ReportesEncuestaGUI(Usuario admin, AdminDashboardGUI parent) {
-        super("Sistema de Encuestas - Reportes de Resultados");
-        this.administradorActual = admin;
+    public ReportesEncuestaGUI(AdminDashboardGUI parent) {
+        super("Sistema de Encuestas - Reportes de Encuesta");
         this.parentDashboard = parent;
-        this.servicioEncuestas = new ServicioEncuestas();
         this.servicioResultados = new ServicioResultados();
+        this.servicioEncuestas = new ServicioEncuestas();
         this.servicioPreguntas = new ServicioPreguntas();
-        this.mapaNombresEncuestas = new HashMap<>();
-        this.mapaNombresTipos = new HashMap<>();
-
         initComponents();
         setupFrame();
         cargarCombos();
@@ -62,222 +60,287 @@ public class ReportesEncuestaGUI extends JFrame {
         JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
 
-        JLabel lblTitulo = new JLabel("Reportes de Resultados de Encuestas", SwingConstants.CENTER);
+        JLabel lblTitulo = new JLabel("Generación de Reportes", SwingConstants.CENTER);
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 24));
         mainPanel.add(lblTitulo, BorderLayout.NORTH);
 
-        // --- Panel de controles de selección ---
-        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
-        controlPanel.setBorder(BorderFactory.createTitledBorder("Selección de Reporte"));
+        // --- Panel de Controles ---
+        JPanel controlPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        controlPanel.add(new JLabel("Seleccionar Encuesta:"));
-        cmbEncuesta = new JComboBox<>();
-        cmbEncuesta.setPreferredSize(new Dimension(250, 25));
-        controlPanel.add(cmbEncuesta);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        controlPanel.add(new JLabel("Seleccionar Encuesta:"), gbc);
+        gbc.gridx = 1;
+        cmbEncuestas = new JComboBox<>();
+        cmbEncuestas.setPreferredSize(new Dimension(300, 25));
+        cmbEncuestas.addActionListener(e -> {
+            int selectedIndex = cmbEncuestas.getSelectedIndex();
+            if (selectedIndex > 0) { // Evitar el primer elemento "Seleccione..."
+                String selectedItem = (String) cmbEncuestas.getSelectedItem();
+                int idEncuesta = Integer.parseInt(selectedItem.split(" - ")[0]);
+                encuestaSeleccionada = servicioEncuestas.obtenerDetallesCompletosEncuesta(idEncuesta);
+            } else {
+                encuestaSeleccionada = null;
+            }
+            limpiarReporte();
+        });
+        controlPanel.add(cmbEncuestas, gbc);
 
-        controlPanel.add(new JLabel("Filtro por Tipo de Pregunta:"));
+        gbc.gridx = 2;
+        controlPanel.add(new JLabel("Filtrar por Tipo de Pregunta:"), gbc);
+        gbc.gridx = 3;
         cmbTipoFiltro = new JComboBox<>();
-        cmbTipoFiltro.setPreferredSize(new Dimension(150, 25));
-        controlPanel.add(cmbTipoFiltro);
+        cmbTipoFiltro.setPreferredSize(new Dimension(200, 25));
+        cmbTipoFiltro.addActionListener(e -> limpiarReporte());
+        controlPanel.add(cmbTipoFiltro, gbc);
 
-        btnGenerarReporte = new JButton("Generar Reporte");
-        controlPanel.add(btnGenerarReporte);
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        JPanel radioPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        rbFrecuencia = new JRadioButton("Reporte de Frecuencia de Respuestas");
+        rbPromedios = new JRadioButton("Reporte de Promedios por Pregunta");
+        bgTipoReporte = new ButtonGroup();
+        bgTipoReporte.add(rbFrecuencia);
+        bgTipoReporte.add(rbPromedios);
+        radioPanel.add(rbFrecuencia);
+        radioPanel.add(rbPromedios);
+        rbFrecuencia.setSelected(true); // Seleccionar por defecto
+        rbFrecuencia.addActionListener(e -> limpiarReporte());
+        rbPromedios.addActionListener(e -> limpiarReporte());
+        controlPanel.add(radioPanel, gbc);
+
+        gbc.gridx = 2;
+        gbc.gridwidth = 2;
+        btnGenerar = new JButton("Generar Reporte");
+        btnGenerar.addActionListener(e -> generarReporte());
+        controlPanel.add(btnGenerar, gbc);
 
         mainPanel.add(controlPanel, BorderLayout.NORTH);
 
-        // --- Panel de la tabla de resultados ---
-        String[] columnNames = {"Pregunta", "Tipo", "Clasificación", "Resultado (Frecuencia/Promedio)"};
-        tableModel = new DefaultTableModel(columnNames, 0) {
+        // --- Panel de Resultados ---
+        JPanel reportPanel = new JPanel(new BorderLayout(10, 10));
+        lblTituloReporte = new JLabel("Resultados del Reporte", SwingConstants.CENTER);
+        lblTituloReporte.setFont(new Font("Arial", Font.BOLD, 18));
+        reportPanel.add(lblTituloReporte, BorderLayout.NORTH);
+
+        tableModel = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
-        tblResultados = new JTable(tableModel);
-        tblResultados.getTableHeader().setReorderingAllowed(false);
-        JScrollPane scrollPane = new JScrollPane(tblResultados);
-        mainPanel.add(scrollPane, BorderLayout.CENTER);
+        tblReporte = new JTable(tableModel);
+        tblReporte.getTableHeader().setReorderingAllowed(false);
+        JScrollPane tableScrollPane = new JScrollPane(tblReporte);
+        reportPanel.add(tableScrollPane, BorderLayout.CENTER);
 
-        // --- Panel de botones de exportación y volver ---
-        JPanel exportButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
-        btnExportarTexto = new JButton("Exportar a Texto");
-        btnExportarCSV = new JButton("Exportar a CSV");
+        txtResumen = new JTextArea(5, 40);
+        txtResumen.setEditable(false);
+        txtResumen.setLineWrap(true);
+        txtResumen.setWrapStyleWord(true);
+        JScrollPane summaryScrollPane = new JScrollPane(txtResumen);
+        reportPanel.add(summaryScrollPane, BorderLayout.SOUTH);
+
+        mainPanel.add(reportPanel, BorderLayout.CENTER);
+
+        // --- Panel de Botones Inferior ---
+        JPanel bottomButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+        btnExportar = new JButton("Exportar Reporte a TXT");
+        btnExportar.addActionListener(e -> exportarReporte());
         btnVolver = new JButton("Volver al Dashboard");
+        btnVolver.addActionListener(e -> volverAlDashboard());
 
-        exportButtonPanel.add(btnExportarTexto);
-        exportButtonPanel.add(btnExportarCSV);
-        exportButtonPanel.add(btnVolver);
-        mainPanel.add(exportButtonPanel, BorderLayout.SOUTH);
+        bottomButtonPanel.add(btnExportar);
+        bottomButtonPanel.add(btnVolver);
+        mainPanel.add(bottomButtonPanel, BorderLayout.SOUTH);
 
         add(mainPanel);
-
-        // --- Eventos ---
-        btnGenerarReporte.addActionListener(e -> generarReporte());
-        btnExportarTexto.addActionListener(e -> exportarReporte(true));
-        btnExportarCSV.addActionListener(e -> exportarReporte(false));
-        btnVolver.addActionListener(e -> volverAlDashboard());
     }
 
     private void setupFrame() {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(1000, 700);
+        setSize(1000, 750);
         setLocationRelativeTo(null);
-        
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                parentDashboard.mostrarAdminDashboardGUI();
-            }
-        });
+        // addWindowListener para volver al dashboard se maneja en el btnVolver
     }
 
     private void cargarCombos() {
-        // Cargar Encuestas
-        cmbEncuesta.addItem("Seleccione una encuesta...");
+        // Cargar JComboBox de encuestas
+        cmbEncuestas.removeAllItems();
+        cmbEncuestas.addItem("Seleccione una encuesta...");
         try {
             List<Encuesta> encuestas = servicioEncuestas.obtenerTodasLasEncuestasOrdenadasPorNombre();
             for (Encuesta encuesta : encuestas) {
-                cmbEncuesta.addItem(encuesta.getNombre());
-                mapaNombresEncuestas.put(encuesta.getNombre(), encuesta);
+                cmbEncuestas.addItem(encuesta.getIdEncuesta() + " - " + encuesta.getNombre());
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error al cargar encuestas: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            System.err.println("Error en ReportesEncuestaGUI al cargar encuestas: " + ex.getMessage());
         }
 
-        // Cargar Tipos de Pregunta para el filtro
+        // Cargar JComboBox de tipos de pregunta
+        cmbTipoFiltro.removeAllItems();
         cmbTipoFiltro.addItem("Todos los tipos"); // Opción para no filtrar
         try {
             List<TipoPregunta> tipos = servicioPreguntas.obtenerTodosLosTiposPregunta();
             for (TipoPregunta tipo : tipos) {
                 cmbTipoFiltro.addItem(tipo.getNombreTipo());
-                mapaNombresTipos.put(tipo.getNombreTipo(), tipo);
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error al cargar tipos de pregunta: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            System.err.println("Error en ReportesEncuestaGUI al cargar tipos: " + ex.getMessage());
         }
     }
 
+    private void limpiarReporte() {
+        tableModel.setColumnCount(0);
+        tableModel.setRowCount(0);
+        lblTituloReporte.setText("Resultados del Reporte");
+        txtResumen.setText("");
+        reporteFrecuenciaActual = null;
+        reportePromediosActual = null;
+    }
+
     private void generarReporte() {
-        tableModel.setRowCount(0); // Limpiar tabla
-        String nombreEncuestaSeleccionada = (String) cmbEncuesta.getSelectedItem();
-
-        if (nombreEncuestaSeleccionada == null || nombreEncuestaSeleccionada.equals("Seleccione una encuesta...")) {
-            JOptionPane.showMessageDialog(this, "Por favor, seleccione una encuesta.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        Encuesta encuestaSeleccionada = mapaNombresEncuestas.get(nombreEncuestaSeleccionada);
         if (encuestaSeleccionada == null) {
-            JOptionPane.showMessageDialog(this, "No se pudo encontrar la encuesta seleccionada.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Por favor, selecciona una encuesta primero.", "Advertencia", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        String tipoFiltroSeleccionado = (String) cmbTipoFiltro.getSelectedItem();
-        Integer idTipoFiltro = null;
-        if (tipoFiltroSeleccionado != null && !tipoFiltroSeleccionado.equals("Todos los tipos")) {
-            TipoPregunta tipo = mapaNombresTipos.get(tipoFiltroSeleccionado);
-            if (tipo != null) {
-                idTipoFiltro = tipo.getIdTipoPregunta();
-            }
+        int idEncuesta = encuestaSeleccionada.getIdEncuesta();
+        String tipoFiltroNombre = (String) cmbTipoFiltro.getSelectedItem();
+        
+        // Construir el mapa de filtros para el servicio
+        Map<String, String> filtros = new HashMap<>();
+        if (!"Todos los tipos".equalsIgnoreCase(tipoFiltroNombre)) {
+            filtros.put("tipoPregunta", tipoFiltroNombre);
         }
 
         try {
-            // Generar reportes de frecuencia
-            Map<String, String> reporteFrecuencia = servicioResultados.generarReporteFrecuenciaRespuestas(encuestaSeleccionada.getIdEncuesta(), idTipoFiltro);
-            for (Map.Entry<String, String> entry : reporteFrecuencia.entrySet()) {
-                // El formato de la clave es "TextoPregunta | Tipo | Clasificacion"
-                String[] partes = entry.getKey().split(" \\| ");
-                String textoPregunta = partes[0];
-                String tipo = partes.length > 1 ? partes[1] : "";
-                String clasificacion = partes.length > 2 ? partes[2] : "";
-                tableModel.addRow(new Object[]{textoPregunta, tipo, clasificacion, entry.getValue()});
+            // Usar el método filtrarResultados existente en ServicioResultados
+            List<RespuestaUsuario> respuestasFiltradas = servicioResultados.filtrarResultados(idEncuesta, filtros); //
+
+            if (respuestasFiltradas.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No hay respuestas para los criterios seleccionados.", "Información", JOptionPane.INFORMATION_MESSAGE);
+                limpiarReporte();
+                return;
             }
 
-            // Generar reportes de promedio (si aplica)
-            Map<String, Double> reportePromedios = servicioResultados.calcularPromediosPorPregunta(encuestaSeleccionada.getIdEncuesta(), idTipoFiltro);
-            for (Map.Entry<String, Double> entry : reportePromedios.entrySet()) {
-                String[] partes = entry.getKey().split(" \\| ");
-                String textoPregunta = partes[0];
-                String tipo = partes.length > 1 ? partes[1] : "";
-                String clasificacion = partes.length > 2 ? partes[2] : "";
-                 tableModel.addRow(new Object[]{textoPregunta, tipo, clasificacion, String.format("%.2f", entry.getValue())});
+            if (rbFrecuencia.isSelected()) {
+                lblTituloReporte.setText("Reporte de Frecuencia de Respuestas para " + encuestaSeleccionada.getNombre());
+                reporteFrecuenciaActual = servicioResultados.generarReporteFrecuenciaRespuestas(respuestasFiltradas);
+                mostrarReporteFrecuencia(reporteFrecuenciaActual);
+            } else if (rbPromedios.isSelected()) {
+                lblTituloReporte.setText("Reporte de Promedios por Pregunta para " + encuestaSeleccionada.getNombre());
+                reportePromediosActual = servicioResultados.calcularPromediosPorPregunta(respuestasFiltradas);
+                mostrarReportePromedios(reportePromediosActual);
             }
-
-            if (tableModel.getRowCount() == 0) {
-                tableModel.addRow(new Object[]{"", "", "No hay resultados para esta encuesta con el filtro seleccionado.", ""});
-            }
-
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error al generar el reporte: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             System.err.println("Error en ReportesEncuestaGUI al generar reporte: " + ex.getMessage());
             ex.printStackTrace();
+            limpiarReporte();
         }
     }
 
-    private void exportarReporte(boolean toText) {
-        if (tableModel.getRowCount() == 0 || (tableModel.getRowCount() == 1 && tableModel.getValueAt(0, 0).toString().isEmpty())) {
-            JOptionPane.showMessageDialog(this, "No hay reporte generado para exportar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-            return;
+    private void mostrarReporteFrecuencia(Map<String, Map<String, Integer>> reporte) {
+        tableModel.setColumnCount(0);
+        tableModel.setRowCount(0);
+        
+        // Asumiendo que la primera clave del mapa interior es siempre la primera columna de opciones
+        // y que todas las preguntas tienen la misma estructura en sus respuestas para el reporte de frecuencia
+        Vector<String> columnNames = new Vector<>();
+        columnNames.add("Pregunta (Tipo | Clasificación)");
+        
+        // Recoger todas las opciones de respuesta únicas para las columnas
+        for (Map.Entry<String, Map<String, Integer>> entry : reporte.entrySet()) {
+            for (String opcion : entry.getValue().keySet()) {
+                if (!columnNames.contains(opcion)) {
+                    columnNames.add(opcion);
+                }
+            }
         }
+        tableModel.setColumnIdentifiers(columnNames);
 
+        for (Map.Entry<String, Map<String, Integer>> entry : reporte.entrySet()) {
+            Vector<Object> rowData = new Vector<>();
+            rowData.add(entry.getKey()); // Nombre de la pregunta
+            for (int i = 1; i < columnNames.size(); i++) {
+                String opcion = columnNames.get(i);
+                rowData.add(entry.getValue().getOrDefault(opcion, 0)); // Frecuencia de la opción
+            }
+            tableModel.addRow(rowData);
+        }
+        
+        // Resumen
+        StringBuilder resumen = new StringBuilder();
+        resumen.append("Reporte de Frecuencia de Respuestas:\n");
+        reporte.forEach((pregunta, frecuencias) -> {
+            resumen.append(pregunta).append(":\n");
+            frecuencias.forEach((opcion, count) -> 
+                resumen.append("  - ").append(opcion).append(": ").append(count).append("\n")
+            );
+        });
+        txtResumen.setText(resumen.toString());
+    }
+
+    private void mostrarReportePromedios(Map<String, Double> reporte) {
+        tableModel.setColumnCount(0);
+        tableModel.setRowCount(0);
+        tableModel.setColumnIdentifiers(new String[]{"Pregunta (Tipo | Clasificación)", "Promedio"});
+
+        for (Map.Entry<String, Double> entry : reporte.entrySet()) {
+            tableModel.addRow(new Object[]{entry.getKey(), String.format("%.2f", entry.getValue())});
+        }
+        
+        // Resumen
+        StringBuilder resumen = new StringBuilder();
+        resumen.append("Reporte de Promedios por Pregunta:\n");
+        reporte.forEach((pregunta, promedio) -> 
+            resumen.append(pregunta).append(": ").append(String.format("%.2f", promedio)).append("\n")
+        );
+        txtResumen.setText(resumen.toString());
+    }
+
+    private void exportarReporte() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Guardar Reporte");
-        
-        // Sugerir nombre de archivo
-        String nombreEncuesta = (String) cmbEncuesta.getSelectedItem();
-        String tipoReporte = (toText ? "reporte_texto" : "reporte_csv");
-        String suggestedFileName = nombreEncuesta.replace(" ", "_").toLowerCase() + "_" + tipoReporte + ".txt";
-        if (!toText) {
-            suggestedFileName = suggestedFileName.replace(".txt", ".csv");
-        }
-        fileChooser.setSelectedFile(new File(suggestedFileName));
-
         int userSelection = fileChooser.showSaveDialog(this);
 
         if (userSelection == JFileChooser.APPROVE_OPTION) {
-            File fileToSave = fileChooser.getSelectedFile();
-            try {
-                StringBuilder content = new StringBuilder();
-                // Encabezados de la tabla
-                for (int i = 0; i < tableModel.getColumnCount(); i++) {
-                    content.append(tableModel.getColumnName(i));
-                    if (i < tableModel.getColumnCount() - 1) {
-                        content.append(toText ? "\t" : ",");
-                    }
-                }
-                content.append("\n");
+            String filePath = fileChooser.getSelectedFile().getAbsolutePath();
+            if (!filePath.toLowerCase().endsWith(".txt")) {
+                filePath += ".txt"; // Asegurar extensión .txt
+            }
 
-                // Datos de la tabla
-                for (int row = 0; row < tableModel.getRowCount(); row++) {
-                    for (int col = 0; col < tableModel.getColumnCount(); col++) {
-                        Object cellValue = tableModel.getValueAt(row, col);
-                        if (cellValue != null) {
-                            String value = cellValue.toString();
-                            if (!toText && value.contains(",")) { // Para CSV, si el valor contiene comas, encerrar en comillas
-                                value = "\"" + value.replace("\"", "\"\"") + "\"";
-                            }
-                            content.append(value);
+            try (FileWriter writer = new FileWriter(filePath)) {
+                writer.write(lblTituloReporte.getText() + "\n\n");
+
+                if (rbFrecuencia.isSelected() && reporteFrecuenciaActual != null) {
+                    writer.write("--- REPORTE DE FRECUENCIA DE RESPUESTAS ---\n");
+                    for (Map.Entry<String, Map<String, Integer>> entry : reporteFrecuenciaActual.entrySet()) {
+                        writer.write("Pregunta: " + entry.getKey() + "\n");
+                        for (Map.Entry<String, Integer> freqEntry : entry.getValue().entrySet()) {
+                            writer.write("  - " + freqEntry.getKey() + ": " + freqEntry.getValue() + "\n");
                         }
-                        if (col < tableModel.getColumnCount() - 1) {
-                            content.append(toText ? "\t" : ",");
-                        }
+                        writer.write("\n");
                     }
-                    content.append("\n");
-                }
-                
-                // Llamar al servicio para exportar (reutilizando la lógica existente)
-                if (toText) {
-                    servicioResultados.exportarReporteATexto(content.toString(), fileToSave.getAbsolutePath());
+                } else if (rbPromedios.isSelected() && reportePromediosActual != null) {
+                    writer.write("--- REPORTE DE PROMEDIOS POR PREGUNTA ---\n");
+                    for (Map.Entry<String, Double> entry : reportePromediosActual.entrySet()) {
+                        writer.write("Pregunta: " + entry.getKey() + " | Promedio: " + String.format("%.2f", entry.getValue()) + "\n");
+                    }
                 } else {
-                    servicioResultados.exportarReporteACsv(content.toString(), fileToSave.getAbsolutePath());
+                    writer.write("No hay reporte generado para exportar.\n");
                 }
+                writer.write("\n" + txtResumen.getText()); // Incluir el resumen también
 
-                JOptionPane.showMessageDialog(this, "Reporte exportado exitosamente a:\n" + fileToSave.getAbsolutePath(), "Éxito de Exportación", JOptionPane.INFORMATION_MESSAGE);
-            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Reporte exportado exitosamente a:\n" + filePath, "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            } catch (IOException ex) {
                 JOptionPane.showMessageDialog(this, "Error al exportar el reporte: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                System.err.println("Error en ReportesEncuestaGUI al exportar: " + ex.getMessage());
+                System.err.println("Error en ReportesEncuestaGUI al exportar reporte: " + ex.getMessage());
                 ex.printStackTrace();
             }
         }
@@ -285,5 +348,6 @@ public class ReportesEncuestaGUI extends JFrame {
 
     private void volverAlDashboard() {
         this.dispose();
+        parentDashboard.mostrarAdminDashboardGUI();
     }
 }

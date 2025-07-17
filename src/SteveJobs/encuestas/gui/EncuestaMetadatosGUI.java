@@ -108,7 +108,7 @@ public class EncuestaMetadatosGUI extends JPanel {
             txtDescripcion.setText(encuesta.getDescripcion());
             dateChooserFechaInicio.setDate(encuesta.getFechaInicio());
             dateChooserFechaFin.setDate(encuesta.getFechaFin());
-            txtPublicoObjetivo.setText(encuesta.getPublicoObjetivo());
+            txtPublicoObjetivo.setText(String.valueOf(encuesta.getPublicoObjetivo()));
             txtPerfilRequerido.setText(encuesta.getPerfilRequerido());
             cmbEstado.setSelectedItem(encuesta.getEstado());
             // Si la encuesta es para modificar, habilitar el cambio de estado

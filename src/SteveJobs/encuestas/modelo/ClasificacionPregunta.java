@@ -10,6 +10,7 @@ public class ClasificacionPregunta {
     public ClasificacionPregunta() {
     }
 
+    // Nuevo constructor para uso en UI
     public ClasificacionPregunta(String nombreClasificacion, String descripcion, String estado) {
         this.nombreClasificacion = nombreClasificacion;
         this.descripcion = descripcion;

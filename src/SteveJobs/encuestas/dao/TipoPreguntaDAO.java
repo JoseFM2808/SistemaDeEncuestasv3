@@ -7,12 +7,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement; 
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 public class TipoPreguntaDAO {
-
+    
     public TipoPregunta obtenerTipoPreguntaPorNombre(String nombre) {
         String sql = "SELECT id_tipo_pregunta, nombre_tipo FROM tipos_pregunta WHERE nombre_tipo = ?";
         Connection con = null;
@@ -80,7 +80,8 @@ public class TipoPreguntaDAO {
         return obtenerTipoPreguntaPorId(id.intValue());
     }
 
-    public List<TipoPregunta> obtenerTodosLosTipos() {
+    // Renombrado el método para consistencia con lo que se espera desde el servicio
+    public List<TipoPregunta> obtenerTodosLosTiposPregunta() { //
         List<TipoPregunta> tipos = new ArrayList<>();
         String sql = "SELECT id_tipo_pregunta, nombre_tipo FROM tipos_pregunta ORDER BY nombre_tipo ASC";
         Connection con = null;
@@ -121,7 +122,7 @@ public class TipoPreguntaDAO {
             if (ps.executeUpdate() > 0) {
                 ResultSet rs = ps.getGeneratedKeys();
                 if(rs.next()){
-                    tipo.setIdTipoPregunta(rs.getInt(1)); 
+                    tipo.setIdTipoPregunta(rs.getInt(1));
                 }
                 exito = true;
             }

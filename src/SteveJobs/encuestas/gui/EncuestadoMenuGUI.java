@@ -1,98 +1,142 @@
 package SteveJobs.encuestas.gui;
 
-import SteveJobs.encuestas.modelo.Usuario;
+import SteveJobs.encuestas.modelo.Encuesta;
+import com.toedter.calendar.JDateChooser; // Importar JDateChooser
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
- * Menú Principal del Encuestado con interfaz gráfica JFrame.
- * Ofrece las opciones principales para un usuario encuestado.
+ * Componente JPanel para mostrar y editar los metadatos de una encuesta.
+ * Utilizado dentro de diálogos o frames de gestión de encuestas.
  *
- * @author José Flores
+ * @author José Flores (Adaptado para JCalendar)
  */
-public class EncuestadoMenuGUI extends JFrame {
+public class EncuestaMetadatosGUI extends JPanel {
 
-    private Usuario encuestadoActual;
+    private JTextField txtNombre, txtPublicoObjetivo, txtPerfilRequerido;
+    private JTextArea txtDescripcion;
+    private JDateChooser dateChooserFechaInicio, dateChooserFechaFin; // JDateChooser para fechas
+    private JComboBox<String> cmbEstado; // Para el estado de la encuesta
 
-    public EncuestadoMenuGUI(Usuario encuestado) {
-        super("Sistema de Encuestas - Menú de Encuestado");
-        this.encuestadoActual = encuestado;
+    public EncuestaMetadatosGUI() {
         initComponents();
-        setupFrame();
     }
 
     private void initComponents() {
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5); // Márgenes entre componentes
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JLabel lblBienvenida = new JLabel("<html>Bienvenido, <b>" + encuestadoActual.getNombres() + " " + encuestadoActual.getApellidos() + "</b></html>", SwingConstants.CENTER);
-        lblBienvenida.setFont(new Font("Arial", Font.BOLD, 18));
-        mainPanel.add(lblBienvenida, BorderLayout.NORTH);
+        // Título del panel
+        JLabel lblPanelTitulo = new JLabel("Detalles de la Encuesta", SwingConstants.CENTER);
+        lblPanelTitulo.setFont(new Font("Arial", Font.BOLD, 16));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2; // Ocupa dos columnas
+        add(lblPanelTitulo, gbc);
 
-        JPanel optionsPanel = new JPanel(new GridLayout(2, 1, 15, 15)); // 2 filas, 1 columna
-        optionsPanel.setBorder(BorderFactory.createTitledBorder("Opciones de Encuestado"));
+        // Nombre
+        gbc.gridy++;
+        gbc.gridx = 0;
+        gbc.gridwidth = 1;
+        add(new JLabel("Nombre:"), gbc);
+        gbc.gridx = 1;
+        txtNombre = new JTextField(25);
+        add(txtNombre, gbc);
 
-        JButton btnVerEncuestas = new JButton("Ver Encuestas Disponibles");
-        JButton btnConsultarPerfil = new JButton("Consultar Mi Perfil");
-        JButton btnCerrarSesion = new JButton("Cerrar Sesión");
+        // Descripción
+        gbc.gridy++;
+        gbc.gridx = 0;
+        add(new JLabel("Descripción:"), gbc);
+        gbc.gridx = 1;
+        txtDescripcion = new JTextArea(4, 25);
+        txtDescripcion.setLineWrap(true);
+        txtDescripcion.setWrapStyleWord(true);
+        JScrollPane scrollDescripcion = new JScrollPane(txtDescripcion);
+        add(scrollDescripcion, gbc);
 
-        optionsPanel.add(btnVerEncuestas);
-        optionsPanel.add(btnConsultarPerfil);
-        mainPanel.add(optionsPanel, BorderLayout.CENTER);
-        mainPanel.add(btnCerrarSesion, BorderLayout.SOUTH);
+        // Fecha de Inicio
+        gbc.gridy++;
+        gbc.gridx = 0;
+        add(new JLabel("Fecha Inicio:"), gbc);
+        gbc.gridx = 1;
+        dateChooserFechaInicio = new JDateChooser();
+        dateChooserFechaInicio.setDateFormatString("yyyy-MM-dd");
+        add(dateChooserFechaInicio, gbc);
 
-        add(mainPanel);
+        // Fecha de Fin
+        gbc.gridy++;
+        gbc.gridx = 0;
+        add(new JLabel("Fecha Fin:"), gbc);
+        gbc.gridx = 1;
+        dateChooserFechaFin = new JDateChooser();
+        dateChooserFechaFin.setDateFormatString("yyyy-MM-dd");
+        add(dateChooserFechaFin, gbc);
 
-        // --- Eventos de los botones ---
-        btnVerEncuestas.addActionListener(e -> mostrarEncuestasDisponiblesGUI());
-        btnConsultarPerfil.addActionListener(e -> mostrarPerfilUsuarioGUI());
+        // Público Objetivo
+        gbc.gridy++;
+        gbc.gridx = 0;
+        add(new JLabel("Público Objetivo:"), gbc);
+        gbc.gridx = 1;
+        txtPublicoObjetivo = new JTextField(25);
+        add(txtPublicoObjetivo, gbc);
 
-        btnCerrarSesion.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int confirm = JOptionPane.showConfirmDialog(
-                    EncuestadoMenuGUI.this,
-                    "¿Estás seguro de que quieres cerrar sesión?",
-                    "Confirmar Cierre de Sesión",
-                    JOptionPane.YES_NO_OPTION
-                );
-                if (confirm == JOptionPane.YES_OPTION) {
-                    cerrarSesion();
-                }
-            }
-        });
+        // Perfil Requerido
+        gbc.gridy++;
+        gbc.gridx = 0;
+        add(new JLabel("Perfil Requerido:"), gbc);
+        gbc.gridx = 1;
+        txtPerfilRequerido = new JTextField(25);
+        add(txtPerfilRequerido, gbc);
+        
+        // Estado (para modificación, en creación se establece por defecto "BORRADOR")
+        gbc.gridy++;
+        gbc.gridx = 0;
+        add(new JLabel("Estado:"), gbc);
+        gbc.gridx = 1;
+        cmbEstado = new JComboBox<>(new String[]{"BORRADOR", "ACTIVA", "CERRADA", "CANCELADA", "ARCHIVADA"});
+        add(cmbEstado, gbc);
     }
 
-    private void setupFrame() {
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(600, 400); // Tamaño inicial
-        setLocationRelativeTo(null);
-        setResizable(false);
+    // --- Métodos para cargar/obtener datos ---
+    public void cargarDatosEncuesta(Encuesta encuesta) {
+        if (encuesta != null) {
+            txtNombre.setText(encuesta.getNombre());
+            txtDescripcion.setText(encuesta.getDescripcion());
+            dateChooserFechaInicio.setDate(encuesta.getFechaInicio());
+            dateChooserFechaFin.setDate(encuesta.getFechaFin());
+            txtPublicoObjetivo.setText(String.valueOf(encuesta.getPublicoObjetivo()));
+            txtPerfilRequerido.setText(encuesta.getPerfilRequerido());
+            cmbEstado.setSelectedItem(encuesta.getEstado());
+            // Si la encuesta es para modificar, habilitar el cambio de estado
+            cmbEstado.setEnabled(true); 
+        } else {
+            // Limpiar campos si no hay encuesta para cargar
+            limpiarCampos();
+            cmbEstado.setSelectedItem("BORRADOR"); // Por defecto en creación
+            cmbEstado.setEnabled(false); // No se permite cambiar el estado en creación inicial
+        }
     }
 
-    private void cerrarSesion() {
-        // Al cerrar sesión, volvemos a la pantalla de LoginGUI
-        LoginGUI loginGUI = new LoginGUI();
-        loginGUI.setVisible(true);
-        this.dispose(); // Cierra esta ventana del menú encuestado
+    public void limpiarCampos() {
+        txtNombre.setText("");
+        txtDescripcion.setText("");
+        dateChooserFechaInicio.setDate(null);
+        dateChooserFechaFin.setDate(null);
+        txtPublicoObjetivo.setText("");
+        txtPerfilRequerido.setText("");
+        cmbEstado.setSelectedItem("BORRADOR");
     }
 
-    private void mostrarPerfilUsuarioGUI() {
-        PerfilUsuarioGUI perfilGUI = new PerfilUsuarioGUI(encuestadoActual, this);
-        perfilGUI.setVisible(true);
-        this.setVisible(false); // Oculta el menú del encuestado
-    }
-
-    private void mostrarEncuestasDisponiblesGUI() {
-        EncuestasDisponiblesGUI encuestasGUI = new EncuestasDisponiblesGUI(encuestadoActual, this);
-        encuestasGUI.setVisible(true);
-        this.setVisible(false); // Oculta el menú del encuestado
-    }
-    
-    // Método para volver a hacer visible esta ventana
-    public void mostrarEncuestadoMenuGUI() {
-        this.setVisible(true);
-    }
+    // --- Getters para acceder a los componentes desde fuera ---
+    public JTextField getTxtNombre() { return txtNombre; }
+    public JTextArea getTxtDescripcion() { return txtDescripcion; }
+    public JDateChooser getDateChooserFechaInicio() { return dateChooserFechaInicio; }
+    public JDateChooser getDateChooserFechaFin() { return dateChooserFechaFin; }
+    public JTextField getTxtPublicoObjetivo() { return txtPublicoObjetivo; }
+    public JTextField getTxtPerfilRequerido() { return txtPerfilRequerido; }
+    public JComboBox<String> getCmbEstado() { return cmbEstado; }
 }

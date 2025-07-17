@@ -130,7 +130,7 @@ public class AdminDashboardGUI extends JFrame {
     }
 
     private void mostrarVerResultadosGUI() {
-        ReportesEncuestaGUI reportesGUI = new ReportesEncuestaGUI(administradorActual, this);
+        ReportesEncuestaGUI reportesGUI = new ReportesEncuestaGUI(this);
         reportesGUI.setVisible(true);
         this.setVisible(false); // Ocultar el dashboard
     }

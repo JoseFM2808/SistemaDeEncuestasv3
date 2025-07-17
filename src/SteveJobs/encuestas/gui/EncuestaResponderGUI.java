@@ -134,7 +134,7 @@ public class EncuestaResponderGUI extends JFrame {
         try {
             // Recargar la encuesta para obtener los detalles completos de las preguntas
             encuestaActual = servicioEncuestas.obtenerDetallesCompletosEncuesta(encuestaActual.getIdEncuesta());
-            preguntasDeEncuesta = encuestaActual.getPreguntas();
+            preguntasDeEncuesta = encuestaActual.getPreguntasAsociadas(); // Utilizar getPreguntasAsociadas
             
             // Asegurarse de que las preguntas estén ordenadas por 'ordenEnEncuesta'
             // Ya el servicio debería devolverlas ordenadas, pero por si acaso.
@@ -161,7 +161,13 @@ public class EncuestaResponderGUI extends JFrame {
 
             lblNumeroPregunta.setText("Pregunta " + (indicePreguntaActual + 1) + " de " + preguntasDeEncuesta.size());
             lblTextoPregunta.setText("<html>" + preguntaDetalle.getTextoPreguntaMostrable() + "</html>");
-            lblTipoPregunta.setText("Tipo: " + preguntaDetalle.getTipoPregunta().getNombreTipo());
+            
+            // Usar el objeto TipoPreguntaAsociada que se carga en el servicio
+            if (preguntaDetalle.getTipoPreguntaAsociada() != null) {
+                lblTipoPregunta.setText("Tipo: " + preguntaDetalle.getTipoPreguntaAsociada().getNombreTipo());
+            } else {
+                lblTipoPregunta.setText("Tipo: Desconocido");
+            }
 
             // Limpiar y recrear el panel de respuesta dinámicamente
             panelCampoRespuesta.removeAll();
@@ -185,7 +191,7 @@ public class EncuestaResponderGUI extends JFrame {
     }
 
     private JComponent crearCampoRespuesta(EncuestaDetallePregunta preguntaDetalle) {
-        String tipo = preguntaDetalle.getTipoPregunta().getNombreTipo();
+        String tipo = preguntaDetalle.getTipoPreguntaAsociada() != null ? preguntaDetalle.getTipoPreguntaAsociada().getNombreTipo() : ""; // Usar el tipo asociado
         JComponent component = null;
 
         switch (tipo) {
@@ -201,29 +207,32 @@ public class EncuestaResponderGUI extends JFrame {
                 break;
             case "NUMERO":
                 JTextField numField = new JTextField(15);
-                // Asegurar que solo se ingresen números
+                // Asegurar que solo se ingresen números y un punto decimal
                 numField.addKeyListener(new java.awt.event.KeyAdapter() {
                     public void keyTyped(java.awt.event.KeyEvent evt) {
                         char c = evt.getKeyChar();
+                        // Permitir dígitos y un solo punto decimal
                         if (!Character.isDigit(c) && c != '.') {
+                            evt.consume();
+                        }
+                        // Asegurar que solo haya un punto decimal
+                        if (c == '.' && numField.getText().contains(".")) {
                             evt.consume();
                         }
                     }
                 });
                 component = numField;
                 break;
-            case "SIMPLE": // Respuesta de opción única, ej. Sí/No, Verdadero/Falso
-                String[] opcionesSimples = {"Sí", "No"}; // Valores comunes, ajustar si es necesario
-                if (preguntaDetalle.getPreguntaBanco() != null && preguntaDetalle.getPreguntaBanco().getOpcionesRespuesta() != null && !preguntaDetalle.getPreguntaBanco().getOpcionesRespuesta().isEmpty()) {
-                    opcionesSimples = preguntaDetalle.getPreguntaBanco().getOpcionesRespuesta().split(",");
+            case "SIMPLE": // Respuesta de opción única (radio buttons)
+                String opcionesSimplesStr = preguntaDetalle.getCriterioDescarteValor(); // Usar criterioDescarteValor para opciones
+                String[] opcionesSimples;
+                if (opcionesSimplesStr != null && !opcionesSimplesStr.trim().isEmpty()) {
+                    opcionesSimples = opcionesSimplesStr.split(",");
                     for (int i = 0; i < opcionesSimples.length; i++) {
                         opcionesSimples[i] = opcionesSimples[i].trim();
                     }
-                } else if (preguntaDetalle.getTextoPreguntaUnica() != null && preguntaDetalle.getOpcionesRespuestaUnica() != null && !preguntaDetalle.getOpcionesRespuestaUnica().isEmpty()) {
-                     opcionesSimples = preguntaDetalle.getOpcionesRespuestaUnica().split(",");
-                     for (int i = 0; i < opcionesSimples.length; i++) {
-                        opcionesSimples[i] = opcionesSimples[i].trim();
-                    }
+                } else {
+                    opcionesSimples = new String[]{"Sí", "No"}; // Valores por defecto si no hay opciones específicas
                 }
                 
                 JPanel radioPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -236,19 +245,16 @@ public class EncuestaResponderGUI extends JFrame {
                 component = radioPanel;
                 break;
             case "MULTIPLE": // Respuesta de opción múltiple con JComboBox
-                String[] opcionesMultiples = {""}; // Iniciar con opción vacía
-                 if (preguntaDetalle.getPreguntaBanco() != null && preguntaDetalle.getPreguntaBanco().getOpcionesRespuesta() != null && !preguntaDetalle.getPreguntaBanco().getOpcionesRespuesta().isEmpty()) {
-                    opcionesMultiples = (preguntaDetalle.getPreguntaBanco().getOpcionesRespuesta()).split(",");
-                     String[] temp = new String[opcionesMultiples.length + 1];
-                     temp[0] = "";
-                     for(int i = 0; i < opcionesMultiples.length; i++) { temp[i+1] = opcionesMultiples[i].trim(); }
-                     opcionesMultiples = temp;
-                } else if (preguntaDetalle.getTextoPreguntaUnica() != null && preguntaDetalle.getOpcionesRespuestaUnica() != null && !preguntaDetalle.getOpcionesRespuestaUnica().isEmpty()) {
-                     opcionesMultiples = (preguntaDetalle.getOpcionesRespuestaUnica()).split(",");
-                     String[] temp = new String[opcionesMultiples.length + 1];
-                     temp[0] = "";
-                     for(int i = 0; i < opcionesMultiples.length; i++) { temp[i+1] = opcionesMultiples[i].trim(); }
-                     opcionesMultiples = temp;
+                String opcionesMultiplesStr = preguntaDetalle.getCriterioDescarteValor(); // Usar criterioDescarteValor para opciones
+                String[] opcionesMultiples;
+                if (opcionesMultiplesStr != null && !opcionesMultiplesStr.trim().isEmpty()) {
+                    opcionesMultiples = opcionesMultiplesStr.split(",");
+                    String[] temp = new String[opcionesMultiples.length + 1];
+                    temp[0] = ""; // Opción vacía por defecto
+                    for(int i = 0; i < opcionesMultiples.length; i++) { temp[i+1] = opcionesMultiples[i].trim(); }
+                    opcionesMultiples = temp;
+                } else {
+                    opcionesMultiples = new String[]{""}; // Solo opción vacía si no hay opciones específicas
                 }
                 
                 JComboBox<String> comboBox = new JComboBox<>(opcionesMultiples);
@@ -270,7 +276,7 @@ public class EncuestaResponderGUI extends JFrame {
 
                 // Restaura el valor en el componente de UI
                 JComponent currentComponent = (JComponent) panelCampoRespuesta.getComponent(0);
-                String tipo = preguntaDetalle.getTipoPregunta().getNombreTipo();
+                String tipo = preguntaDetalle.getTipoPreguntaAsociada() != null ? preguntaDetalle.getTipoPreguntaAsociada().getNombreTipo() : ""; // Usar el tipo asociado
 
                 switch (tipo) {
                     case "TEXTO_CORTO":
@@ -309,7 +315,7 @@ public class EncuestaResponderGUI extends JFrame {
         String valorRespuesta = "";
         
         JComponent currentComponent = (JComponent) panelCampoRespuesta.getComponent(0);
-        String tipo = preguntaDetalle.getTipoPregunta().getNombreTipo();
+        String tipo = preguntaDetalle.getTipoPreguntaAsociada() != null ? preguntaDetalle.getTipoPreguntaAsociada().getNombreTipo() : ""; // Usar el tipo asociado
 
         switch (tipo) {
             case "TEXTO_CORTO":
@@ -335,21 +341,22 @@ public class EncuestaResponderGUI extends JFrame {
                 }
                 break;
             case "MULTIPLE":
-                valorRespuesta = (String) ((JComboBox<String>) currentComponent).getSelectedItem();
+                // Asegurarse de que el elemento seleccionado no sea null
+                Object selectedItem = ((JComboBox<String>) currentComponent).getSelectedItem();
+                if (selectedItem != null) {
+                    valorRespuesta = selectedItem.toString().trim();
+                }
                 break;
         }
         
-        // Si el campo de respuesta es de tipo texto corto, largo o número,
-        // Y el valor es una cadena vacía, permitirlo solo si no es descarte.
-        // Las preguntas de opción simple/múltiple siempre tendrán un valor (incluso vacío si el combo lo permite)
+        // Si la pregunta es de descarte y el valor es vacío, forzar que se responda.
+        // Si no es de descarte y el valor es vacío, se guarda como vacío.
         if (valorRespuesta.isEmpty()) {
             if (preguntaDetalle.isEsPreguntaDescarte()) {
-                // Si es de descarte, debe tener una respuesta para evaluar el criterio
                 JOptionPane.showMessageDialog(this, "Debe responder esta pregunta de descarte para continuar.", "Respuesta Obligatoria", JOptionPane.WARNING_MESSAGE);
-                return; // No avanzar
+                return; // No permite avanzar o guardar si es pregunta de descarte obligatoria y vacía
             } else {
-                // Si no es de descarte y es opcional, se puede guardar como vacía
-                 valorRespuesta = ""; 
+                valorRespuesta = ""; // Si no es de descarte, se permite guardar vacío.
             }
         }
 
@@ -367,7 +374,7 @@ public class EncuestaResponderGUI extends JFrame {
         } else {
             // Crear nueva respuesta
             RespuestaUsuario nuevaRespuesta = new RespuestaUsuario();
-            nuevaRespuesta.setIdUsuario(encuestadoActual.getIdUsuario());
+            nuevaRespuesta.setIdUsuario(encuestadoActual.getId_usuario()); //
             nuevaRespuesta.setIdEncuesta(encuestaActual.getIdEncuesta());
             nuevaRespuesta.setIdEncuestaDetallePregunta(preguntaDetalle.getIdEncuestaDetallePregunta());
             nuevaRespuesta.setValorRespuesta(valorRespuesta);
@@ -376,9 +383,8 @@ public class EncuestaResponderGUI extends JFrame {
         
         // Aplicar lógica de descarte
         if (preguntaDetalle.isEsPreguntaDescarte()) {
-            // Obtener la respuesta actual para la pregunta de descarte
             String respuestaDeDescarte = valorRespuesta;
-            String criterioDescarte = preguntaDetalle.getCriterioDescarte(); // Criterio almacenado en DB
+            String criterioDescarte = preguntaDetalle.getCriterioDescarteValor(); // Criterio almacenado en DB
 
             // Si la respuesta coincide con el criterio de descarte (case-insensitive)
             if (criterioDescarte != null && !criterioDescarte.isEmpty() && 
@@ -389,20 +395,27 @@ public class EncuestaResponderGUI extends JFrame {
                 return; // Salir de la función y no avanzar a la siguiente pregunta
             }
         }
-        
-        // Si no se descartó y la respuesta es válida, retornar true para avanzar
+        // Si no se descartó y la respuesta es válida, la función simplemente retorna para permitir el avance.
     }
 
     private void mostrarSiguientePregunta() {
-        guardarRespuestaActual(); // Guarda la respuesta de la pregunta actual y aplica descarte
-        // Si el descarte se activó, finalizarEncuesta(true) ya habrá cerrado la ventana.
-        // Si no se ha descartado y la respuesta se guardó correctamente:
+        // Antes de avanzar, siempre intentar guardar la respuesta actual
+        // Esta llamada también maneja la lógica de descarte y puede finalizar la encuesta.
+        guardarRespuestaActual(); 
+        
+        // Si la encuesta no fue finalizada por descarte dentro de guardarRespuestaActual,
+        // y el índice no ha llegado al final, avanzamos.
+        // La condición `indicePreguntaActual < preguntasDeEncuesta.size() - 1` se evalúa *después* de guardar.
+        // Si guardarRespuestaActual causó un descarte, la ventana ya se cerró.
+        // Si guardarRespuestaActual mostró un mensaje de error y retornó, no avanzamos.
         if (indicePreguntaActual < preguntasDeEncuesta.size() - 1) {
             indicePreguntaActual++;
             mostrarPreguntaActual();
         } else {
-            // Ya estamos en la última pregunta, el botón "Siguiente" se convierte en "Finalizar"
-            // o el botón "Finalizar" se activa. La lógica de finalización estará en el handler de btnFinalizar
+            // Ya estamos en la última pregunta y no hubo descarte.
+            // Si el botón "Finalizar" está habilitado (en mostrarPreguntaActual),
+            // el usuario lo presionará directamente.
+            // No necesitamos una lógica especial aquí para forzar finalizar.
         }
     }
 
@@ -426,6 +439,10 @@ public class EncuestaResponderGUI extends JFrame {
             guardarRespuestaActual(); // Guarda la respuesta final y aplica lógica de descarte por última vez
         }
         
+        // Si la encuesta se descartó en el último guardarRespuestaActual,
+        // esta función ya fue llamada con porDescarte = true y la ventana se cerró.
+        // Si se llegó aquí por el botón "Finalizar" o si se completó la última pregunta sin descarte:
+        
         try {
             // Registrar fecha y hora de finalización
             Timestamp finParticipacion = new Timestamp(System.currentTimeMillis());
@@ -433,7 +450,7 @@ public class EncuestaResponderGUI extends JFrame {
             long duracionSegundos = (finParticipacion.getTime() - inicioParticipacion.getTime()) / 1000;
 
             // Enviar todas las respuestas recolectadas al servicio
-            servicioParticipacion.guardarRespuestasCompletas(respuestasRecolectadas, encuestadoActual.getIdUsuario(), encuestaActual.getIdEncuesta(), finParticipacion, (int)duracionSegundos);
+            servicioParticipacion.guardarRespuestasCompletas(respuestasRecolectadas, encuestadoActual.getId_usuario(), encuestaActual.getIdEncuesta(), finParticipacion, (int)duracionSegundos); //
             
             if (!porDescarte) {
                 JOptionPane.showMessageDialog(this, "¡Gracias por completar la encuesta!", "Encuesta Finalizada", JOptionPane.INFORMATION_MESSAGE);
@@ -451,6 +468,7 @@ public class EncuestaResponderGUI extends JFrame {
 
     private void volverAEncuestasDisponibles() {
         this.dispose(); // Cierra esta ventana
-        parentEncuestasDisponibles.mostrarEncuestasDisponiblesGUI(); // Asegura que la ventana padre se muestre
+        parentEncuestasDisponibles.cargarEncuestasDisponibles(); // Recarga la lista de encuestas disponibles en la ventana padre
+        parentEncuestasDisponibles.setVisible(true); // Asegura que la ventana padre se muestre y esté visible
     }
 }

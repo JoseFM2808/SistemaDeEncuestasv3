@@ -1,6 +1,6 @@
 package SteveJobs.encuestas.ui;
 
-import SteveJobs.encuestas.dao.ClasificacionPreguntaDAO;
+import SteveJobs.encuestas.dao.ClasificacionPreguntaDAO; // Acceso directo al DAO
 import SteveJobs.encuestas.modelo.ClasificacionPregunta;
 
 import javax.swing.JOptionPane;
@@ -8,7 +8,7 @@ import java.util.List;
 
 public class UIGestionClasificacionesPregunta {
 
-    private static ClasificacionPreguntaDAO clasificacionPreguntaDAO = new ClasificacionPreguntaDAO(); 
+    private static ClasificacionPreguntaDAO clasificacionPreguntaDAO = new ClasificacionPreguntaDAO(); // Utiliza el DAO directamente
 
     public static void mostrarMenu() {
         int opcion;
@@ -64,13 +64,14 @@ public class UIGestionClasificacionesPregunta {
             return;
         }
 
+        // Verificar si la clasificación ya existe
         if (clasificacionPreguntaDAO.obtenerClasificacionPorNombre(nombre) != null) {
             JOptionPane.showMessageDialog(null, "Ya existe una clasificación con ese nombre.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         String descripcion = JOptionPane.showInputDialog("Ingrese la descripción (opcional):");
-        if (descripcion == null) descripcion = ""; 
+        if (descripcion == null) descripcion = ""; // Si cancela o no ingresa nada
         
         String[] estados = {"ACTIVA", "INACTIVA"};
         String estadoSeleccionado = (String) JOptionPane.showInputDialog(null, 
@@ -79,7 +80,7 @@ public class UIGestionClasificacionesPregunta {
         if (estadoSeleccionado == null) return;
 
         ClasificacionPregunta nuevaClasificacion = new ClasificacionPregunta(nombre, descripcion, estadoSeleccionado);
-        boolean registrado = clasificacionPreguntaDAO.crearClasificacionPregunta(nuevaClasificacion);
+        boolean registrado = clasificacionPreguntaDAO.crearClasificacionPregunta(nuevaClasificacion); // Asume este método
 
         if (registrado) {
             JOptionPane.showMessageDialog(null, "Clasificación registrada exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
@@ -87,6 +88,7 @@ public class UIGestionClasificacionesPregunta {
             JOptionPane.showMessageDialog(null, "Error al registrar la clasificación.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
 
     private static void listarClasificaciones() {
         List<ClasificacionPregunta> clasificaciones = clasificacionPreguntaDAO.obtenerTodasLasClasificaciones();
@@ -129,6 +131,7 @@ public class UIGestionClasificacionesPregunta {
             return;
         }
         
+        // Verificar si el nuevo nombre ya existe en otra clasificación
         ClasificacionPregunta clasifConMismoNombre = clasificacionPreguntaDAO.obtenerClasificacionPorNombre(nuevoNombre);
         if (clasifConMismoNombre != null && clasifConMismoNombre.getIdClasificacion() != idClasificacion) {
             JOptionPane.showMessageDialog(null, "Ya existe otra clasificación con ese nuevo nombre.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -148,7 +151,7 @@ public class UIGestionClasificacionesPregunta {
         clasificacionExistente.setNombreClasificacion(nuevoNombre);
         clasificacionExistente.setDescripcion(nuevaDescripcion);
         clasificacionExistente.setEstado(nuevoEstado);
-        boolean actualizado = clasificacionPreguntaDAO.actualizarClasificacionPregunta(clasificacionExistente); 
+        boolean actualizado = clasificacionPreguntaDAO.actualizarClasificacionPregunta(clasificacionExistente); // Asume este método
 
         if (actualizado) {
             JOptionPane.showMessageDialog(null, "Clasificación modificada exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
@@ -170,7 +173,7 @@ public class UIGestionClasificacionesPregunta {
 
         int confirm = JOptionPane.showConfirmDialog(null, "¿Está seguro de que desea eliminar la clasificación con ID " + idClasificacion + "?", "Confirmar Eliminación", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
-            boolean eliminado = clasificacionPreguntaDAO.eliminarClasificacionPregunta(idClasificacion); 
+            boolean eliminado = clasificacionPreguntaDAO.eliminarClasificacionPregunta(idClasificacion); // Asume este método
             if (eliminado) {
                 JOptionPane.showMessageDialog(null, "Clasificación eliminada exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
             } else {

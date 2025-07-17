@@ -103,7 +103,7 @@ public class DialogoCrearPreguntaUnica extends JDialog {
 
     private void cargarTiposYClasificaciones() {
         // Cargar tipos de pregunta
-        List<TipoPregunta> tipos = tipoPreguntaDAO.obtenerTodosLosTipos(); // CORRECCIÓN
+        List<TipoPregunta> tipos = tipoPreguntaDAO.obtenerTodosLosTiposPregunta();
         for (TipoPregunta tp : tipos) {
             cmbTipoPregunta.addItem(tp.getNombreTipo());
         }
